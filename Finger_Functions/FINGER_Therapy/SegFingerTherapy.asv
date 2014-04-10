@@ -1,27 +1,37 @@
-function segdata = SegFingerTherapy(subname)
+function segdata = SegFingerTherapy(username,subname)
 %SegFingerTherapy
 %
 % Segments FINGER therapy data into a sample by channel by trial array
 %
-% Input: subname as string, e.g. 'Mark'
-%
+% Input: subname (identifier) as string, e.g. 'LASF', 
+%        username ast string, e.g. 'Sumner'
 
-cd('C:\Users\Sumner\Desktop\FINGER-EEG study')
 
-% Read in note/trial timing data 
-load('note_timing_SunshineDay') %creates var speedTest   <70x1 double>
-load('note_timing_SpeedTest')   %creates var sunshineDay <43x1 double>
-
-% Load in subject .mat data file from EGI machine
-% CHANGE TO REFLECT YOUR SETUP
+% Load in subject .mat data file 
 if ispc ==1
-    cd(strcat(subname,'\Exam 1\'))
-    filename = celldir([subname '*.mat']);
-    filename = filename{1}(1:end-4);
-    
+    switch username
+        case 'Sumner'
+            cd('C:\Users\Sumner\Desktop\FINGER-EEG study') 
+            addpath
+        case 'Omar'
+            cd('C:\Users\Omar\Desktop\FINGER-EEG study')  
+        case 'Camilo'
+            cd('C:\Users\Camilo\Desktop\FINGER-EEG study')  
+    end
+    cd(strcat(subname,'\Exam 1\'))    
+else
+    error('Please identify path for Linux machines in function');
+end
 
+filename = celldir([subname '*.mat']);
+filename = filename{1}(1:end-4);
 disp(['Loading ' filename '...']);
 load(filename);
+
+% Read in note/trial timing data 
+cd .. ; cd ..;
+load('note_timing_SunshineDay') %creates var speedTest   <70x1 double>
+load('note_timing_SpeedTest')   %creates var sunshineDay <43x1 double>
 
 % load the EGI head model
 load egihc256redhm
