@@ -1,14 +1,23 @@
-function segdata = SegFingerTherapy(subname)
+function segdata = SegFingerTherapy(username,subname)
 %SegFingerTherapy
 %
 % Segments FINGER therapy data into a sample by channel by trial array
 %
-% Input: subname as string, e.g. 'Mark'
+% Input: subname (identifier) as string, e.g. 'LASF', 
+%        username ast string, e.g. 'Sumner'
 
 
 % Load in subject .mat data file 
 if ispc ==1
-    cd('C:\Users\Sumner\Desktop\FINGER-EEG study')  
+    switch username
+        case 'Sumner'
+            cd('C:\Users\Sumner\Desktop\FINGER-EEG study')             
+        case 'Omar'
+            cd('C:\Users\Omar\Desktop\FINGER-EEG study')  
+        case 'Camilo'
+            cd('C:\Users\Camilo\Desktop\FINGER-EEG study')  
+    end
+    addpath .
     cd(strcat(subname,'\Exam 1\'))    
 else
     error('Please identify path for Linux machines in function');
@@ -20,6 +29,7 @@ disp(['Loading ' filename '...']);
 load(filename);
 
 % Read in note/trial timing data 
+cd .. ; cd ..;
 load('note_timing_SunshineDay') %creates var speedTest   <70x1 double>
 load('note_timing_SpeedTest')   %creates var sunshineDay <43x1 double>
 
@@ -70,6 +80,7 @@ for t = 1:numtrials1
 end
 
 disp('Saving segmented data...');
+cd(strcat(subname,'\Exam 1\'))  
 save(strcat(subname,'_segdata'),'segdata');
 
 end

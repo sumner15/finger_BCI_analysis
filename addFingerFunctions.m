@@ -6,19 +6,24 @@ function addFingerFunctions
 
 dir = pwd;
 
+BCI2000 = input('Are you using BCI2000? (type y or n -- press ''enter'')\n','s');
+
 if ispc == 1
-    addpath(genpath(strcat(dir,'\Finger_Functions')));
-    cd C:\BCI2000\tools;
-    addpath(genpath(strcat(pwd,'\matlab')));
-    addpath(genpath(strcat(pwd,'\mex')));
-    cd(dir);
+    addpath(genpath(strcat(dir,'\Finger_Functions')));    
+    if BCI2000 == 'y'
+        cd C:\BCI2000\tools;
+        addpath(genpath(strcat(pwd,'\matlab')));
+        addpath(genpath(strcat(pwd,'\mex')));
+        cd(dir);
+    end
 else
     addpath(genpath(strcat(dir,'/Finger_Functions')));
-    cd ../../Documents/BCI2000/tools;
-    addpath(genpath(strcat(pwd,'/matlab')));
-    addpath(genpath(strcat(pwd,'/mex')));
-    
-    cd(dir);
+    if BCI2000 == 'y'
+        cd ../../Documents/BCI2000/tools;
+        addpath(genpath(strcat(pwd,'/matlab')));
+        addpath(genpath(strcat(pwd,'/mex')));    
+        cd(dir);
+    end
 end
 
 disp('FINGER function library added.');
