@@ -8,20 +8,26 @@ function segdata = SegFingerTherapy(username,subname)
 
 
 % Load in subject .mat data file 
-if ispc ==1
-    switch username
-        case 'Sumner'
+
+switch username
+    case 'Sumner'
+        if ispc==1
             cd('C:\Users\Sumner\Desktop\FINGER-EEG study')             
-        case 'Omar'
-            cd('C:\Users\Omar\Desktop\FINGER-EEG study')  
-        case 'Camilo'
-            cd('C:\Users\Camilo\Desktop\FINGER-EEG study')  
-    end
-    addpath .
+        else
+            cd('/Users/sum/Desktop/Finger-EEG study');
+        end
+    case 'Omar'
+        cd('C:\Users\Omar\Desktop\FINGER-EEG study')  
+    case 'Camilo'
+        cd('C:\Users\Camilo\Desktop\FINGER-EEG study')  
+end
+addpath .
+if ispc==1
     cd(strcat(subname,'\Exam 1\'))    
 else
-    error('Please identify path for Linux machines in function');
+    cd(strcat(subname,'/Exam 1/'))    
 end
+
 
 filename = celldir([subname '*.mat']);
 filename = filename{1}(1:end-4);
@@ -53,7 +59,9 @@ segdata.data = zeros(sr*triallength,nchans,numtrials1);
 %% Create marker spike train
 
 % Marker data for FINGER Game
+filename = strrep(filename,' ','_');
 marker1 = eval([filename '2Video_trigger']);
+%marker1 = JOHG_20140122_12232Video_trigger;
 ind1 = find(getspike(marker1) > 0)-2000;
 
 for n = 1:numtrials1
@@ -70,7 +78,8 @@ marker1inds = find(segdata.marker1 > 0);
 
 
 %% Load, filter, and segment EEG data
-eeg = JOHG_20140122_12231;
+
+eeg = eval([filename '2']);
 disp('Filtering the data...');
 eeg = filtereeg(eeg(EGIHC256RED.ChansUsed,:)',sr);
   
@@ -80,7 +89,11 @@ for t = 1:numtrials1
 end
 
 disp('Saving segmented data...');
-cd(strcat(subname,'\Exam 1\'))  
+if ispc == 1 
+    cd(strcat(subname,'\Exam 1\'))  
+else
+    cd(strcat(subname,'/Exam 1/'))
+end
 save(strcat(subname,'_segdata'),'segdata');
 
 end
