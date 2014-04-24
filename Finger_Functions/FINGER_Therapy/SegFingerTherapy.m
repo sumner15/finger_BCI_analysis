@@ -19,7 +19,9 @@ switch username
     case 'Omar'
         cd('C:\Users\Omar\Desktop\FINGER-EEG study')  
     case 'Camilo'
-        cd('C:\Users\Camilo\Desktop\FINGER-EEG study')  
+        cd('C:\Users\Camilo\Desktop\FINGER-EEG study') 
+    case 'Thuong'
+        cd('C:\Users\Thuong\Documents\SPRING 2014\Research\FINGER-EEG study');
 end
 addpath .
 if ispc==1
