@@ -25,9 +25,9 @@ switch username
 end
 addpath .
 if ispc==1
-    cd(strcat(subname,'\Exam 1\'))    
+    cd(strcat(subname,'\raw data\'))    
 else
-    cd(strcat(subname,'/Exam 1/'))    
+    cd(strcat(subname,'/raw data/'))    
 end
 
 % Read in .mat file
@@ -101,9 +101,9 @@ end
 
 disp('Saving segmented data...');
 if ispc == 1 
-    cd(strcat(subname,'\Exam 1\'))  
+    cd(strcat(subname,'\raw data\'))  
 else
-    cd(strcat(subname,'/Exam 1/'))
+    cd(strcat(subname,'/raw data/'))
 end
 save(strcat(subname,'_segdata1'),'segdata1');
 save(strcat(subname,'_segdata2'),'segdata2');
