@@ -29,82 +29,55 @@ switch username
     case 'Thuong'
         cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
 end
-addpath .; cd subname
+addpath .; cd(subname);
 
-%% Read in .mat file
+%Read in .mat file
 filename = celldir([subname '*.mat']);
-filename = filename{1}(1:end-4);
-disp(['Loading ' filename '...']);
-load(filename);
-
-% Read in note/trial timing data 
-cd .. ; 
-load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
-
-% load the EGI head model
-load egihc256redhm
-segdata1.hm = EGIHC256RED;
-segdata2.hm = EGIHC256RED;
+for i = 1:length(filename)
+    filename{i} = filename{i}(1:end-4);
+    disp(['Loading ' filename{1} '...']);
+    load(filename{i});
+end
 
 %% info regarding the experimental setup
-sr = samplingRate;
-triallength = 3; % approximate length of a one note trial in seconds
-nchans = length(EGIHC256RED.ChansUsed); % number of eeg channels in the headmodel
+%sampling rate
+concatData.sr = samplingRate;   
+% number of eeg channels in the headmodel
+concatData.nchans = length(EGIHC256RED.ChansUsed); 
+% load the EGI head model
+load egihc256redhm
+concatData.hm = EGIHC256RED;
 
-%% Variables determined from the data
-numtrials1 = length(sunshineDay);   % Number of notes in Sunshine Day
-numtrials2 = length(speedTest);     % Number of notes in Speed Test
+%% concatenate data
+eeg{1} = strcat(filename{1},'mff1');  eeg{5} = strcat(filename{2},'mff1');
+eeg{2} = strcat(filename{1},'mff2');  eeg{6} = strcat(filename{2},'mff2');
+eeg{3} = strcat(filename{1},'mff3');  eeg{7} = strcat(filename{2},'mff3');
+eeg{4} = strcat(filename{1},'mff4');  %EEG sub-sessions
 
-%% Initialize data structure components
-segdata1.sr = sr; segdata2.sr = sr;
-segdata1.data = zeros(sr*triallength,nchans,numtrials1);
-segdata2.data = zeros(sr*triallength,nchans,numtrials2);
+vid{1} = strcat(filename{1},'mff1Video_trigger');  
+vid{2} = strcat(filename{1},'mff2Video_trigger');  
+vid{3} = strcat(filename{1},'mff3Video_trigger');  
+vid{4} = strcat(filename{1},'mff4Video_trigger'); 
+vid{5} = strcat(filename{2},'mff1Video_trigger');
+vid{6} = strcat(filename{2},'mff2Video_trigger');
+vid{7} = strcat(filename{2},'mff3Video_trigger');
 
-%% Create marker spike trains
-
-% Marker data for FINGER Game
-filename = strrep(filename,' ','_');
-marker1 = eval([filename '2Video_trigger']);
-marker2 = eval([filename '3Video_trigger']);
-ind1 = find(getspike(marker1) > 0)-2000;
-ind2 = find(getspike(marker2) > 0)-2000;
-
-for n = 1:numtrials1
-    segdata1.marker1(1,ind1+sunshineDay(n)) = 1;    
+for i = 1:length(eeg)   % replacing spaces with underscores
+    eeg{i} = strrep(eeg{i},' ','_');
+    vid{i} = strrep(vid{i},' ','_');
 end
 
-for n = 1:numtrials2
-    segdata2.marker2(1,ind2+speedTest(n)) = 1;    
-end
+concatData.eeg = eval(['[' eeg{2} ' ' eeg{3} ' ' eeg{4} ' ' eeg{5} ' ' eeg{6} ' ' eeg{7} '];']);
+concatData.vid = eval(['[' vid{2} ' ' vid{3} ' ' vid{4} ' ' vid{5} ' ' vid{6} ' ' vid{7} '];']);
 
-marker1inds = find(segdata1.marker1 > 0);
-marker2inds = find(segdata2.marker2 > 0);
-
-
-%% Load, filter, and segment EEG data
-
-eeg1 = eval([filename '2']);
-eeg2 = eval([filename '3']);
+%% filter the data
 disp('Filtering the data...');
-eeg1 = filtereeg(eeg1(EGIHC256RED.ChansUsed,:)',sr);
-eeg2 = filtereeg(eeg2(EGIHC256RED.ChansUsed,:)',sr);
-  
-% segment into sample x channel x trial matrix
-for t = 1:numtrials1
-    segdata1.data(:,:,t) = eeg1(marker1inds(t)-(sr*1.5):marker1inds(t)+(sr*1.5)-1,:);
-end
+concatData.filteredEEG = ...
+    filtereeg(concatData.eeg(EGIHC256RED.ChansUsed,:)',concatData.sr);
 
-for t = 1:numtrials2
-    segdata2.data(:,:,t) = eeg2(marker2inds(t)-(sr*1.5):marker2inds(t)+(sr*1.5)-1,:);
-end
-
-disp('Saving segmented data...');
-if ispc == 1 
-    cd(strcat(subname,'\raw data\'))  
-else
-    cd(strcat(subname,'/raw data/'))
-end
-save(strcat(subname,'_segdata1'),'segdata1');
-save(strcat(subname,'_segdata2'),'segdata2');
+%% save concatenated data
+disp('Saving concatenated data...');
+cd(subname)
+save(strcat(subname,'_concatData'),'concatData');
 
 end
