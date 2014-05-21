@@ -33,20 +33,20 @@ addpath .; cd(subname);
 
 %Read in .mat file
 filename = celldir([subname '*.mat']);
-for i = 1:length(filename)
+for i = 1:2
     filename{i} = filename{i}(1:end-4);
-    disp(['Loading ' filename{1} '...']);
+    disp(['Loading ' filename{i} '...']);
     load(filename{i});
 end
 
 %% info regarding the experimental setup
 %sampling rate
 concatData.sr = samplingRate;   
-% number of eeg channels in the headmodel
-concatData.nchans = length(EGIHC256RED.ChansUsed); 
-% load the EGI head model
-load egihc256redhm
-concatData.hm = EGIHC256RED;
+% % number of eeg channels in the headmodel
+% concatData.nchans = length(EGIHC256RED.ChansUsed); 
+% % load the EGI head model
+% load egihc256redhm
+% concatData.hm = EGIHC256RED;
 
 %% concatenate data
 eeg{1} = strcat(filename{1},'mff1');  eeg{5} = strcat(filename{2},'mff1');
@@ -70,10 +70,10 @@ end
 concatData.eeg = eval(['[' eeg{2} ' ' eeg{3} ' ' eeg{4} ' ' eeg{5} ' ' eeg{6} ' ' eeg{7} '];']);
 concatData.vid = eval(['[' vid{2} ' ' vid{3} ' ' vid{4} ' ' vid{5} ' ' vid{6} ' ' vid{7} '];']);
 
-%% filter the data
-disp('Filtering the data...');
-concatData.filteredEEG = ...
-    filtereeg(concatData.eeg(EGIHC256RED.ChansUsed,:)',concatData.sr);
+% %% filter the data
+% disp('Filtering the data...');
+% concatData.filteredEEG = ...
+%     filtereeg(concatData.eeg(EGIHC256RED.ChansUsed,:)',concatData.sr);
 
 %% save concatenated data
 disp('Saving concatenated data...');
