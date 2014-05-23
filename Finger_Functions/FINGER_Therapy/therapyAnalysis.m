@@ -1,7 +1,15 @@
-% This function is currently functioning for power analysis (ERD) from the
-% pilot study for the FINGER environmental effects on ERD study. It now
-% needs modification to examine power changes (ERD) in the FINGER therapy
-% study paradigm. Good luck! -Sumner 03/13/14
+% This function analyzes the results of the FINGER therapy study. 
+%
+% The function pulls the final cleaned EEG data as a structure from the
+% subjects' processed file (e.g. 'C:\Users...\FINGER-EEG
+% study\Processed\LASF\Exam 1\LASF_finalclean#.mat') in your local
+% directory (please download from the Cramer's lab servers). 
+%
+% Note that the calculation of ERD in this script uses the variance of the
+% Fourier coefficients. Thus it is calculating the magnitude of the FC
+% relative to the mean over the window. This may need changing in the
+% future to a manual calculation that uses a pre-trial baseline (resting
+% state data) or preceding trial as a reference/mean. 
 %
 % input: username and subname as strings (e.g. subname = 'LASF')
 
@@ -10,7 +18,7 @@ function therapyAnalysis(username, subname)
 % Input: subject name (as string)
 
 % Set the environment
-environment('egi256');                                              %CHECK THIS!!
+environment('egi256');                                     
 
 %% Load in subject .mat data file 
 switch username
@@ -49,7 +57,7 @@ disp('done.');
 
 
 %% %%%%%%%%%%%%%%%%%
-%%% EEG ANALYSES %%%
+%%% EEG ANALYSIS %%%
 %%%%%%%%%%%%%%%%%%%%
 
 %pick windowing for analysis
@@ -145,7 +153,7 @@ for condnum = 1:length(spectra)
 end
 
 %% saving data
-disp(strcat('Saving to: ',pwd));
+cd ..; disp(strcat('Saving to: ',pwd));
 savestring = strcat(subname,'_spectanalysis.mat');
 save(savestring,'spectra');
 disp('Finished! =D');

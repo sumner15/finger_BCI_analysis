@@ -9,11 +9,15 @@ function PlotNormPowerOverTime(spectra,freq,brain_region)
 
 figure;
 
-time = -1500:125:1500-125;
+%time = -1500:125:1500-125; %125ms window (used in ???)
+time = -1500:250:1250; %250ms window (used in FINGER therapy)
 
-restingpower1 = ones(size(spectra{1}.eegpower_chunks,3),1)*mean(squeeze(mean(spectra{1}.eegpower_chunks(freq,brain_region,1),1)));
-restingpower2 = ones(size(spectra{1}.eegpower_chunks,3),1)*mean(squeeze(mean(spectra{2}.eegpower_chunks(freq,brain_region,1),1)));
-restingpower3 = ones(size(spectra{1}.eegpower_chunks,3),1)*mean(squeeze(mean(spectra{3}.eegpower_chunks(freq,brain_region,1),1)));
+restingpower1 = ones(size(spectra{1}.eegpower_chunks,3),1)*...
+    mean(squeeze(mean(spectra{1}.eegpower_chunks(freq,brain_region,1),1)));
+restingpower2 = ones(size(spectra{1}.eegpower_chunks,3),1)*...
+    mean(squeeze(mean(spectra{2}.eegpower_chunks(freq,brain_region,1),1)));
+restingpower3 = ones(size(spectra{1}.eegpower_chunks,3),1)*...
+    mean(squeeze(mean(spectra{3}.eegpower_chunks(freq,brain_region,1),1)));
 
 trialpower1 = mean(squeeze(mean(spectra{1}.eegpower_chunks(freq,brain_region,:),1)));
 trialpower2 = mean(squeeze(mean(spectra{2}.eegpower_chunks(freq,brain_region,:),1)));
