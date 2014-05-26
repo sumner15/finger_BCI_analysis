@@ -128,6 +128,7 @@ for condnum = 1:length(spectra)
     % {song}.eegpower_chunks = freqbin x channel x trial x windowNum
     spectra{condnum}.eegpower_chunks = abs(fcoefeeg_chunks{condnum});
     % {song}.eegpower_trials = freqbin x channel x windowNum
+    % power across all trials
     spectra{condnum}.eegpower_trials = squeeze(mean(spectra{condnum}.eegpower_chunks,3));
     
 end
@@ -141,6 +142,7 @@ for song = 1:length(spectra)
     spectra{song}.goodchan = goodchan{i};
     spectra{song}.windowSize = windowSize;
     spectra{song}.subname = subname;
+    spectra{song}.hm = finalclean{song}.hm;
 
 end;
     
