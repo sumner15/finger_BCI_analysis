@@ -60,8 +60,14 @@ disp('done.');
 %%% EEG ANALYSIS %%%
 %%%%%%%%%%%%%%%%%%%%
 
-%pick windowing for analysis
-windowSize = 250;   % samples
+%% separate results by condition
+spectra{1}.cond = 'Exam 1: Sunshine';
+spectra{2}.cond = 'Exam 1: Speed test';
+spectra{3}.cond = 'Exam 2: Sunshine';
+spectra{4}.cond = 'Exam 2: Speed test';
+
+%% pick windowing for analysis
+windowSize = 250;   % in # of samples
 % for each song
 for i = 1:4
     % number of samples for a given song = #trials x #samples per trial
@@ -85,72 +91,60 @@ for i = 1:4
 end
 
 %% taking the FFT of the data
+%this cell will produce fourier coefficients in a cell array as follows:
+
+%fcoefeeg{song,trial,window} = freqbin x channel
+% e.g.     4     43    12         14        194
+
 disp('FFTing the data...');
 
-for windowNum = 1:length(startTimes)    % for each window number    
+for song = 1:4
     % Fast Fourier Transform
-    for song = 1:4
-        % current window   
-        win = startTimes{i}(windowNum):(startTimes{i}(windowNum)+windowSize-1);
-        % taking the fft
-        fcoefeeg{song,windowNum} = fft(ndetrend(finalclean{i}.data(win,:,:),[],1));
-        % limit to max frequency
-        fcoefeeg{song,windowNum} = fcoefeeg{song,windowNum}(1:maxbin,:,:);
+    nTrialSamples = size(finalclean{song}.data,1); %number of samples/trial
+    for windowNum = 1:nTrialSamples/windowSize     %for each window number  
+        for trial = 1:size(finalclean{song}.data,3)%for each trial
+            % current window   
+            win = (windowNum-1)*windowSize+(1:1:windowSize);
+            % taking the fft...
+            % fcoeffeeg{song,trial,window} = freqbin x channel
+            fcoefeeg{song,trial,windowNum} = ...
+                fft(ndetrend(finalclean{song}.data(win,:,trial)),[],1);
+            % limit to max frequency
+            fcoefeeg{song,trial,windowNum} = ...
+                fcoefeeg{song,trial,windowNum}(1:maxbin,:);
+            % reorganizing to...
+            % fcoefeeg_chunks{song} = freqbin x channel x trial x windowNum
+            fcoefeeg_chunks{song}(:,:,trial,windowNum) = ...
+                fcoefeeg{song,trial,windowNum};
+        end
     end    
 end
-clear win 
 
-%% separate results by condition
-spectra{1}.cond = 'Exam 1: Sunshine';
-spectra{2}.cond = 'Exam 1: Speed test';
-spectra{3}.cond = 'Exam 2: Sunshine';
-spectra{4}.cond = 'Exam 2: Speed test';
 
-for condnum = 1:length(spectra)
+%% Computing EEG power
+for condnum = 1:length(spectra)    
+    %EEG Power as magnitude of fourier coefficients for each window
     
-    % Concatenate the Fourier coef chunks together
-    tempfeeg = [];
-    
-    fcoefeeg_chunks = cell(1,length(startTimes));
-    for windowNum = 1:length(startTimes) % for each window number
-        temp = fcoefeeg{condnum,windowNum};
-        fcoefeeg_chunks{condnum}(:,:,:,windowNum) = temp;
-        tempfeeg = cat(3,tempfeeg,temp);
-    end       
-    
-    %EEG Power (defined as variance of fourier coefficients for a single
-    %window (from tempfeeg <- tempfeeg <- fcoefeeg at window number)
-    spectra{condnum}.trialfcoefeeg(:,:,:) = temp;
-    spectra{condnum}.eegpower(:,:) = var(tempfeeg,1,3);
-    spectra{condnum}.eegeppower(:,:) = squeeze(abs(mean(tempfeeg,3)).^2);
-    
-    %EEG Power Chunks
-    for windowNum = 1:length(startTimes)
-        
-        spectra{condnum}.eegpower_trialchunks(:,:,1,windowNum) = ...
-            abs((fcoefeeg{windowNum}(:,:,windowNum).^2));
-        
-        spectra{condnum}.eegpower_chunks(:,:,windowNum) = ...
-            var(fcoefeeg_chunks{condnum}(:,:,:,windowNum),1,3);
-        
-        spectra{condnum}.eegeppower_chunks(:,:,windowNum) = ...
-            squeeze(abs(mean(fcoefeeg_chunks{condnum}(:,:,:,windowNum),3)).^2);
-    end
-    
-    for song = 1:length(spectra)
-        %Organize the structure
-        spectra{song}.freqs = ((1:maxbin)-1)*finalclean{i}.sr/windowSize;
-        spectra{song}.startTimes = startTimes{i};
-        spectra{song}.midtime = startTimes{i}+windowSize/2;
-        spectra{song}.goodchan = goodchan{i};
-        spectra{song}.windowSize = windowSize;
-        spectra{song}.subname = subname;
-        
-    end;
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % {song}.eegpower_chunks = freqbin x channel x trial x windowNum
+    spectra{condnum}.eegpower_chunks = abs(fcoefeeg_chunks{condnum});
+    % {song}.eegpower_trials = freqbin x channel x windowNum
+    spectra{condnum}.eegpower_trials = squeeze(mean(spectra{condnum}.eegpower_chunks,3));
     
 end
+
+%% Organizing some remaining data to save out
+for song = 1:length(spectra)
+    %Organize the structure
+    spectra{song}.freqs = ((1:maxbin)-1)*finalclean{i}.sr/windowSize;
+    spectra{song}.startTimes = startTimes{condnum};
+    spectra{song}.midtime = startTimes{i}+windowSize/2;
+    spectra{song}.goodchan = goodchan{i};
+    spectra{song}.windowSize = windowSize;
+    spectra{song}.subname = subname;
+
+end;
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% saving data
 cd ..; disp(strcat('Saving to: ',pwd));
