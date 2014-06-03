@@ -45,6 +45,9 @@ elecs = newChans;
 %creating time vector for plotting
 time = (-1500:250:1375)';
 
+%setting y limit
+ylim = 4;
+
 figure; hold on;
 colors = ['r' 'g' 'b' 'k']; 
 
@@ -52,17 +55,18 @@ for i = 1:4
     % computing power across all chosen electrodes at the chosen frequency
     power{i} = squeeze(mean(spectra{i}.eegpower_trials(freqInd,elecs,:),2));
     % computing normalized power to first window of trial 
-    normPower{i} = power{i}/power{i}(1)-1;
+    % NOTE: using decibel conversion (See Cohen 2014 p.220)
+    normPower{i} = 10*log10(power{i}/power{i}(1));
     % plotting result vs. time
     plot(time,normPower{i},colors(i));
 end
 
 xlabel('Time (msec rel to not reaching target)');
-ylabel('Normalized Power (% change)');
+ylabel('Normalized Power (decibels)');
 title(strcat('Contralateral Motor Cortex : ',freqstr,'Hz Power'));
 
 legend(spectra{1}.cond,spectra{2}.cond,spectra{3}.cond,spectra{4}.cond,'Location','Best');
-axis([time(1) time(end) -1 1]);
+axis([time(1) time(end) -ylim ylim]);
 
 %% Computing normalized power for all frequency bins
 clear power normPower
@@ -75,7 +79,7 @@ for song = 1:4
        % computing power across all chosen electrodes at the current freq
        power{song}(freqBin,:) = squeeze(mean(spectra{song}.eegpower_trials(freqBin,elecs,:),2))';
        % computing normalized power to first window of trial
-       normPower{song}(freqBin,:) = power{song}(freqBin,:)/power{song}(freqBin,1)-1;
+       normPower{song}(freqBin,:) = 10*log10(power{song}(freqBin,:)/power{song}(freqBin,1));
     end   
 end
 
@@ -88,7 +92,7 @@ for i = 1:4
 %     minp = min(min(normPower{i})); maxp = max(max(normPower{i}));
     
     % plotting results
-    h(1) = imagesc(normPower{i}(:,2:end),[-0.5 0.5]);
+    h(1) = imagesc(normPower{i}(:,2:end),[-ylim ylim]);
     colorbar
     
     %flipping y axis back to normal and labeling (frequency)
