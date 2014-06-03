@@ -29,7 +29,7 @@ switch username
             cd('/Users/sum/Desktop/Finger-EEG study/Processed');
         end
     case 'Omar'
-        cd('C:\Users\Omar\Desktop\FINGER-EEG study\Processed')  
+        cd('/Users/omarshanta/Desktop/Finger-EEG study/Processed')  
     case 'Camilo'
         cd('C:\Users\Camilo\Desktop\FINGER-EEG study\Processed') 
     case 'Thuong'
