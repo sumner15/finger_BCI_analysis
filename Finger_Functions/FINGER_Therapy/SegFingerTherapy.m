@@ -67,8 +67,8 @@ segdata2.data = zeros(sr*triallength,nchans,numtrials2);
 filename = strrep(filename,' ','_');
 marker1 = eval([filename '2Video_trigger']);
 marker2 = eval([filename '3Video_trigger']);
-ind1 = find(getspike(marker1) > 0)-2000;
-ind2 = find(getspike(marker2) > 0)-2000;
+ind1 = find(getspike(marker1) > 0);
+ind2 = find(getspike(marker2) > 0);
 
 for n = 1:numtrials1
     segdata1.marker1(1,ind1+sunshineDay(n)) = 1;    
