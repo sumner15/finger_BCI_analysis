@@ -5,11 +5,9 @@
 % study\Processed\LASF\Exam 1\LASF_finalclean#.mat') in your local
 % directory (please download from the Cramer's lab servers). 
 %
-% Note that the calculation of ERD in this script uses the variance of the
-% Fourier coefficients. Thus it is calculating the magnitude of the FC
-% relative to the mean over the window. This may need changing in the
-% future to a manual calculation that uses a pre-trial baseline (resting
-% state data) or preceding trial as a reference/mean. 
+% Note that the calculation of ERD in this script is calculating the 
+% magnitude of the FC only. Baseline normalization is not done here
+%
 %
 % input: username and subname as strings (e.g. subname = 'LASF')
 
@@ -123,13 +121,18 @@ end
 
 %% Computing EEG power
 for condnum = 1:length(spectra)    
-    %EEG Power as magnitude of fourier coefficients for each window
-    
+    %EEG Power as magnitude of fourier coefficients for each window    
     % {song}.eegpower_chunks = freqbin x channel x trial x windowNum
     spectra{condnum}.eegpower_chunks = abs(fcoefeeg_chunks{condnum});
+    % {song}.phase = freqbin x channel x trial x windowNum
+    spectra{condnum}.phase         = angle(fcoefeeg_chunks{condnum});
+    
+    % power and phase (ITPC) across all trials
     % {song}.eegpower_trials = freqbin x channel x windowNum
-    % power across all trials
     spectra{condnum}.eegpower_trials = squeeze(mean(spectra{condnum}.eegpower_chunks,3));
+    unitPhaseVec{condnum} = exp(1i*spectra{condnum}.phase);
+    % {song}.ITPC = freqbin x channel x windowNum (summed over trials)
+    spectra{condnum}.ITPC = abs(squeeze(sum(unitPhaseVec{condnum},3))./size(spectra{condnum}.phase,3));
     
 end
 

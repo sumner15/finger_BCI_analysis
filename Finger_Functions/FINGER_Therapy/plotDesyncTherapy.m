@@ -113,6 +113,36 @@ for i = 1:4
     xlabel('Time (msec rel movement)');
     title(spectra{i}.cond);
 end
+
+%% Imagesc of freq x time as binary greater than 95% CI
+figure;
+for i = 1:4
+    subplot(2,2,i)
+    CI_95 = 2.234519837447;
+%     %determining min and max power for plotting
+%     minp = min(min(normPower{i})); maxp = max(max(normPower{i}));
+    
+    % plotting results
+    h(1) = imagesc(abs(normPower{i}(:,2:end))>CI_95,[-.25 1.25]);    
+    
+    %flipping y axis back to normal and labeling (frequency)
+    set(gca,'YDir','normal') 
+    set(gca,'YTick',1:1:length(spectra{1}.freqs))    
+    for ii = 1:length(spectra{i}.freqs)
+        strfreqs{ii} = num2str(spectra{i}.freqs(ii)); end
+    set(gca,'YTickLabel',strfreqs)
+        
+    %labeling x axis ticks (time)
+    set(gca,'XTick',1:1:length(time)-1)
+    for ii = 1:length(time)-1
+        strtimes{ii} = num2str(250*ii-1500); end
+    set(gca,'XTickLabel',strtimes)
+    
+    % labels and titles
+    ylabel('Frequency (Hz)');
+    xlabel('Time (msec rel movement)');
+    title([spectra{i}.cond '(Significance in Red)']);
+end
     
 end
 
