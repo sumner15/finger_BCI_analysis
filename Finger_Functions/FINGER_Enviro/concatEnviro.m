@@ -14,22 +14,7 @@ function [concatData] = concatEnviro(username,subname)
 
 
 %% Load in subject .mat data file, timing data, and head model
-
-switch username
-    case 'Sumner'
-        if ispc==1
-            cd('C:\Users\Sumner\Desktop\FINGER-Enviro study')             
-        else
-            cd('/Users/sum/Desktop/Finger-Enviro study');
-        end
-    case 'Omar'
-        cd('C:\Users\Omar\Desktop\FINGER-Enviro study')  
-    case 'Camilo'
-        cd('C:\Users\Camilo\Desktop\FINGER-Enviro study') 
-    case 'Thuong'
-        cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
-end
-addpath .; cd(subname);
+setPathEnviro(username,subname);
 
 %Read in .mat file
 filename = celldir([subname '*.mat']);
@@ -77,7 +62,7 @@ concatData.vid = eval(['[' vid{2} ' ' vid{3} ' ' vid{4} ' ' vid{5} ' ' vid{6} ' 
 
 %% save concatenated data
 disp('Saving concatenated data...');
-cd(subname)
 save(strcat(subname,'_concatData'),'concatData');
+disp('Done.');
 
 end
