@@ -1,4 +1,4 @@
-function [concatData] = concatEnviro(username,subname)
+function concatEnviro(username,subname)
 %concatEnviro
 %
 % concatEnviro concatenates the files from the environmental FINGER study

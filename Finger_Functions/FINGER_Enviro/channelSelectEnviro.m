@@ -16,29 +16,28 @@ function channelSelectEnviro(username,subname)
 % concatData is saved out again, now containing concatData.motorEEG where:
 % motorEEG = (channel x sample) 2D array of time domain data of motor
 % channels only.
+disp('Filtering channels for sensorimotor only');
 
 %% loading data 
 setPathEnviro(username,subname)
 
 %Read in .mat file
 filename = celldir([subname '*concatData.mat']);
-if size(filename,1)>=2
-    error('Too many concat data files!');
-end 
-
 filename{1} = filename{1}(1:end-4);
+
 disp(['Loading ' filename{1} '...']);
-load(filename{1});
+load(filename{1});  
 disp('Done.');
 
-%% identifying channels (based on EGI 256 saline net only!)
-motorChannels = [1 2 3];
+%% identifying channels (based on EGI 256 saline net only! - no HM applied)
+motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
 
 %% setting channels
 concatData.motorEEG = concatData.eeg(motorChannels,:);
 
 %% save concatenated data
-disp('Saving concatenated data...');
+disp('Saving topographically filtered data...');
 save(strcat(subname,'_concatData'),'concatData');
 disp('Done.');
+
 end
