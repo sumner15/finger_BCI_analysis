@@ -1,4 +1,4 @@
-function waveletConv = waveletEnviro(username,subname)
+function waveletEnviro(username,subname)
 % Wavelet convolution of continuous EEG signal (not yet segmented) to avoid
 % edge artifacts. See details: 
 %
@@ -25,18 +25,16 @@ setPathEnviro(username,subname)
 
 %Read in .mat file
 filename = celldir([subname '*concatData.mat']);
-if size(filename,1)>=2
-    error('Too many concat data files!');
-end 
 
 filename{1} = filename{1}(1:end-4);
 disp(['Loading ' filename{1} '...']);
-load(filename{1});
+load(filename{1});  
 disp('Done.');
+
 
 %% setting constants
 sampFreq = concatData.sr;       % sampling rate from concatData
-wFreq = 7:15;   %vector of wavelet frequencies to process 
+wFreq = 5:50;   %vector of wavelet frequencies to process 
 nCycles = 4;    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;     % saving to structure
 concatData.nCycles = nCycles;   % saving to structure
@@ -73,9 +71,10 @@ end %for each signal
 disp('Done.');
 
 
-%% save concatenated data
-disp('Saving concatenated data...');
-save(strcat(subname,'_concatData'),'concatData');
+%% save concatenated data    
+waveletData = concatData; 
+disp('Saving wavelet frequency-domain data...');
+save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
 disp('Done.');
 
 end %function

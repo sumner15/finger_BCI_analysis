@@ -13,7 +13,10 @@ switch username
         cd('C:\Users\Camilo\Desktop\FINGER-Enviro study') 
     case 'Thuong'
         cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
+    otherwise
+        disp('Invalid username selected');
+        error('Invalid username');
 end
-addpath .; cd(subname);
+addpath(cd); cd(subname);
 
 end
