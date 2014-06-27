@@ -7,7 +7,7 @@ function waveletConv = waveletEnviro(username,subname)
 % subname = e.g. 'LASF' 
 %
 % uses subjects concatData file where concatData is a structure containing
-% concatData.sr (sampling rate) and concatData.eeg (the signal) where:
+% concatData.sr (sampling rate) and concatData.motorEEG (the signal) where:
 % signal = array of signals as vectors (channel x samples)
 %
 %
@@ -44,10 +44,10 @@ concatData.nCycles = nCycles;   % saving to structure
 %% performing convolution
 disp('Beginning wavelet convolution'); 
 %preallocating for speed
-concatData.wavelet = zeros([length(wFreq),size(concatData.eeg)]);
-for ii = 1:size(concatData.eeg,1)   %for each signal 
-    currentSig = concatData.eeg(ii,:);
-    fprintf('signal %i / %i \n',ii,size(concatData.eeg,1));
+concatData.wavelet = zeros([length(wFreq),size(concatData.motorEEG)]);
+for ii = 1:size(concatData.motorEEG,1)   %for each signal 
+    currentSig = concatData.motorEEG(ii,:);
+    fprintf('signal %i / %i \n',ii,size(concatData.motorEEG,1));
     for i = 1:length(wFreq)         %convolve with each freq wavelet
         f = wFreq(i);
         s = nCycles/(2*pi*f);   
