@@ -10,7 +10,7 @@ end
         
 for currentSub = 1:length(subjects)
     tic
-    clear concatData selectData waveletData;
+    clear ans concatData selectData waveletData;
     subname = subjects{currentSub};   
     subname = subname{1};
     
@@ -19,9 +19,11 @@ for currentSub = 1:length(subjects)
     disp('-------------------------------------');
     
     concatEnviro(username,subname);
+    clear ans concatData selectData waveletData
     channelSelectEnviro(username,subname);
+    clear ans concatData selectData waveletData
     waveletEnviro(username,subname);
     toc
 end
 
-clear subname concatData selectDat waveletData;
+clear ans subname concatData selectData waveletData;
