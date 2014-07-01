@@ -52,8 +52,12 @@ for i = 1:length(eeg)   % replacing spaces with underscores
     vid{i} = strrep(vid{i},' ','_');
 end
 
-concatData.eeg = eval(['[' eeg{2} ' ' eeg{3} ' ' eeg{4} ' ' eeg{5} ' ' eeg{6} ' ' eeg{7} '];']);
-concatData.vid = eval(['[' vid{2} ' ' vid{3} ' ' vid{4} ' ' vid{5} ' ' vid{6} ' ' vid{7} '];']);
+%concatData.eeg = eval(['[' eeg{2} ' ' eeg{3} ' ' eeg{4} ' ' eeg{5} ' ' eeg{6} ' ' eeg{7} '];']);
+%concatData.vid = eval(['[' vid{2} ' ' vid{3} ' ' vid{4} ' ' vid{5} ' ' vid{6} ' ' vid{7} '];']);
+for i = 2:length(eeg)
+    concatData.eeg{i-1} = eval([eeg{i} ';']);
+    concatData.vid{i-1} = eval([vid{i} ';']);
+end
 
 % %% filter the data
 % disp('Filtering the data...');
