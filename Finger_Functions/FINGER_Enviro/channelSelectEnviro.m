@@ -33,7 +33,9 @@ disp('Done.');
 motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
 
 %% setting channels
-concatData.motorEEG = concatData.eeg(motorChannels,:);
+for i = 1:length(concatData.eeg)
+    concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:);
+end
 
 %% save concatenated data
 disp('Saving topographically filtered data...');

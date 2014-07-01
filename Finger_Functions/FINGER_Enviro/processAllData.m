@@ -2,7 +2,7 @@ clc; clear concatData;
 
 %subjects = {{'BECC'},{'DIAJ'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
 %            {'NAZM'},{'POTA'},{'TRAD'},{'TRAT'},{'TRAV'},{'TRUS'}};
-subjects = {{'TRAT'}};        
+subjects = {{'BECC'},{'DIAJ'},{'DIMC'}};        
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 

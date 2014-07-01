@@ -34,7 +34,7 @@ disp('Done.');
 
 %% setting constants
 sampFreq = concatData.sr;       % sampling rate from concatData
-wFreq = 5:50;   %vector of wavelet frequencies to process 
+wFreq = 5:30;   %vector of wavelet frequencies to process 
 nCycles = 4;    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;     % saving to structure
 concatData.nCycles = nCycles;   % saving to structure
@@ -42,32 +42,34 @@ concatData.nCycles = nCycles;   % saving to structure
 %% performing convolution
 disp('Beginning wavelet convolution'); 
 %preallocating for speed
-concatData.wavelet = zeros([length(wFreq),size(concatData.motorEEG)]);
-for ii = 1:size(concatData.motorEEG,1)   %for each signal 
-    currentSig = concatData.motorEEG(ii,:);
-    fprintf('signal %i / %i \n',ii,size(concatData.motorEEG,1));
-    for i = 1:length(wFreq)         %convolve with each freq wavelet
-        f = wFreq(i);
-        s = nCycles/(2*pi*f);   
-        [wavelet,~] = cmorwavf(-1,1,2*sampFreq,s,f);    
-        kernel = fliplr(wavelet);   
-        
-%       convResult = conv(currentSig,kernel,'same');        
-%       resultIFFT = convResult;  %store in cell array
-        
-        %% note: convolve = ifft(fft multiplication)          
-        NFFT = length(currentSig)+length(kernel)-1;
-        signalFFT = fft(currentSig,NFFT);   % taking the FFTs 
-        kernelFFT = fft(kernel,NFFT);   
-        resultFFT = signalFFT.*kernelFFT;   % finding the product
-        resultIFFT = ifft(resultFFT);       % taking the inverse FFT
-        % cutting the fat off        
-        fat = floor((length(resultIFFT)-length(currentSig))/2);         
-        resultIFFT = resultIFFT(fat+1:fat+length(currentSig));  
-        concatData.wavelet(i,ii,:) = resultIFFT;
-        
-    end %for each frequency
-end %for each signal
+for songNo = 1:length(concatData.motorEEG)          %for each song (6 total)
+    concatData.wavelet{songNo} = zeros([length(wFreq),size(concatData.motorEEG{songNo})],'like',1+1i);
+    for ii = 1:size(concatData.motorEEG{songNo},1)  %for each channel (signal) 
+        currentSig = concatData.motorEEG{songNo}(ii,:);
+        fprintf('signal %i / %i \n',ii,size(concatData.motorEEG{songNo},1));
+        for i = 1:length(wFreq)             %convolve with each freq wavelet
+            f = wFreq(i);
+            s = nCycles/(2*pi*f);   
+            [wavelet,~] = cmorwavf(-1,1,2*sampFreq,s,f);    
+            kernel = fliplr(wavelet);   
+
+    %       convResult = conv(currentSig,kernel,'same');        
+    %       resultIFFT = convResult;  %store in cell array
+
+            %% note: convolve = ifft(fft multiplication)          
+            NFFT = length(currentSig)+length(kernel)-1;
+            signalFFT = fft(currentSig,NFFT);   % taking the FFTs 
+            kernelFFT = fft(kernel,NFFT);   
+            resultFFT = signalFFT.*kernelFFT;   % finding the product
+            resultIFFT = ifft(resultFFT);       % taking the inverse FFT
+            % cutting the fat off        
+            fat = floor((length(resultIFFT)-length(currentSig))/2);         
+            resultIFFT = resultIFFT(fat+1:fat+length(currentSig));  
+            concatData.wavelet{songNo}(i,ii,:) = resultIFFT;
+
+        end %for each frequency
+    end %for each signal
+end % for each song
 disp('Done.');
 
 
