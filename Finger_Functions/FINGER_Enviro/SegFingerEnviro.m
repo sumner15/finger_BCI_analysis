@@ -1,104 +1,74 @@
-function [segdata1,segdata2] = SegFingerEnviro(username,subname)
+function SegFingerEnviro(username,subname)
 %SegFingerEnviro
 %
-% Segments FINGER environment study data into a sample x chan x trial array
+% Segments FINGER environment study data into a 
+% {song}(trial x freq x chn x time) cell array of segmented data
 %
 % Input: subname (identifier) as string, e.g. 'LASF', 
-%        username ast string, e.g. 'Sumner'
+%        username as string, e.g. 'Sumner'
 
 
-%% Load in subject .mat data file, timing data, and head model
+%% loading data 
+setPathEnviro(username,subname)
 
-switch username
-    case 'Sumner'
-        if ispc==1
-            cd('C:\Users\Sumner\Desktop\FINGER-Enviro study')             
-        else
-            cd('/Users/sum/Desktop/Finger-Enviro study');
-        end
-    case 'Omar'
-        cd('C:\Users\Omar\Desktop\FINGER-Enviro study')  
-    case 'Camilo'
-        cd('C:\Users\Camilo\Desktop\FINGER-Enviro study') 
-    case 'Thuong'
-        cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
-end
-addpath .; cd subname
+%Read in .mat file
+filename = celldir([subname '*waveletData.mat']);
 
-%% Read in .mat file
-filename = celldir([subname '*.mat']);
-filename = filename{1}(1:end-4);
-disp(['Loading ' filename '...']);
-load(filename);
+filename{1} = filename{1}(1:end-4);
+disp(['Loading ' filename{1} '...']);
+load(filename{1});  
+disp('Done.');
 
-% Read in note/trial timing data 
+%Read in note/trial timing data 
 cd .. ; 
 load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
-
-% load the EGI head model
-load egihc256redhm
-segdata1.hm = EGIHC256RED;
-segdata2.hm = EGIHC256RED;
+clear data note_timing_Blackbird sunshineDay
 
 %% info regarding the experimental setup
-sr = samplingRate;
+nSongs = length(waveletData.eeg);% Number of songs in a recording (6)
 triallength = 3; % approximate length of a one note trial in seconds
-nchans = length(EGIHC256RED.ChansUsed); % number of eeg channels in the headmodel
+nTrials = length(blackBird);   % Number of notes in song
+sr = waveletData.sr;             % sampling rate
+nChans = size(waveletData.wavelet{1},2);    % number of active channels
+freqBins = length(waveletData.wavFreq);     % number of frequency bins 
 
-%% Variables determined from the data
-numtrials1 = length(sunshineDay);   % Number of notes in Sunshine Day
-numtrials2 = length(speedTest);     % Number of notes in Speed Test
-
-%% Initialize data structure components
-segdata1.sr = sr; segdata2.sr = sr;
-segdata1.data = zeros(sr*triallength,nchans,numtrials1);
-segdata2.data = zeros(sr*triallength,nchans,numtrials2);
 
 %% Create marker spike trains
+markerInds = cell(1,length(waveletData.eeg));
+marker = cell(1,nSongs);
 
-% Marker data for FINGER Game
-filename = strrep(filename,' ','_');
-marker1 = eval([filename '2Video_trigger']);
-marker2 = eval([filename '3Video_trigger']);
-ind1 = find(getspike(marker1) > 0)-2000;
-ind2 = find(getspike(marker2) > 0)-2000;
-
-for n = 1:numtrials1
-    segdata1.marker1(1,ind1+sunshineDay(n)) = 1;    
+for songNo = 1:nSongs
+    %start index of time sample marking beginning of trial (from labjack)
+    startInd = min(find(abs(waveletData.vid{songNo})>2000));
+    %markerInds is an integer array of marker indices (for all trials)
+    markerInds{songNo} = startInd+round(blackBird);
 end
 
-for n = 1:numtrials2
-    segdata2.marker2(1,ind2+speedTest(n)) = 1;    
+
+%% Initialize data structure components
+%structure: {song}(trial x freq x chn x time)
+for songNo = 1:length(waveletData.eeg)
+    waveletData.segWavData{songNo} = zeros(nTrials,freqBins,nChans,sr*triallength);    
+    waveletData.segEEG{songNo}     = zeros(nTrials,257,sr*triallength);
 end
 
-marker1inds = find(segdata1.marker1 > 0);
-marker2inds = find(segdata2.marker2 > 0);
+%% Segment EEG data
 
-
-%% Load, filter, and segment EEG data
-
-eeg1 = eval([filename '2']);
-eeg2 = eval([filename '3']);
-disp('Filtering the data...');
-eeg1 = filtereeg(eeg1(EGIHC256RED.ChansUsed,:)',sr);
-eeg2 = filtereeg(eeg2(EGIHC256RED.ChansUsed,:)',sr);
-  
-% segment into sample x channel x trial matrix
-for t = 1:numtrials1
-    segdata1.data(:,:,t) = eeg1(marker1inds(t)-(sr*1.5):marker1inds(t)+(sr*1.5)-1,:);
+for songNo = 1:length(waveletData.eeg)
+    for trialNo = 1:nTrials
+        %time indices that the current trial spans (3 sec total)
+        timeSpan = markerInds{songNo}(trialNo)-(sr*1.5):markerInds{songNo}(trialNo)+(sr*1.5)-1; 
+        %filling segment into segEEG
+        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.eeg{songNo}(:,timeSpan);
+        %filling segment into waveletData
+        waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
+    end
 end
 
-for t = 1:numtrials2
-    segdata2.data(:,:,t) = eeg2(marker2inds(t)-(sr*1.5):marker2inds(t)+(sr*1.5)-1,:);
-end
+%% Saving data
 
-disp('Saving segmented data...');
-if ispc == 1 
-    cd(strcat(subname,'\raw data\'))  
-else
-    cd(strcat(subname,'/raw data/'))
-end
-save(strcat(subname,'_segdata1'),'segdata1');
-save(strcat(subname,'_segdata2'),'segdata2');
+disp('Saving SEGMENTED wavelet frequency-domain data...');
+save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
+disp('Done.');
 
 end
