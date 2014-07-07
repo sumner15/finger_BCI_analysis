@@ -1,8 +1,7 @@
 clc; clear concatData; 
 
-%subjects = {{'BECC'},{'DIAJ'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-%            {'NAZM'},{'POTA'},{'TRAD'},{'TRAT'},{'TRAV'},{'TRUS'}};
-subjects = {{'BECC'},{'DIAJ'},{'DIMC'}};        
+subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
+            {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -17,6 +16,7 @@ for currentSub = 1:length(subjects)
     disp('-------------------------------------');
     disp(['Beginning data processing for ' subname]);
     disp('-------------------------------------');
+    
     
     concatEnviro(username,subname);
     clear ans concatData selectData waveletData
