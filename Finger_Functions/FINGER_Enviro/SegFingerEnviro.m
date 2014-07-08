@@ -18,6 +18,7 @@ filename{1} = filename{1}(1:end-4);
 disp(['Loading ' filename{1} '...']);
 load(filename{1});  
 disp('Done.');
+waveletData = rmfield(waveletData,'eeg');
 
 %Read in note/trial timing data 
 cd .. ; 
@@ -62,7 +63,7 @@ for songNo = 1:nSongs
         %time indices that the current trial spans (3 sec total)
         timeSpan = markerInds{songNo}(trialNo)-(sr*1.5):markerInds{songNo}(trialNo)+(sr*1.5)-1; 
         %filling segment into segEEG
-        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.eeg{songNo}(:,timeSpan);
+        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
         %filling segment into waveletData
         waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
     end
