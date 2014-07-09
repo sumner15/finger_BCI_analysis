@@ -34,7 +34,7 @@ disp('Done.');
 
 %% setting constants
 sampFreq = concatData.sr;       % sampling rate from concatData
-wFreq = 5:30;   %vector of wavelet frequencies to process 
+wFreq = 5:40;   %vector of wavelet frequencies to process 
 nCycles = 4;    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;     % saving to structure
 concatData.nCycles = nCycles;   % saving to structure
@@ -43,6 +43,7 @@ concatData.nCycles = nCycles;   % saving to structure
 disp('Beginning wavelet convolution'); 
 %preallocating for speed
 for songNo = 1:length(concatData.motorEEG)          %for each song (6 total)
+    fprintf('----song number: %i / %i----\n',songNo,length(concatData.motorEEG));
     concatData.wavelet{songNo} = zeros([length(wFreq),size(concatData.motorEEG{songNo})],'like',1+1i);
     for ii = 1:size(concatData.motorEEG{songNo},1)  %for each channel (signal) 
         currentSig = concatData.motorEEG{songNo}(ii,:);
