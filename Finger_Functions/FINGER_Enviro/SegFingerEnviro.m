@@ -6,6 +6,7 @@ function SegFingerEnviro(username,subname)
 %
 % Input: subname (identifier) as string, e.g. 'LASF', 
 %        username as string, e.g. 'Sumner'
+%        username as string, e.g. 'Sumner'
 
 
 %% loading data 
@@ -26,7 +27,7 @@ load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
 clear data note_timing_Blackbird sunshineDay
 
 %% info regarding the experimental setup
-nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
+nSongs = length(waveletData.eeg);           % # songs per recording (6)
 triallength = 3;                            % length - one note trial (sec)
 nTrials = length(blackBird);                % Number of notes in song
 sr = waveletData.sr;                        % sampling rate
@@ -45,7 +46,6 @@ for songNo = 1:nSongs
     markerInds{songNo} = startInd+round(blackBird);
 end
 
-
 %% Initialize data structure components
 for songNo = 1:nSongs
     %structure: {song}(trial x freq x chn x trial-time)
@@ -53,7 +53,6 @@ for songNo = 1:nSongs
     %structure: {song}(trial x chn x trial-time)
     waveletData.segEEG{songNo}     = zeros(nTrials,257,sr*triallength);
 end
-
 %% Segment EEG data
 
 for songNo = 1:nSongs
@@ -67,8 +66,22 @@ for songNo = 1:nSongs
         %filling segment into waveletData
         waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
     end
-end
+for songNo = 1:nSongs
+    fprintf('---- song %i / %i ----\n Trial:',songNo,nSongs);
+    for trialNo = 1:nTrials
+        fprinf('|');
+        %time indices that the current trial spans (3 sec total)
+        timeSpan = markerInds{songNo}(trialNo)-(sr*1.5):markerInds{songNo}(trialNo)+(sr*1.5)-1; 
+        %filling segment into segEEG
+        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
+        %filling segment into waveletData
+        waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
+    end
+%% Saving data
 
+disp('Saving SEGMENTED wavelet frequency-domain data...');
+save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
+disp('Done.');
 %% Saving data
 
 disp('Saving SEGMENTED wavelet frequency-domain data...');
