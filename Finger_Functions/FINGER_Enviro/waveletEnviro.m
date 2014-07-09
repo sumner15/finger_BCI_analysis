@@ -74,6 +74,7 @@ disp('Done.');
 
 
 %% save concatenated data    
+concatData = rmfield(concatData,'eeg');
 waveletData = concatData; 
 disp('Saving wavelet frequency-domain data...');
 save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
