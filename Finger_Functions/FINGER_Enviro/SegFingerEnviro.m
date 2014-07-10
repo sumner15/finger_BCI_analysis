@@ -11,19 +11,27 @@ function SegFingerEnviro(username,subname)
 %% loading data 
 setPathEnviro(username,subname)
 
-%Read in .mat file
-filename = celldir([subname '*waveletData.mat']);
+%If the wavelet data variable isn't already in the global workspace
+if(~exist('waveletData'))
+    %Read in .mat file
+    filename = celldir([subname '*waveletData.mat']);
 
-filename{1} = filename{1}(1:end-4);
-disp(['Loading ' filename{1} '...']);
-load(filename{1});  
-disp('Done.');
-waveletData = rmfield(waveletData,'eeg');
+    filename{1} = filename{1}(1:end-4);
+    disp(['Loading ' filename{1} '...']);
+    global waveletData;
+    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+    disp('Done.');
+end
+%Remove the eeg only component if it exists (legacy scripts kept eeg field)
+if(isfield(waveletData,'eeg'))
+    waveletData = rmfield(waveletData,'eeg');
+end
 
 %Read in note/trial timing data 
 cd .. ; 
 load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
 clear data note_timing_Blackbird sunshineDay
+cd(subname);
 
 %% info regarding the experimental setup
 nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
@@ -50,7 +58,7 @@ for songNo = 1:nSongs
     %structure: {song}(trial x freq x chn x trial-time)
     waveletData.segWavData{songNo} = zeros(nTrials,freqBins,nChans,sr*triallength);    
     %structure: {song}(trial x chn x trial-time)
-    waveletData.segEEG{songNo}     = zeros(nTrials,257,sr*triallength);
+    waveletData.segEEG{songNo}     = zeros(nTrials,nChans,sr*triallength);
 end
 %% Segment EEG data
 for songNo = 1:nSongs
@@ -67,9 +75,12 @@ for songNo = 1:nSongs
 end
 
 %% Saving data
+if(isfield(waveletData,'vid'))
+    waveletData = rmfield(waveletData,{'vid','motorEEG','wavelet'});
+end
 
 disp('Saving SEGMENTED wavelet frequency-domain data...');
-save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
+save(strcat(subname,'_segWavData'),'waveletData','-v7.3');
 disp('Done.');
 
 end

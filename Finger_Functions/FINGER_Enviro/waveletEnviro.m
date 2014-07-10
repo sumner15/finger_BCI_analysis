@@ -33,18 +33,20 @@ disp('Done.');
 
 
 %% setting constants
-sampFreq = concatData.sr;       % sampling rate from concatData
-wFreq = 5:40;   %vector of wavelet frequencies to process 
-nCycles = 4;    %number of cycles of the wavelet wanted 
-concatData.wavFreq = wFreq;     % saving to structure
-concatData.nCycles = nCycles;   % saving to structure
+nSongs = length(concatData.motorEEG);   % number of songs
+sampFreq = concatData.sr;               % sampling rate from concatData
+wFreq = 5:40;                   %vector of wavelet frequencies to process 
+nCycles = 4;                    %number of cycles of the wavelet wanted 
+concatData.wavFreq = wFreq;             % saving to structure
+concatData.nCycles = nCycles;           % saving to structure
 
 %% performing convolution
 disp('Beginning wavelet convolution'); 
 %preallocating for speed
-for songNo = 1:length(concatData.motorEEG)          %for each song (6 total)
-    fprintf('----song number: %i / %i----\n',songNo,length(concatData.motorEEG));
-    concatData.wavelet{songNo} = zeros([length(wFreq),size(concatData.motorEEG{songNo})],'like',1+1i);
+for songNo = 1:nSongs          %for each song (6 total)
+    fprintf('----song number: %i / %i----\n',songNo,nSongs);
+    dataDimensions = [length(wFreq),size(concatData.motorEEG{songNo})];
+    concatData.wavelet{songNo} = zeros(dataDimensions);
     for ii = 1:size(concatData.motorEEG{songNo},1)  %for each channel (signal) 
         currentSig = concatData.motorEEG{songNo}(ii,:);
         fprintf('signal %i / %i \n',ii,size(concatData.motorEEG{songNo},1));
@@ -57,7 +59,7 @@ for songNo = 1:length(concatData.motorEEG)          %for each song (6 total)
     %       convResult = conv(currentSig,kernel,'same');        
     %       resultIFFT = convResult;  %store in cell array
 
-            %% note: convolve = ifft(fft multiplication)          
+            % note: convolve = ifft(fft multiplication)          
             NFFT = length(currentSig)+length(kernel)-1;
             signalFFT = fft(currentSig,NFFT);   % taking the FFTs 
             kernelFFT = fft(kernel,NFFT);   
@@ -76,7 +78,8 @@ disp('Done.');
 
 %% save concatenated data    
 concatData = rmfield(concatData,'eeg');
-waveletData = concatData; 
+global waveletData;
+waveletData = concatData; clear concatData
 disp('Saving wavelet frequency-domain data...');
 save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
 disp('Done.');

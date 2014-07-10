@@ -1,7 +1,8 @@
 clc; clear concatData; 
 
-subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-            {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
+%subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
+%            {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
+subjects = {{'TRAT'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -22,7 +23,8 @@ for currentSub = 1:length(subjects)
     clear ans concatData selectData waveletData
     channelSelectEnviro(username,subname);
     clear ans concatData selectData waveletData
-    waveletEnviro(username,subname);
+    waveletEnviro(username,subname);   
+    SegFingerEnviro(username,subname);
     toc
 end
 
