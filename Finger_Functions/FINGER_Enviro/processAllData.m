@@ -25,6 +25,7 @@ for currentSub = 1:length(subjects)
     clear ans concatData selectData waveletData
     waveletEnviro(username,subname);   
     SegFingerEnviro(username,subname);
+    intraSubject(username,subname);
     toc
 end
 
