@@ -18,14 +18,16 @@ function intraSubject(username, subname)
 setPathEnviro(username,subname)
 
 %If the wavelet data variable isn't already in the global workspace
-if(~exist('waveletData','var'))           
+if(exist('waveletData','var'))           
+    disp('waveletData already loaded into workspace.');
+else
     %Read in .mat file
     filename = celldir([subname '*segWavData.mat']);
 
     filename{1} = filename{1}(1:end-4);
     disp(['Loading ' filename{1} '...']);
     global waveletData;
-    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+    %waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
     disp('Done.');
 end
 
@@ -51,16 +53,18 @@ for song = 1:nSongs
     trialPower{song} = squeeze(mean(power{song},1));
     
     % Computing decibel power
-    % ADD THIS. Decibel power is 20*log(power(time)./baseline)
-    % baseline power is something like mean(trialPower{song}(:,:,1:200))
-    % (first 200msec comprises baseline)
+    % (first 250msec comprises baseline)
+    baselinePower{song} = mean(trialPower{song}(:,:,1:250),3);
+    baselinePower{song} = repmat(baselinePower{song},[1,1,size(trialPower{song},3)]);
+    trialPowerDB{song} = trialPower{song}./baselinePower{song};
+    trialPowerDB{song} = 20*log(trialPowerDB{song});
 end
 
 %% Organizing remaining data to save out  
 
 %% saving data
 disp('Saving power average across trials');
-save(strcat(subname,'_trialPower'),'trialPower','-v7.3');
+save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB','-v7.3');
 disp('Done.');
 
 end
