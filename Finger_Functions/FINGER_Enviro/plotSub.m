@@ -1,4 +1,12 @@
 function plotSub(username,subname)
+% plotSub pluts the intra-subject results of the FINGER environment study.  
+%
+% The function pulls the final analyzed EEG data from the subjects' 
+% processed file (intraSubject.m gives trialPower) in your local directory 
+% (please download from the Cramer's lab servers). 
+%
+% Input: subname (identifier) as string, e.g. 'LASF', 
+%        username as string, e.g. 'Sumner'
 
 %% loading data
 setPathEnviro(username,subname)

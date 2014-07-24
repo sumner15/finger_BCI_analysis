@@ -1,8 +1,5 @@
-% This function analyzes the results of the FINGER environment study. 
-%
-% Input: 
-% username = e.g. 'Sumner'
-% subname = e.g. 'LASF' 
+function intraSubject(username, subname, waveletData)
+% This function analyzes the results of the FINGER environment study.  
 %
 % The function pulls the final cleaned EEG data as a structure from the
 % subjects' processed file (segWavData) in your local directory (please 
@@ -11,16 +8,15 @@
 % Note that the calculation of ERD in this script is calculating the 
 % decibel power as the 20*log10(abs(wavelet_coeff)).
 %
-% Input: username and subname as strings (e.g. subname = 'LASF')
+% Input: subname (identifier) as string, e.g. 'LASF', 
+%        username as string, e.g. 'Sumner'
+%        waveletData (optional) data set will speed up loading procedure
 
-function intraSubject(username, subname)
 %% loading data 
 setPathEnviro(username,subname)
 
 %If the wavelet data variable isn't already in the global workspace
-if(exist('waveletData','var'))           
-    disp('waveletData already loaded into workspace.');
-else
+if nargin < 3
     %Read in .mat file
     filename = celldir([subname '*segWavData.mat']);
 
