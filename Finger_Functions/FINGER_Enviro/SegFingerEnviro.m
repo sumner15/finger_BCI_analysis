@@ -1,4 +1,4 @@
-function SegFingerEnviro(username,subname)
+function waveletData = SegFingerEnviro(username,subname,waveletData)
 %SegFingerEnviro
 %
 % Segments FINGER environment study data into a 
@@ -6,19 +6,19 @@ function SegFingerEnviro(username,subname)
 %
 % Input: subname (identifier) as string, e.g. 'LASF', 
 %        username as string, e.g. 'Sumner'
+%        waveletData (optional) data set will speed up loading procedure
 
 
 %% loading data 
 setPathEnviro(username,subname)
 
 %If the wavelet data variable isn't already in the global workspace
-if(~exist('waveletData'))
+if nargin < 3
     %Read in .mat file
     filename = celldir([subname '*waveletData.mat']);
-
+    
     filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);
-    global waveletData;
+    disp(['Loading ' filename{1} '...']);    
     waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
     disp('Done.');
 end

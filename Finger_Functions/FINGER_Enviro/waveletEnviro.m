@@ -1,4 +1,4 @@
-function waveletEnviro(username,subname)
+function waveletData = waveletEnviro(username,subname)
 % Wavelet convolution of continuous EEG signal (not yet segmented) to avoid
 % edge artifacts. See details: 
 %
@@ -33,6 +33,7 @@ disp('Done.');
 
 
 %% setting constants
+global waveletData
 nSongs = length(concatData.motorEEG);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
