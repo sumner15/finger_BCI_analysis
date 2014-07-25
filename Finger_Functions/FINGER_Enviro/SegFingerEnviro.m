@@ -60,17 +60,28 @@ for songNo = 1:nSongs
     %structure: {song}(trial x chn x trial-time)
     waveletData.segEEG{songNo}     = zeros(nTrials,nChans,sr*triallength);
 end
+
+%% Reordering data according to run type
+cd ..
+load runOrder.mat   %identifying run order
+subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
+            'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
+subNum = find(ismember(subjects,subname));
+waveletData.runOrder = runOrder(subNum,:);
+cd(subname)
+
 %% Segment EEG data
 for songNo = 1:nSongs
     fprintf('\n Song Number %i / %i \n',songNo,nSongs);
+    runNo = runOrder(songNo);
     for trialNo = 1:nTrials
         fprintf('- %2i ',trialNo);
         %time indices that the current trial spans (3 sec total)
         timeSpan = markerInds{songNo}(trialNo)-(sr*1.5):markerInds{songNo}(trialNo)+(sr*1.5)-1; 
         %filling segment into segEEG
-        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
+        waveletData.segEEG{runNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
         %filling segment into waveletData
-        waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
+        waveletData.segWavData{runNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
     end
 end
 
