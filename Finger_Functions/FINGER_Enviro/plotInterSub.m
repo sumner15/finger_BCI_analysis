@@ -38,7 +38,7 @@ for currentSub = 1:length(subjects)
     end
 end
 for song = 1:6
-    MEAN.trialPowerDB{song} = MEAN.trialPowerDB{song}./6;
+    MEAN.trialPowerDB{song} = MEAN.trialPowerDB{song}./length(subjects);
 end
 
 %% plotting trial power (decibels)
@@ -49,7 +49,7 @@ set(figure,'Position',scrsz)
 % plotting DB power for each song (subplots)
 for song = 1:6
     subplot(2,3,song); hold on
-    title('Mu (8-13Hz) normalized power')
+    title('Inter-Subject Mean Mu (8-13Hz) normalized power')
     ylabel('dB'); xlabel('trial time (msec)');
     axis([-1500 1500 -20 20]);
     
@@ -62,4 +62,21 @@ for song = 1:6
     % plotting mean DB power across all subjects
     plot(-1500:1499,squeeze(mean(MEAN.trialPowerDB{song}(freq,2,:),1)),'r','LineWidth',3)        
 end
+
+%% plotting trial power freq x time maps (decibels)
+set(figure,'Position',scrsz)
+% plotting DB power for each song (subplots)
+for song = 1:6
+    subplot(2,3,song); hold on
+    title('Inter-Subject Mean Normalized power')
+    ylabel('frequency (Hz)'); xlabel('trial time (msec)');    
+    
+    trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
+    
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar    
+    set(gca,'YDir','normal')
+end
+
+
+%%
 clear trialPowerDB trialPower currentSub scrsz song subname 
