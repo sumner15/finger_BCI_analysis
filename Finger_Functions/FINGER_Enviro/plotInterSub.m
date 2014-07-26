@@ -3,6 +3,7 @@ clc;
 subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
 %subjects = {{'TRAT'}};
+conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -49,7 +50,7 @@ set(figure,'Position',scrsz)
 % plotting DB power for each song (subplots)
 for song = 1:6
     subplot(2,3,song); hold on
-    title('Inter-Subject Mean Mu (8-13Hz) normalized power')
+    title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
     ylabel('dB'); xlabel('trial time (msec)');
     axis([-1500 1500 -20 20]);
     
@@ -68,12 +69,13 @@ set(figure,'Position',scrsz)
 % plotting DB power for each song (subplots)
 for song = 1:6
     subplot(2,3,song); hold on
-    title('Inter-Subject Mean Normalized power')
+    title([conditions{song} ': Inter-Subject Mean Normalized power'])
     ylabel('frequency (Hz)'); xlabel('trial time (msec)');    
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar    
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar   
+    axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end
 

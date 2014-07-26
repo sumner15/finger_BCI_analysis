@@ -8,6 +8,8 @@ function plotSub(username,subname)
 % Input: subname (identifier) as string, e.g. 'LASF', 
 %        username as string, e.g. 'Sumner'
 
+conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
+
 %% loading data
 setPathEnviro(username,subname)
 filename = celldir([subname '*trialPower.mat']);
@@ -27,7 +29,7 @@ for song = 1:length(trialPowerDB)
     
     plot(-1500:1499,squeeze(mean(trialPowerDB{song}(freq,2,:),1)))
         
-    title([subname ': Mu (8-13Hz) normalized power']);
+    title([subname ' ' conditions{song} ': Mu (8-13Hz) normalized power']);
     ylabel('dB'); xlabel('trial time (msec)');
     axis([-1500 1500 -6 6]);
 end
@@ -42,6 +44,6 @@ for song = 1:length(trialPowerDB)
     imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar    
     set(gca,'YDir','normal')
     
-    title([subname ': Normalized Power (dB)']);
+    title([subname ' ' conditions{song} ': Normalized Power (dB)']);
     ylabel('frequency (Hz)'); xlabel('trial time (msec)')    
 end
