@@ -1,5 +1,5 @@
 %% Load in subject .mat data file
-username = 'LAB'; subname = 'TRAD';
+username = 'Sumner'; subname = 'TRAD';
 setPathEnviro(username,subname);
 
 %Read in .mat file
@@ -13,7 +13,9 @@ end
 TRAD_20140421_0922_amff1 = TRAD_20140421_09221;
 TRAD_20140421_0922_amff1Video_trigger = TRAD_20140421_09221Extension;
 TRAD_20140421_0922_amff2 = TRAD_20140421_09222;
-TRAD_20140421_0922_amff2Video_trigger = TRAD_20140421_09222Extension;
+%TRAD_20140421_0922_amff2Video_trigger = TRAD_20140421_09222Extension;
+%using video trigger from next song
+TRAD_20140421_0922_amff2Video_trigger = TRAD_20140421_10161Video_trigger; 
 TRAD_20140421_0922_amff3 = TRAD_20140421_10161;
 TRAD_20140421_0922_amff3Video_trigger = TRAD_20140421_10161Video_trigger;
 TRAD_20140421_0922_amff4 = TRAD_20140421_10162;
