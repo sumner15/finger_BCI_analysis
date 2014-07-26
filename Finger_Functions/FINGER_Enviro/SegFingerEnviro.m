@@ -73,7 +73,7 @@ cd(subname)
 %% Segment EEG data
 for songNo = 1:nSongs
     fprintf('\n Song Number %i / %i \n',songNo,nSongs);
-    runNo = runOrder(songNo);
+    runNo = waveletData.runOrder(songNo);
     for trialNo = 1:nTrials
         fprintf('- %2i ',trialNo);
         %time indices that the current trial spans (3 sec total)
