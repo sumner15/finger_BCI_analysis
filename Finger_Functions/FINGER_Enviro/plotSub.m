@@ -26,8 +26,8 @@ for song = 1:length(trialPowerDB)
     subplot(2,3,song)
     
     plot(-1500:1499,squeeze(mean(trialPowerDB{song}(freq,2,:),1)))
-    
-    title('Mu (8-13Hz) normalized power')
+        
+    title([subname ': Mu (8-13Hz) normalized power']);
     ylabel('dB'); xlabel('trial time (msec)');
     axis([-1500 1500 -6 6]);
 end
@@ -42,6 +42,6 @@ for song = 1:length(trialPowerDB)
     imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar    
     set(gca,'YDir','normal')
     
-    title('Normalized Power (dB)');
+    title([subname ': Normalized Power (dB)']);
     ylabel('frequency (Hz)'); xlabel('trial time (msec)')    
 end

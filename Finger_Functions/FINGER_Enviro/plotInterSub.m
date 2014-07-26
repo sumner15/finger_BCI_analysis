@@ -1,7 +1,7 @@
 clc;
 
-subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'}};%,...
-            %{'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
+subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
+            {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
 %subjects = {{'TRAT'}};
 
 if (~exist('username','var'))
@@ -51,7 +51,7 @@ for song = 1:6
     subplot(2,3,song); hold on
     title('Mu (8-13Hz) normalized power')
     ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -10 10]);
+    axis([-1500 1500 -20 20]);
     
     % plotting DB power for each subject (new line within subplots)
     for currentSub = 1:length(subjects)    
