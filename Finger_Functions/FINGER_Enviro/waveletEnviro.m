@@ -37,7 +37,7 @@ global waveletData
 nSongs = length(concatData.motorEEG);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
-nCycles = 4;                    %number of cycles of the wavelet wanted 
+nCycles = 2;                    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;             % saving to structure
 concatData.nCycles = nCycles;           % saving to structure
 
@@ -82,7 +82,7 @@ concatData = rmfield(concatData,'eeg');
 global waveletData;
 waveletData = concatData; clear concatData
 disp('Saving wavelet frequency-domain data...');
-save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
+%save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
 disp('Done.');
 
 end %function
