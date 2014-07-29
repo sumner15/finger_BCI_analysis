@@ -32,7 +32,6 @@ for currentSub = 1:length(subjects)
     toc
 end
 plotInterSub
+sendEmail;
 
-sendmail('slnorman@uci.edu','MATLAB: Processing complete!', ...
-    'Congratulations, your latest script completed successfuly!');
 clear ans subname concatData selectData waveletData;
