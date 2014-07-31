@@ -116,8 +116,8 @@ for song = 1:6
     % plotting mean DB power across all subjects
     plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)     
     % plotting robot trajectory when appropriate
-    if song==2 || song==5
-        robot = plot(time,-20*robPos+10,'g','LineWidth',1.5);        
+    if song==2 || song==3 || song==5
+        robot = plot(time,-20*robPos(song,:)+10,'g','LineWidth',1.5);        
         legend(robot,'robot trajectory','Location','Best')
     end
 end
