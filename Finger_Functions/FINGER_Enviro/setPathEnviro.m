@@ -19,6 +19,12 @@ switch username
         disp('Invalid username selected');
         error('Invalid username');
 end
-addpath(cd); cd(subname);
+addpath(cd); 
+
+if nargin==2
+    cd(subname);
+else
+    disp('No subname given. Staying in root dir');
+end
 
 end
