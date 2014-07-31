@@ -1,9 +1,9 @@
-clc;
-
 subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
-%subjects = {{'TRAT'}};
+nSubs = length(subjects);
+
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
+time = -1500:1499;
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -14,7 +14,7 @@ disp('   Intersubject Plotting ');
 disp('-----------------------------');
     
 %% loading data
-for currentSub = 1:length(subjects)
+for currentSub = 1:nSubs
     subname = subjects{currentSub};   
     subname = subname{1};     
     
@@ -26,9 +26,10 @@ for currentSub = 1:length(subjects)
     eval([subname ' = load(filename{1});']);
     disp('Done.')        
 end
+cd .. ; load('robPos.mat'); 
 
 %% computing mean results
-for currentSub = 1:length(subjects)
+for currentSub = 1:nSubs
     subname = subjects(currentSub); subname = char(subname{1});    
     if currentSub == 1
         MEAN.trialPowerDB = eval([subname '.trialPowerDB;']);
@@ -39,11 +40,55 @@ for currentSub = 1:length(subjects)
     end
 end
 for song = 1:6
-    MEAN.trialPowerDB{song} = MEAN.trialPowerDB{song}./length(subjects);
+    MEAN.trialPowerDB{song} = MEAN.trialPowerDB{song}./nSubs;
 end
 
-%% plotting trial power (decibels)
+%% averaging across electrodes/frequencies and re-storing as muPower
 freq = 4:9; % 8Hz - 13Hz 
+muPower = cell(1,6);
+for song = 1:6; muPower{song} = zeros(nSubs+1,length(time)); end
+
+for currentSub = 1:nSubs %for each subject
+    subname = subjects{currentSub}; subname = char(subname{1});    
+    trialPowerDB = eval([subname '.trialPowerDB;']);    
+    for song = 1:6 %for each song        
+        % fill in the subjects mean power profile 
+        muPower{song}(currentSub,:) = squeeze(mean(trialPowerDB{song}(freq,2,:),1));
+    end
+end
+% computing mean power profile 
+for song = 1:6
+    muPower{song}(nSubs+1,:) = mean(muPower{song}(1:nSubs,:),1);
+end
+
+%% computing confidence intervals and stats
+disp('Computing stats...')
+mu = NaN(1,length(time)); sig = mu; conf = sig; %initializing
+for sample = 1:length(time)
+    % calculating the mean, std, and ci at each sample time
+    [mu(sample) sig(sample) conf(sample)] = ci(muPower{1}(1:12,sample));
+end
+disp('Done.')
+
+disp('Determining significance...')
+sigInds = cell(6,10);
+for song = 1:6
+    nArea = 1; %number of significant areas
+    for sample = 1:length(time)         %read through each sample pt
+        %if significant...
+        if muPower{song}(13,sample)>(mu(sample)+conf(sample)) || ...
+           muPower{song}(13,sample)<(mu(sample)-conf(sample))
+            sigInds{song,nArea} = [sigInds{song,nArea} sample];
+        else  %if not sig, but last sample was, we are in a new area                                      
+            if ~isempty(sigInds{song,nArea})
+                nArea = nArea+1;
+            end %done adding new area
+        end %if significant
+    end %for each sample
+end %for each song
+disp('Done.')
+
+%% plotting trial power (decibels)
 scrsz = get(0,'ScreenSize'); 
 set(figure,'Position',scrsz)
 
@@ -52,16 +97,29 @@ for song = 1:6
     subplot(2,3,song); hold on
     title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
     ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -20 20]);
+    axis([-1500 1500 -20 20]);     
+    
+    %shading significance
+    for nArea = 1:size(sigInds,2)
+       if ~isempty(sigInds{song,nArea})
+           harea = area(sigInds{song,nArea}-1500, ...
+                20*ones(size(sigInds{song,nArea})),'LineStyle','none');
+           set(harea,'FaceColor','r'); alpha(0.15);
+           harea = area(sigInds{song,nArea}-1500, ...
+               -20*ones(size(sigInds{song,nArea})),'LineStyle','none');
+           set(harea,'FaceColor','r'); alpha(0.15);
+       end
+    end
     
     % plotting DB power for each subject (new line within subplots)
-    for currentSub = 1:length(subjects)    
-        subname = subjects(currentSub); subname = char(subname{1});        
-        trialPowerDB = eval([subname '.trialPowerDB;']);
-        plot(-1500:1499,squeeze(mean(trialPowerDB{song}(freq,2,:),1)))        
-    end    
+    plot(time,muPower{song}(1:nSubs,:),'b')
     % plotting mean DB power across all subjects
-    plot(-1500:1499,squeeze(mean(MEAN.trialPowerDB{song}(freq,2,:),1)),'r','LineWidth',3)        
+    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)     
+    % plotting robot trajectory when appropriate
+    if song==2 || song==5
+        robot = plot(time,-20*robPos+10,'g','LineWidth',1.5);        
+        legend(robot,'robot trajectory','Location','Best')
+    end
 end
 
 %% plotting trial power freq x time maps (decibels)
@@ -81,4 +139,5 @@ end
 
 
 %%
-clear trialPowerDB trialPower currentSub scrsz song subname 
+clear trialPowerDB trialPower currentSub scrsz song subname trialPowerDBrHem
+clear robot filename temp rest
