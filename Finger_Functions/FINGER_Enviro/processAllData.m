@@ -28,7 +28,7 @@ for currentSub = 1:length(subjects)
     waveletData = waveletEnviro(username,subname);   
     waveletData = SegFingerEnviro(username,subname,waveletData);
     intraSubject(username,subname,waveletData);
-    plotSub(username,subname);
+    %plotSub(username,subname);
     toc
 end
 plotInterSub

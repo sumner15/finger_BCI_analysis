@@ -37,7 +37,7 @@ global waveletData
 nSongs = length(concatData.motorEEG);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
-nCycles = 2;                    %number of cycles of the wavelet wanted 
+nCycles = 4;                    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;             % saving to structure
 concatData.nCycles = nCycles;           % saving to structure
 
