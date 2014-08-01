@@ -77,9 +77,11 @@ for song = 1:6
     end
 end
 figure(3); suptitle('Average robot trajectory for each song across all subjects/notes')
+colors = {'b','r','g','b','b','g',};
 for song = 1:6
-    subplot(2,3,song)
-    plot(robPos(song,:))
+    %subplot(2,3,song)
+    hold on
+    plot(robPos(song,:),colors{song})
     axis([0 3000 -0.1 1.2])
 end
 
