@@ -53,7 +53,7 @@ for song = 1:nSongs
     baselinePower{song} = mean(trialPower{song}(:,:,1:250),3);
     baselinePower{song} = repmat(baselinePower{song},[1,1,size(trialPower{song},3)]);
     trialPowerDB{song} = trialPower{song}./baselinePower{song};
-    trialPowerDB{song} = 20*log(trialPowerDB{song});
+    trialPowerDB{song} = 10*log(trialPowerDB{song});
 end
 
 %% Organizing remaining data to save out  
