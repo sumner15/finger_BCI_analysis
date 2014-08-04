@@ -97,7 +97,7 @@ for song = 1:6
     subplot(2,3,song); hold on
     title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
     ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -20 20]);     
+    axis([-1500 1500 -10 10]);     
     
     %shading significance
     for nArea = 1:size(sigInds,2)
@@ -132,7 +132,7 @@ for song = 1:6
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar   
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-3 3]); colorbar   
     axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end

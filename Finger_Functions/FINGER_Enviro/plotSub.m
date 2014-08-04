@@ -31,7 +31,7 @@ for song = 1:length(trialPowerDB)
         
     title([subname ' ' conditions{song} ': Mu (8-13Hz) normalized power']);
     ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -6 6]);
+    axis([-1500 1500 -3 3]);
 end
 
 %% plotting freq x time map 
@@ -41,7 +41,7 @@ for song = 1:length(trialPowerDB)
     subplot(2,3,song);
     trialPowerDBrHem{song} = squeeze(trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-6 6]); colorbar    
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-3 3]); colorbar    
     set(gca,'YDir','normal')
     
     title([subname ' ' conditions{song} ': Normalized Power (dB)']);
