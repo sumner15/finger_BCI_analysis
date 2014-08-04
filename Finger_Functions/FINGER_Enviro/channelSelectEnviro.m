@@ -37,6 +37,15 @@ for i = 1:length(concatData.eeg)
     concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:);
 end
 
+%% subtracting DC offset and trend from channels
+disp('Detrending Data...')
+for song = 1:length(concatData.eeg)
+   for channel = 1:size(concatData.eeg{song},1)
+       concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
+   end
+end
+disp('Done.')
+
 %% save concatenated data
 disp('Saving topographically filtered data...');
 save(strcat(subname,'_concatData'),'concatData');
