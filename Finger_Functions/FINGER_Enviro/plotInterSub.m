@@ -66,7 +66,7 @@ disp('Computing stats...')
 mu = NaN(1,length(time)); sig = mu; conf = sig; %initializing
 for sample = 1:length(time)
     % calculating the mean, std, and ci at each sample time
-    [mu(sample) sig(sample) conf(sample)] = ci(muPower{1}(1:12,sample));
+    [mu(sample) sig(sample) conf(sample)] = ci(muPower{4}(1:12,sample));
 end
 disp('Done.')
 
@@ -114,10 +114,11 @@ for song = 1:6
     % plotting DB power for each subject (new line within subplots)
     plot(time,muPower{song}(1:nSubs,:),'b')
     % plotting mean DB power across all subjects
-    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)     
+    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)   
+    
     % plotting robot trajectory when appropriate
     if song==2 || song==3 || song==5
-        robot = plot(time,-20*robPos(song,:)+10,'g','LineWidth',1.5);        
+        robot = plot(time,-7*robPos(song,:),'g','LineWidth',1.5);        
         legend(robot,'robot trajectory','Location','Best')
     end
 end
