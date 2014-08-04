@@ -90,7 +90,7 @@ if(isfield(waveletData,'vid'))
     waveletData = rmfield(waveletData,{'vid','motorEEG','wavelet'});
 end
 
-disp('Saving SEGMENTED wavelet frequency-domain data...');
+fprintf('\n'); disp('Saving SEGMENTED wavelet frequency-domain data...')
 save(strcat(subname,'_segWavData'),'waveletData','-v7.3');
 disp('Done.');
 
