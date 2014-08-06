@@ -47,3 +47,16 @@ for song = 1:length(trialPowerDB)
     title([subname ' ' conditions{song} ': Normalized Power (dB)']);
     ylabel('frequency (Hz)'); xlabel('trial time (msec)')    
 end
+
+%% plotting example spectra 
+figure; hold on
+colors = {'g','m','r','g','b','g'};
+for song = 1:length(trialPowerDB)
+    spectra = squeeze(trialPower{song}(:,2,:));     %right hemisphere only
+    spectra = squeeze(mean(spectra(:,500:1000),2)); %desync period only        
+    h(song) = plot(5:40,spectra,colors{song});
+end
+title([subname ' amplitude spectra: t=-1000:-500']);
+xlabel('Frequency (Hz)'); ylabel('Amplitude');
+legend(h([1 2 3 5]),'AV only','robot+motor','motor','robot');
+
