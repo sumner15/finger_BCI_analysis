@@ -66,7 +66,7 @@ disp('Computing stats...')
 mu = NaN(1,length(time)); sig = mu; conf = sig; %initializing
 for sample = 1:length(time)
     % calculating the mean, std, and ci at each sample time
-    [mu(sample) sig(sample) conf(sample)] = ci(muPower{4}(1:12,sample));
+    [mu(sample) sig(sample) conf(sample)] = ci(muPower{4}(1:nSubs,sample));
 end
 disp('Done.')
 
@@ -76,8 +76,8 @@ for song = 1:6
     nArea = 1; %number of significant areas
     for sample = 1:length(time)         %read through each sample pt
         %if significant...
-        if muPower{song}(13,sample)>(mu(sample)+conf(sample)) || ...
-           muPower{song}(13,sample)<(mu(sample)-conf(sample))
+        if muPower{song}(nSubs+1,sample)>(mu(sample)+conf(sample)) || ...
+           muPower{song}(nSubs+1,sample)<(mu(sample)-conf(sample))
             sigInds{song,nArea} = [sigInds{song,nArea} sample];
         else  %if not sig, but last sample was, we are in a new area                                      
             if ~isempty(sigInds{song,nArea})
