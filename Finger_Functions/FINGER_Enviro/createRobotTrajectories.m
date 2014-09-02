@@ -86,6 +86,35 @@ for song = 1:6
 end
 legend('AV only','robot+motor','motor',' ','robot')
 
+%% plotting robot force profiles
+figure(4); suptitle('Robot force profiles (all subjects)');
+for sub = 1:length(subjects)
+    subname = char(subjects{sub});    
+    subFileNames = celldir(['positions_' subname '*.txt']);
+    % AV condition force-time vector 
+    condNo = find(runOrder(sub,:)==1);
+    importRobotData(subFileNames{condNo});
+    e1 = data(:,1); e2 = data(:,3);   
+    AV = data(:,7).*e1+data(:,8).*e1+data(:,9).*e2+data(:,10).*e2;  
+    % robot only condition force-time vector    
+    condNo = find(runOrder(sub,:)==5);
+    importRobotData(subFileNames{condNo});
+    e1 = data(:,5)-data(:,1); e2 = data(:,6)-data(:,3);
+    robot = data(:,7).*e1+data(:,8).*e1; %+data(:,9).*e2+data(:,10).*e2;
+    % robot+motor condition force-time vector
+    condNo = find(runOrder(sub,:)==2);
+    importRobotData(subFileNames{condNo});
+    e1 = data(:,5)-data(:,1); e2 = data(:,6)-data(:,3);
+    robot_motor = data(:,7).*e1+data(:,8).*e1; %+data(:,9).*e2+data(:,10).*e2;
+    
+    subplot(4,3,sub); hold on;  
+    plot(AV,'g','LineWidth',2); plot(robot); plot(robot_motor,'r');
+    if sub==1; legend('AV','robot only','robot+motor'); end
+    axis([0 150000 -1 1]);
+end
+
+clear subname subFileNames e1 e2 AV robot robot_motor 
+
 %% save and send success email!
 save('robPos','robPos');
 toc; sendEmail;
