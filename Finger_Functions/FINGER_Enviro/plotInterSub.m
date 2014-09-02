@@ -138,6 +138,17 @@ for song = 1:6
     set(gca,'YDir','normal')
 end
 
+%% Preparing maximum desync and rebound values for export to ANOVA
+maxDesync = NaN(12,6); maxRebound = NaN(12,6);
+desInds = 1:1500; rebInds = 1000:3000;
+for song = 1:6
+    maxDesync(:,song) = min(muPower{song}(1:12,desInds),[],2);
+    maxRebound(:,song)= max(muPower{song}(1:12,rebInds),[],2);
+end
+save('maxDesync','maxDesync');
+save('maxRebound','maxRebound');
+clear desInds rebInds;
+
 
 %%
 clear trialPowerDB trialPower currentSub scrsz song subname trialPowerDBrHem
