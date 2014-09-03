@@ -145,10 +145,43 @@ for song = 1:6
     maxDesync(:,song) = min(muPower{song}(1:12,desInds),[],2);
     maxRebound(:,song)= max(muPower{song}(1:12,rebInds),[],2);
 end
-save('maxDesync','maxDesync');
-save('maxRebound','maxRebound');
-clear desInds rebInds;
+maxDesyncANOVA = NaN(24,2); maxReboundANOVA = NaN(24,2);
+for currentSub = 1:nSubs
+    row = currentSub*2-1;
+    maxDesyncANOVA(row:row+1,:) = ...
+        [[maxDesync(currentSub,4) maxDesync(currentSub,5)];...
+         [maxDesync(currentSub,3) maxDesync(currentSub,2)]];
+    maxReboundANOVA(row:row+1,:) = ...
+        [[maxRebound(currentSub,4) maxRebound(currentSub,5)];...
+         [maxRebound(currentSub,3) maxRebound(currentSub,2)]];
+end
+% computing ANOVA across subjects 
+pDesync  = anova2(maxDesyncANOVA,12,'on');  title('Max ERD ANOVA')
+pRebound = anova2(maxReboundANOVA,12,'on'); title('Max Rebound ANOVA')
+clear desInds rebInds row;
 
+%% Computing ANOVA results (note columns=robot & rows=motor)
+ANOVA = NaN(12,4);
+for currentSub = 1:nSubs
+    row = currentSub*2-1;
+    pDesync =  anova2(maxDesyncANOVA(row:row+1,:),1,'off');
+    pRebound = anova2(maxReboundANOVA(row:row+1,:),1,'off');
+    ANOVA(currentSub,1:2) = pDesync;
+    ANOVA(currentSub,3:4) = pRebound;   
+end
+clear pDesync pRebound
+
+%% printing ANOVA results to variable editor for easy access
+ANOVAcell = zeros(size(ANOVA,1)+2,size(ANOVA,2)+1); 
+ANOVAcell(3:end,2:end) = ANOVA;
+ANOVAcell = num2cell(ANOVAcell);
+ANOVAcell{1,2} = 'ERD'; ANOVAcell{1,4} = 'Rebound';
+ANOVAcell{2,2} = 'robot'; ANOVAcell{2,3} = 'motor'; 
+ANOVAcell{2,4} = 'robot'; ANOVAcell{2,5} = 'motor'; 
+for currentSub = 1:nSubs
+    ANOVAcell{currentSub+2,1} = strcat('Subject ',num2str(currentSub));
+end
+open('ANOVAcell');
 
 %%
 clear trialPowerDB trialPower currentSub scrsz song subname trialPowerDBrHem
