@@ -1,5 +1,8 @@
 subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
+
+subjects = {{'BECC'},{'NAVA'},{'TRAV'},{'DIAJ'},{'DIMC'},...
+            {'LURI'},{'TRUS'}};
 nSubs = length(subjects);
 
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
@@ -139,13 +142,13 @@ for song = 1:6
 end
 
 %% Preparing maximum desync and rebound values for export to ANOVA
-maxDesync = NaN(12,6); maxRebound = NaN(12,6);
+maxDesync = NaN(nSubs,6); maxRebound = NaN(nSubs,6);
 desInds = 1:1500; rebInds = 1000:3000;
 for song = 1:6
-    maxDesync(:,song) = min(muPower{song}(1:12,desInds),[],2);
-    maxRebound(:,song)= max(muPower{song}(1:12,rebInds),[],2);
+    maxDesync(:,song) = min(muPower{song}(1:nSubs,desInds),[],2);
+    maxRebound(:,song)= max(muPower{song}(1:nSubs,rebInds),[],2);
 end
-maxDesyncANOVA = NaN(24,2); maxReboundANOVA = NaN(24,2);
+maxDesyncANOVA = NaN(nSubs*2,2); maxReboundANOVA = NaN(nSubs*2,2);
 for currentSub = 1:nSubs
     row = currentSub*2-1;
     maxDesyncANOVA(row:row+1,:) = ...
@@ -156,12 +159,12 @@ for currentSub = 1:nSubs
          [maxRebound(currentSub,3) maxRebound(currentSub,2)]];
 end
 % computing ANOVA across subjects 
-pDesync  = anova2(maxDesyncANOVA,12,'on');  title('Max ERD ANOVA')
-pRebound = anova2(maxReboundANOVA,12,'on'); title('Max Rebound ANOVA')
+pDesync  = anova2(maxDesyncANOVA,nSubs,'on');  title('Max ERD ANOVA')
+pRebound = anova2(maxReboundANOVA,nSubs,'on'); title('Max Rebound ANOVA')
 clear desInds rebInds row;
 
-%% Computing ANOVA results (note columns=robot & rows=motor)
-ANOVA = NaN(12,4);
+%% Computing intra/interSub ANOVA results (note columns=robot & rows=motor)
+ANOVA = NaN(nSubs,4);
 for currentSub = 1:nSubs
     row = currentSub*2-1;
     pDesync =  anova2(maxDesyncANOVA(row:row+1,:),1,'off');
@@ -171,7 +174,7 @@ for currentSub = 1:nSubs
 end
 clear pDesync pRebound
 
-%% printing ANOVA results to variable editor for easy access
+%% printing intraSub ANOVA results to variable editor for easy access
 ANOVAcell = zeros(size(ANOVA,1)+2,size(ANOVA,2)+1); 
 ANOVAcell(3:end,2:end) = ANOVA;
 ANOVAcell = num2cell(ANOVAcell);
