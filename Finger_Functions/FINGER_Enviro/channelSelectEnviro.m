@@ -30,11 +30,14 @@ load(filename{1});
 disp('Done.');
 
 %% identifying channels (based on EGI 256 saline net only! - no HM applied)
-motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
+%motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
+motorChannels = [51 43 17 59 52 44 9 66 60 53 45 79 80 81];
+refChannels = [62 63 73 70 74 75 84];
 
-%% setting channels
+%% setting channels and re-referencing
 for i = 1:length(concatData.eeg)
-    concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:);
+    reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+    concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:)-reference;
 end
 
 %% subtracting DC offset and trend from channels

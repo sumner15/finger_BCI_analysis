@@ -39,8 +39,8 @@ for song = 1:nSongs
     power{song} = abs(waveletData.segWavData{song}); 
     
     % Averaging across channels by hemisphere (L:1-7,R:8-14)
-    power{song}(:,:,1,:) = mean(power{song}(:,:,1:7,:),3);   
-    power{song}(:,:,2,:) = mean(power{song}(:,:,8:14,:),3);
+    power{song}(:,:,1,:) = mean(power{song}(:,:,1:14,:),3);   
+    power{song}(:,:,2,:) = mean(power{song}(:,:,1:14,:),3);
     power{song} = power{song}(:,:,1:2,:); %clearing non-mean values
     
     % Averaging across all trials, and deleting singleton dimension
