@@ -1,8 +1,8 @@
 subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
 
-subjects = {{'BECC'},{'NAVA'},{'TRAV'},{'DIAJ'},{'DIMC'},...
-            {'LURI'},{'TRUS'}};
+% subjects = {{'BECC'},{'NAVA'},{'TRAV'},{'DIAJ'},{'DIMC'},...
+%             {'LURI'},{'TRUS'}};
 nSubs = length(subjects);
 
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
@@ -136,7 +136,7 @@ for song = 1:6
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-3 3]); colorbar   
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-1.5 1]); colorbar   
     axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end

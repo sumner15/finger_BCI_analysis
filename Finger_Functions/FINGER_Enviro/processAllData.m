@@ -2,7 +2,6 @@ clc; clear concatData;
 
 subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
-%subjects = {{'TRAT'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -28,10 +27,10 @@ for currentSub = 1:length(subjects)
     waveletData = waveletEnviro(username,subname);   
     waveletData = SegFingerEnviro(username,subname,waveletData);
     intraSubject(username,subname,waveletData);
-    %plotSub(username,subname);
+    %plotSub(username,subname);    
     toc
 end
-plotInterSub
+%plotInterSub
 sendEmail;
 
 clear ans subname concatData selectData waveletData;
