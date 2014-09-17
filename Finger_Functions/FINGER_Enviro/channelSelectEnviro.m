@@ -46,6 +46,9 @@ for song = 1:length(concatData.eeg)
    for channel = 1:size(concatData.eeg{song},1)
        concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
    end
+   for channel = 1:size(concatData.motorEEG{song},1)       
+       concatData.motorEEG{song}(channel,:) = detrend(concatData.motorEEG{song}(channel,:));
+   end
 end
 disp('Done.')
 
