@@ -25,9 +25,9 @@ setPathEnviro(username,subname)
 filename = celldir([subname '*concatData.mat']);
 filename{1} = filename{1}(1:end-4);
 
-disp(['Loading ' filename{1} '...']);
+fprintf(['Loading ' filename{1} '...']);
 load(filename{1});  
-disp('Done.');
+fprintf('Done.\n');
 
 %% identifying channels (based on EGI 256 saline net only! - no HM applied)
 motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
@@ -40,7 +40,7 @@ for i = 1:length(concatData.eeg)
 end
 
 %% subtracting DC offset and trend from channels
-disp('Detrending Data...')
+fprintf('Detrending Data...')
 for song = 1:length(concatData.eeg)
    for channel = 1:size(concatData.eeg{song},1)
        concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
@@ -49,11 +49,20 @@ for song = 1:length(concatData.eeg)
        concatData.motorEEG{song}(channel,:) = detrend(concatData.motorEEG{song}(channel,:));
    end
 end
-disp('Done.')
+fprintf('Done.\n')
+
+%% Low pass filter
+disp('Filtering Data...'); fprintf('Song Number...');
+fCut = 50; %cutoff freq in Hz
+for song = 1:length(concatData.eeg)
+    fprintf('%i...',song);
+    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut);
+    concatData.motorEEG{song} = lowPassFilter(concatData.motorEEG{song},fCut);
+end; fprintf('\n'); 
 
 %% save concatenated data
-disp('Saving topographically filtered data...');
+fprintf('Saving topographically filtered data...');
 save(strcat(subname,'_concatData'),'concatData');
-disp('Done.');
+fprintf('Done.\n');
 
 end
