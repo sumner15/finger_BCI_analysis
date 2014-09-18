@@ -1,4 +1,6 @@
 close all; clear
+cond = 3; % condition/song number 
+
 % Creating test sine waves at varying frequencies for filter implementation
 % freq1 = 60; freq2 = 13;
 % t = .001:.001:1;
@@ -36,10 +38,10 @@ legend('Actual', 'Ideal')
 username = 'Sumner'; subname = 'TRAT';
 setPathEnviro(username,subname)
 load(strcat(subname,'_concatData.mat'))
-data = concatData.eeg{3}(1:256,:);
+data = concatData.eeg{cond}(1:256,:);
 
 %% Using filter on raw SMC EEG data
-motorData = concatData.motorEEG{3}(8:14,:); % R-SMC hemisphere
+motorData = concatData.motorEEG{cond}(8:14,:); % R-SMC hemisphere
 t = 0:1/concatData.sr:size(motorData,2)/concatData.sr;
 filteredMotorEEG = NaN(size(motorData));
 for channel = 1:size(motorData,1)   
@@ -49,15 +51,34 @@ end
 
 %% Using filter on raw frontal electrodes
 frontalChans = [46 38 37 33 32 26 25 19 18 11 10];
-frontalData = concatData.eeg{3}(frontalChans,:);
+frontalData = concatData.eeg{cond}(frontalChans,:);
 filteredFrontEEG = NaN(size(frontalData));
 for channel = 1:size(frontalData,1)   
    currentSig = frontalData(channel,:);
    filteredFrontEEG(channel,:) = filtfilt(b,a,currentSig) - 8*channel;   
 end
 
+%% creating spike train of markers
+cd .. ; 
+load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
+clear data note_timing_Blackbird sunshineDay
+cd(subname);
+
+%start index of time sample marking beginning of trial (from labjack)
+startInd = min(find(abs(concatData.vid{cond})>2000));
+%markerInds is an integer vector of marker indices (rounded to 100ms)
+markerInds = round((startInd+round(blackBird)));
+spikeTrain = zeros(1,size(filteredMotorEEG,2));
+spikeTrain(markerInds) = 5; 
+ 
 %% plotting results
 figure; plot(motorData'); title('Raw Motor Data')
-figure; plot(filteredMotorEEG(:,15000:20000)'); title('Filtered (Low-Pass 60 Hz) MOTOR Data')
-figure; plot(filteredFrontEEG(:,15000:20000)'); title('Filtered (Low-Pass 60 Hz) FRONTAL Data')
+
+window = 15000:45000;
+
+figure; hold on; title('Filtered (Low-Pass 60 Hz) MOTOR Data')
+plot(filteredMotorEEG(:,window)','k'); plot(spikeTrain(window));
+
+figure; hold on; title('Filtered (Low-Pass 60 Hz) FRONTAL Data')
+plot(filteredFrontEEG(:,window)','k'); plot(spikeTrain(window));
 
