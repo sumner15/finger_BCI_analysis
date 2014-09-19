@@ -29,14 +29,13 @@ fprintf(['Loading ' filename{1} '...']);
 load(filename{1});  
 fprintf('Done.\n');
 
-%% identifying channels (based on EGI 256 saline net only! - no HM applied)
-motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
+%% re-referencing
 refChannels = [62 63 73 70 74 75 84];
-
-%% setting channels and re-referencing
 for i = 1:length(concatData.eeg)
-    reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
-    concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:)-reference;
+    %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+    % common average reference... 
+    reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
+    concatData.eeg{i} = concatData.eeg{i} - reference;
 end
 
 %% subtracting DC offset and trend from channels
@@ -44,9 +43,6 @@ fprintf('Detrending Data...')
 for song = 1:length(concatData.eeg)
    for channel = 1:size(concatData.eeg{song},1)
        concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
-   end
-   for channel = 1:size(concatData.motorEEG{song},1)       
-       concatData.motorEEG{song}(channel,:) = detrend(concatData.motorEEG{song}(channel,:));
    end
 end
 fprintf('Done.\n')
@@ -56,9 +52,40 @@ disp('Filtering Data...'); fprintf('Song Number...');
 fCut = 50; %cutoff freq in Hz
 for song = 1:length(concatData.eeg)
     fprintf('%i...',song);
-    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut);
-    concatData.motorEEG{song} = lowPassFilter(concatData.motorEEG{song},fCut);
+    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut);    
 end; fprintf('\n'); 
+
+%% LAPLACIAN FILTER
+% load egihc256hm
+% 
+% % Save X, Y, Z locations of EEG channels
+% X = EGIHC256.Electrode.CoordOnSphere(:,1);
+% Y = EGIHC256.Electrode.CoordOnSphere(:,2);
+% Z = EGIHC256.Electrode.CoordOnSphere(:,3);
+% 
+% % Apply surface Laplacian
+% SL = concatData.eeg{1}; % easy preallocation
+% [SL,G,H] = laplacian_perrinX(concatData.eeg{1},X,Y,Z,10,1e-5);
+% 
+% % Make a movie of original data next to SL result
+% figure
+% index = 1;
+% for i=1:1024:20480 % 10 seconds, 1s increments
+%     subplot(121); corttopo(concatData.eeg(:,i),EGIHC256);
+%     %set(gca,'clim',[-100 100])
+%     title('Raw data')
+%     subplot(122); corttopo(SL(:,i),EGIHC256);
+%     %set(gca,'clim',[-600 600])
+%     title('Surface Laplacian')
+%     pause(0.1)
+%     mov(index) = getframe(gcf);
+%     index = index + 1;
+% end
+
+%% saving motor channels separately
+% identifying channels (based on EGI 256 saline net only! - no HM applied)
+motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
+concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:);
 
 %% save concatenated data
 fprintf('Saving topographically filtered data...');
