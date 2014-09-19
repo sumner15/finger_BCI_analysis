@@ -1,4 +1,4 @@
-close all; clear
+function filterRawData(username,subname)
 cond = 3; % condition/song number 
 
 % Creating test sine waves at varying frequencies for filter implementation
@@ -35,7 +35,6 @@ legend('Actual', 'Ideal')
 % xlabel('time (sec)'); title('filtered Signal');
 
 %% loading in the data 
-username = 'Sumner'; subname = 'TRAT';
 setPathEnviro(username,subname)
 load(strcat(subname,'_concatData.mat'))
 data = concatData.eeg{cond}(1:256,:);
