@@ -56,31 +56,42 @@ for song = 1:length(concatData.eeg)
 end; fprintf('\n'); 
 
 %% LAPLACIAN FILTER
-% load egihc256hm
-% 
-% % Save X, Y, Z locations of EEG channels
-% X = EGIHC256.Electrode.CoordOnSphere(:,1);
-% Y = EGIHC256.Electrode.CoordOnSphere(:,2);
-% Z = EGIHC256.Electrode.CoordOnSphere(:,3);
-% 
-% % Apply surface Laplacian
-% SL = concatData.eeg{1}; % easy preallocation
-% [SL,G,H] = laplacian_perrinX(concatData.eeg{1},X,Y,Z,10,1e-5);
-% 
-% % Make a movie of original data next to SL result
-% figure
-% index = 1;
-% for i=1:1024:20480 % 10 seconds, 1s increments
-%     subplot(121); corttopo(concatData.eeg(:,i),EGIHC256);
-%     %set(gca,'clim',[-100 100])
-%     title('Raw data')
-%     subplot(122); corttopo(SL(:,i),EGIHC256);
-%     %set(gca,'clim',[-600 600])
-%     title('Surface Laplacian')
-%     pause(0.1)
-%     mov(index) = getframe(gcf);
-%     index = index + 1;
+fprintf('LaPlacian Filter...');
+load egihc256hm
+
+% Save X, Y, Z locations of EEG channels
+X = EGIHC256.Electrode.CoordOnSphere(:,1);
+Y = EGIHC256.Electrode.CoordOnSphere(:,2);
+Z = EGIHC256.Electrode.CoordOnSphere(:,3);
+
+% parameters
+lambda = 1e-6; %smoothing parameter (nominal 1e-5)
+m = 18;         %order of the Legendre Polynomial (higher is better)
+
+% Apply surface Laplacian
+for song = 1:length(concatData)      
+    topoData = concatData.eeg{3}(1:256,:);
+    [SL,~,~] = laplacian_perrinX(topoData,X,Y,Z,m,lambda);
+
+% Make a movie of original data next to SL result
+% scrsz = get(0,'ScreenSize'); 
+% set(figure,'Position',scrsz)
+% for i=15000:100:30000 % 5 seconds, .1s increments    
+%     subplot(121); corttopo(topoData(:,i),EGIHC256); 
+%     set(gca,'clim',[-6 6])           
+%     title(['Raw Data ( t = ' num2str(i/1000) ' )']);    
+%     
+%     subplot(122); corttopo(SL(:,i),EGIHC256); 
+%     set(gca,'clim',[-600 600])           
+%     title(['Surface LaPlacian ( m=' num2str(m) ', l=' num2str(lambda) ' )']); 
+%     
+%     pause(0.02);
 % end
+    
+    % Transfer Results
+    concatData.eeg{song} = SL;
+end
+fprintf('Done.\n');
 
 %% saving motor channels separately
 % identifying channels (based on EGI 256 saline net only! - no HM applied)
