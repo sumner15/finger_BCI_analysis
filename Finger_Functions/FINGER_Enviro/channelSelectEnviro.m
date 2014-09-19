@@ -85,7 +85,9 @@ end; fprintf('\n');
 %% saving motor channels separately
 % identifying channels (based on EGI 256 saline net only! - no HM applied)
 motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
-concatData.motorEEG{i} = concatData.eeg{i}(motorChannels,:);
+for song = 1:length(concatData.eeg)
+    concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
+end
 
 %% save concatenated data
 fprintf('Saving topographically filtered data...');
