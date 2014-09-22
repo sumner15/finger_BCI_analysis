@@ -1,7 +1,14 @@
 function topography(username,subname)
 % options
-freq = 8:13;    % Hz (This band will be averaged)
-condition = 2;  % note that this is using the motor only condition
+N = 100;        % Sample length 
+fs = 1000;      % sampling frequency (Hz)
+fVec = linspace(0,fs/2,N/2+1); % frequency vector resolved by fft
+
+freq = 11;      % Hz (desired center freq used for topography)
+[c freqInd] = min(abs(fVec-freq)); % freq converted to an index
+freqUsed = fVec(freqInd); % Finds closest freq in resolved freq vector
+
+condition = 3;  % note that this is using the motor only condition
 
 %% loading in the data and head model
 setPathEnviro(username,subname)
@@ -17,7 +24,7 @@ fdata = NaN(nChans,floor(nSamples/100));         %preparing data structure
 
 for window = 1:floor(nSamples/100)   % moving along in 100ms windows   
    sampleWin = (window-1)*100+1:window*100;     % preparing sample window
-   feeg = fft(data(:,sampleWin));               % taking fft of data
+   feeg = fft(data(:,sampleWin)')';             % taking fft of data
    feeg = squeeze(mean(abs(feeg(:,freq)),2));   % computing power in f band
    fdata(:,window) = feeg';                     % filling in data structure
    % fdata = channels x 100msWindowNumber 
@@ -45,10 +52,13 @@ cd(subname);
  
  
 %% plotting data
-trialPower(1,:) = trialPower(2,:);
+scrsz = get(0,'ScreenSize'); 
+set(figure,'Position',scrsz)
 for i = 1:31
     corttopo(trialPower(:,i),hm);    
     title(['trialTime = ' num2str(i/10) ' sec']);
-    if i==1; pause(5); end;
+    set(gca,'clim',[0 2]) 
+    
+    if i==1; pause(1); end;
     pause(0.001);
 end
