@@ -95,7 +95,9 @@ fprintf('Done.\n');
 
 %% saving motor channels separately
 % identifying channels (based on EGI 256 saline net only! - no HM applied)
-motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164];
+motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
+motorChannels = [81 90  101 119 80  89  100 110 79  88]; % based on topographical viewing
+
 for song = 1:length(concatData.eeg)
     concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
 end
