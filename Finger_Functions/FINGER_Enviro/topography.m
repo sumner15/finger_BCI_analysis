@@ -57,7 +57,7 @@ set(figure,'Position',scrsz)
 for i = 1:31
     corttopo(trialPower(:,i),hm);    
     title(['trialTime = ' num2str(i/10) ' sec']);
-    set(gca,'clim',[0 2]) 
+    %set(gca,'clim',[0 5]) 
     
     if i==1; pause(1); end;
     pause(0.001);

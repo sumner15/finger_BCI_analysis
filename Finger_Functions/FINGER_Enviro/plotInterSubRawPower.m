@@ -135,7 +135,7 @@ for song = 1:6
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[300 1800]); colorbar   
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[0 500]); colorbar   
     axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end
