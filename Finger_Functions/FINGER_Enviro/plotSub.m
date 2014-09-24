@@ -19,7 +19,7 @@ load(filename{1});
 disp('Done.')
 
 %% plotting trial power (decibels)
-freq = 8:11; % 18Hz - 23Hz (add 4)
+freq = (8:13)-4; % (add 4)
 
 scrsz = get(0,'ScreenSize'); 
 set(figure,'Position',scrsz)
@@ -31,7 +31,7 @@ for song = 1:length(trialPowerDB)
         
     title([subname ' ' conditions{song} ': Mu (' num2str(freq(1)+4) '-' num2str(freq(end)+4) 'Hz) normalized power']);
     ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -3 3]);
+    axis([-1500 1500 -5 5]);
 end
 
 %% plotting trial power (raw)
@@ -44,7 +44,7 @@ for song = 1:length(trialPower)
         
     title([subname ' ' conditions{song} ': Mu (' num2str(freq(1)+4) '-' num2str(freq(end)+4) 'Hz) normalized power']);
     ylabel('power'); xlabel('trial time (msec)');
-    axis([-1500 1500 0 3000]);   
+    axis([-1500 1500 0 500]);   
 end
 
 %% plotting freq x time map (decibel)
@@ -68,7 +68,7 @@ for song = 1:length(trialPowerDB)
     subplot(2,3,song);
     trialPowerRHem{song} = squeeze(trialPower{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerRHem{song},[100 1000]); colorbar    
+    imagesc(-1500:1499,5:40,trialPowerRHem{song},[0 200]); colorbar    
     set(gca,'YDir','normal')
     
     title([subname ' ' conditions{song} ':Power']);

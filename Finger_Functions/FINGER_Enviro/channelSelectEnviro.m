@@ -70,7 +70,7 @@ m = 18;         %order of the Legendre Polynomial (higher is better)
 
 % Apply surface Laplacian
 for song = 1:length(concatData)      
-    topoData = concatData.eeg{3}(1:256,:);
+    topoData = concatData.eeg{song}(1:256,:);
     [SL,~,~] = laplacian_perrinX(topoData,X,Y,Z,m,lambda);
 
 % Make a movie of original data next to SL result
