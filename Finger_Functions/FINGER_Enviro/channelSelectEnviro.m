@@ -66,17 +66,17 @@ Z = EGIHC256.Electrode.CoordOnSphere(:,3);
 
 % parameters
 lambda = 1e-6; %smoothing parameter (nominal 1e-5)
-m = 18;         %order of the Legendre Polynomial (higher is better)
+m = 20;        %order of the Legendre Polynomial (higher is better, but costly)
 
 % Apply surface Laplacian
 for song = 1:length(concatData)      
     topoData = concatData.eeg{song}(1:256,:);
     [SL,~,~] = laplacian_perrinX(topoData,X,Y,Z,m,lambda);
 
-% Make a movie of original data next to SL result
+% %Make a movie of original data next to SL result
 % scrsz = get(0,'ScreenSize'); 
 % set(figure,'Position',scrsz)
-% for i=15000:100:30000 % 5 seconds, .1s increments    
+% for i=15000:100:16000%30000 % 5 seconds, .1s increments    
 %     subplot(121); corttopo(topoData(:,i),EGIHC256); 
 %     set(gca,'clim',[-6 6])           
 %     title(['Raw Data ( t = ' num2str(i/1000) ' )']);    
