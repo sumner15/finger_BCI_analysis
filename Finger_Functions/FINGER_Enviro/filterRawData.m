@@ -40,7 +40,7 @@ load(strcat(subname,'_concatData.mat'))
 data = concatData.eeg{cond}(1:256,:);
 
 %% Using filter on raw SMC EEG data
-motorData = concatData.motorEEG{cond}(8:14,:); % R-SMC hemisphere
+motorData = concatData.motorEEG{cond}(:,:); % R-SMC hemisphere
 t = 0:1/concatData.sr:size(motorData,2)/concatData.sr;
 filteredMotorEEG = NaN(size(motorData));
 for channel = 1:size(motorData,1)   
