@@ -35,7 +35,7 @@ cd(subname);
 
 %% info regarding the experimental setup
 nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
-triallength = 3;                            % length - one note trial (sec)
+triallength = 6;                            % length - one note trial (sec)
 nTrials = length(blackBird);                % Number of notes in song
 sr = waveletData.sr;                        % sampling rate
 nChans = size(waveletData.wavelet{1},2);    % number of active channels
@@ -77,7 +77,7 @@ for songNo = 1:nSongs
     for trialNo = 1:nTrials
         fprintf('- %2i ',trialNo);
         %time indices that the current trial spans (3 sec total)
-        timeSpan = markerInds{songNo}(trialNo)-(sr*1.5):markerInds{songNo}(trialNo)+(sr*1.5)-1; 
+        timeSpan = markerInds{songNo}(trialNo)-(sr*triallength/2):markerInds{songNo}(trialNo)+(sr*triallength/2)-1; 
         %filling segment into segEEG
         waveletData.segEEG{runNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
         %filling segment into waveletData
