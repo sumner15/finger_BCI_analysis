@@ -35,7 +35,7 @@ cd(subname);
 
 %% info regarding the experimental setup
 nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
-triallength = 6;                            % length - one note trial (sec)
+triallength = 3;                            % length - one note trial (sec)
 nTrials = length(blackBird);                % Number of notes in song
 sr = waveletData.sr;                        % sampling rate
 nChans = size(waveletData.wavelet{1},2);    % number of active channels
