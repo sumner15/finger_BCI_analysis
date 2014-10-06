@@ -99,7 +99,7 @@ for song = 1:6
     subplot(2,3,song); hold on
     title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) power'])
     ylabel('power'); xlabel('trial time (msec)');
-    axis([-1500 1500 0 4000]);     
+    axis([-1500 1500 0 500]);     
     
 %     %shading significance
 %     for nArea = 1:size(sigInds,2)
@@ -120,7 +120,7 @@ for song = 1:6
     
     % plotting robot trajectory when appropriate
     if song==2 || song==3 || song==5
-        robot = plot(time,-1500*robPos(song,:)+2000,'g','LineWidth',1.5);        
+        robot = plot(time,-150*robPos(song,:)+250,'g','LineWidth',1.5);        
         legend(robot,'robot trajectory','Location','Best')
     end
 end

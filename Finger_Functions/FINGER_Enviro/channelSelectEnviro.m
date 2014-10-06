@@ -32,7 +32,8 @@ fprintf('Done.\n');
 % %% re-referencing
 % refChannels = [62 63 73 70 74 75 84];
 % for i = 1:length(concatData.eeg)
-%     %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+%     % T4 reference ...
+%     reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
 %     % common average reference... 
 %     reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
 %     concatData.eeg{i} = concatData.eeg{i} - reference;
@@ -95,8 +96,9 @@ fprintf('Done.\n');
 
 %% saving motor channels separately
 % identifying channels (based on EGI 256 saline net only! - no HM applied)
-motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
-motorChannels = [81 90  101 119 80  89  100 110 79  88]; % based on topographical viewing
+%motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
+%motorChannels = [81 90  101 119 80  89  100 110 79  88];% based on topographical viewing (not contralateral...whoops)
+motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
 
 for song = 1:length(concatData.eeg)
     concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
