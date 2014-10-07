@@ -1,7 +1,7 @@
 %% loading data and setting data capture variables 
 close all; clear;
-data = load('Camilo_01.mat');   % loads a sample set of data
-data = data.data;           
+data = load('camilo_rest_data_2.mat');   % loads a sample set of data
+data = data.temp;           
 Fs= 128;                        % sampling Frequency
 tElapsed= 1/Fs;                 % time elapsed per sample 
 N = length(data);               % number of samples 
