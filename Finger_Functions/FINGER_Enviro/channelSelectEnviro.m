@@ -29,15 +29,15 @@ fprintf(['Loading ' filename{1} '...']);
 load(filename{1});  
 fprintf('Done.\n');
 
-% %% re-referencing
-% refChannels = [62 63 73 70 74 75 84];
-% for i = 1:length(concatData.eeg)
-%     % T4 reference ...
-%     reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
-%     % common average reference... 
-%     reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
-%     concatData.eeg{i} = concatData.eeg{i} - reference;
-% end
+%% re-referencing
+%refChannels = [62 63 73 70 74 75 84];
+for i = 1:length(concatData.eeg)
+    % T4 reference ...
+    %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+    % common average reference... 
+    reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
+    concatData.eeg{i} = concatData.eeg{i} - reference;
+end
 
 %% subtracting DC offset and trend from channels
 fprintf('Detrending Data...')
@@ -57,42 +57,42 @@ for song = 1:length(concatData.eeg)
 end; fprintf('\n'); 
 
 %% LAPLACIAN FILTER
-fprintf('LaPlacian Filter...');
-load egihc256hm
-
-% Save X, Y, Z locations of EEG channels
-X = EGIHC256.Electrode.CoordOnSphere(:,1);
-Y = EGIHC256.Electrode.CoordOnSphere(:,2);
-Z = EGIHC256.Electrode.CoordOnSphere(:,3);
-
-% parameters
-lambda = 1e-6; %smoothing parameter (nominal 1e-5)
-m = 20;        %order of the Legendre Polynomial (higher is better, but costly)
-
-% Apply surface Laplacian
-for song = 1:length(concatData)      
-    topoData = concatData.eeg{song}(1:256,:);
-    [SL,~,~] = laplacian_perrinX(topoData,X,Y,Z,m,lambda);
-
-% %Make a movie of original data next to SL result
-% scrsz = get(0,'ScreenSize'); 
-% set(figure,'Position',scrsz)
-% for i=15000:100:16000%30000 % 5 seconds, .1s increments    
-%     subplot(121); corttopo(topoData(:,i),EGIHC256); 
-%     set(gca,'clim',[-6 6])           
-%     title(['Raw Data ( t = ' num2str(i/1000) ' )']);    
+% fprintf('LaPlacian Filter...');
+% load egihc256hm
+% 
+% % Save X, Y, Z locations of EEG channels
+% X = EGIHC256.Electrode.CoordOnSphere(:,1);
+% Y = EGIHC256.Electrode.CoordOnSphere(:,2);
+% Z = EGIHC256.Electrode.CoordOnSphere(:,3);
+% 
+% % parameters
+% lambda = 1e-6; %smoothing parameter (nominal 1e-5)
+% m = 20;        %order of the Legendre Polynomial (higher is better, but costly)
+% 
+% % Apply surface Laplacian
+% for song = 1:length(concatData)      
+%     topoData = concatData.eeg{song}(1:256,:);
+%     [SL,~,~] = laplacian_perrinX(topoData,X,Y,Z,m,lambda);
+% 
+% % %Make a movie of original data next to SL result
+% % scrsz = get(0,'ScreenSize'); 
+% % set(figure,'Position',scrsz)
+% % for i=15000:100:16000%30000 % 5 seconds, .1s increments    
+% %     subplot(121); corttopo(topoData(:,i),EGIHC256); 
+% %     set(gca,'clim',[-6 6])           
+% %     title(['Raw Data ( t = ' num2str(i/1000) ' )']);    
+% %     
+% %     subplot(122); corttopo(SL(:,i),EGIHC256); 
+% %     set(gca,'clim',[-600 600])           
+% %     title(['Surface LaPlacian ( m=' num2str(m) ', l=' num2str(lambda) ' )']); 
+% %     
+% %     pause(0.02);
+% % end
 %     
-%     subplot(122); corttopo(SL(:,i),EGIHC256); 
-%     set(gca,'clim',[-600 600])           
-%     title(['Surface LaPlacian ( m=' num2str(m) ', l=' num2str(lambda) ' )']); 
-%     
-%     pause(0.02);
+%     % Transfer Results
+%     concatData.eeg{song} = SL;
 % end
-    
-    % Transfer Results
-    concatData.eeg{song} = SL;
-end
-fprintf('Done.\n');
+% fprintf('Done.\n');
 
 %% saving motor channels separately
 % identifying channels (based on EGI 256 saline net only! - no HM applied)
