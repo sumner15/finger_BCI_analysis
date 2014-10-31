@@ -90,7 +90,7 @@ for song = 1:6
 end %for each song
 disp('Done.')
 
-%% plotting trial power (decibels)
+%% plotting trial power
 scrsz = get(0,'ScreenSize'); 
 set(figure,'Position',scrsz)
 
@@ -116,26 +116,32 @@ for song = 1:6
     % plotting DB power for each subject (new line within subplots)
     plot(time,muPower{song}(1:nSubs,:),'b')
     % plotting mean DB power across all subjects
-    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)   
+    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',5)   
     
     % plotting robot trajectory when appropriate
     if song==2 || song==3 || song==5
-        robot = plot(time,-300*robPos(song,:)+500,'g','LineWidth',1.5);        
+        robot = plot(time,-300*robPos(song,:)+500,'--g','LineWidth',2);        
         legend(robot,'robot trajectory','Location','Best')
     end
 end
 
-%% plotting trial power freq x time maps (decibels)
+%% plotting trial power freq x time maps 
 set(figure,'Position',scrsz)
 % plotting DB power for each song (subplots)
-for song = 1:6
-    subplot(2,3,song); hold on
-    title([conditions{song} ': Inter-Subject Mean power'])
-    ylabel('frequency (Hz)'); xlabel('trial time (msec)');    
+titles = ['a' 'A' 'B' 'C' 'D' 'p' 'F'];
+songs = [1 6];
+for i = 1:2
+    song = songs(i);
+    subplot(1,2,i); hold on
+    %title([conditions{song} ': Inter-Subject Mean power'])
+    if i==1; title('PRE-EXAM','FontSize',20); end
+    if i==2; title('POST-EXAM','FontSize',20); end
+    ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[0 500]); colorbar   
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[0 350]); 
+    if song==5; colorbar; end;
     axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end
