@@ -30,14 +30,14 @@ load(filename{1});
 fprintf('Done.\n');
 
 %% re-referencing
-%refChannels = [62 63 73 70 74 75 84];
-for i = 1:length(concatData.eeg)
-    % T4 reference ...
-    %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
-    % common average reference... 
-    reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
-    concatData.eeg{i} = concatData.eeg{i} - reference;
-end
+% %refChannels = [62 63 73 70 74 75 84];
+% for i = 1:length(concatData.eeg)
+%     % T4 reference ...
+%     %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+%     % common average reference... 
+%     reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
+%     concatData.eeg{i} = concatData.eeg{i} - reference;
+% end
 
 %% subtracting DC offset and trend from channels
 fprintf('Detrending Data...')

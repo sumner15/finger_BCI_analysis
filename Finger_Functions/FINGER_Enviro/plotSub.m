@@ -24,8 +24,8 @@ freq = (8:13)-4; % (add 4)
 scrsz = get(0,'ScreenSize'); 
 set(figure,'Position',scrsz)
 
-for song = 1:length(trialPowerDB)
-    subplot(2,3,song)
+for song = 2:5 %1:length(trialPowerDB)
+    subplot(2,2,song-1)
     
     plot(-1500:1499,squeeze(mean(trialPowerDB{song}(freq,2,:),1)))
         
@@ -63,16 +63,20 @@ end
 
 %% plotting freq x time map (raw)
 set(figure,'Position',scrsz)
+titles = ['A' 'A' 'B' 'C' 'D' 'E' 'F' 'G'];
 
-for song = 1:length(trialPowerDB)
-    subplot(2,3,song);
+for song = 2:5 %1:length(trialPowerDB)
+    subplot(2,2,song-1);
     trialPowerRHem{song} = squeeze(trialPower{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerRHem{song},[0 200]); colorbar    
+    imagesc(-1500:1499,5:40,trialPowerRHem{song},[85 350]);  
+    if song == 4; imagesc(-1500:1499,5:40,trialPowerRHem{song},[75 275]); end
+    if song == 5; colorbar; end
     set(gca,'YDir','normal')
     
-    title([subname ' ' conditions{song} ':Power']);
-    ylabel('frequency (Hz)'); xlabel('trial time (msec)')    
+    %title([subname ' ' conditions{song} ':Power']);
+    title(titles(song),'FontSize',20);
+    ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
 end
 
 %% plotting example spectra 

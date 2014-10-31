@@ -96,43 +96,47 @@ scrsz = get(0,'ScreenSize');
 set(figure,'Position',scrsz)
 
 % plotting DB power for each song (subplots)
-for song = 1:6
-    subplot(2,3,song); hold on
-    title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
-    ylabel('dB'); xlabel('trial time (msec)');
-    axis([-1500 1500 -10 10]);     
+titles = ['A' 'A' 'B' 'C' 'D' 'E' 'F'];
+for song = 2:5
+    subplot(2,2,song-1); hold on
+    %title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
+    %title(titles(song),'FontSize',20);
+    if song == 2 || song == 3; xlabel('time (ms)','FontSize',16); end
+    if song == 3 || song == 5; ylabel('dB','FontSize',16); end
+    axis([-1500 1500 -10 13]);     
     
     %shading significance
     for nArea = 1:size(sigInds,2)
        if ~isempty(sigInds{song,nArea})
            harea = area(sigInds{song,nArea}-1500, ...
                 20*ones(size(sigInds{song,nArea})),'LineStyle','none');
-           set(harea,'FaceColor','r'); alpha(0.15);
+           set(harea,'FaceColor','r'); alpha(0.10);
            harea = area(sigInds{song,nArea}-1500, ...
                -20*ones(size(sigInds{song,nArea})),'LineStyle','none');
-           set(harea,'FaceColor','r'); alpha(0.15);
+           set(harea,'FaceColor','r'); alpha(0.10);
        end
     end
     
     % plotting DB power for each subject (new line within subplots)
-    plot(time,muPower{song}(1:nSubs,:),'b')
+    plot(time,muPower{song}(1:nSubs,:),'b'); set(gca,'FontSize',14);
     % plotting mean DB power across all subjects
-    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',3)   
+    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',5); set(gca,'FontSize',14);
     
     % plotting robot trajectory when appropriate
     if song==2 || song==3 || song==5
-        robot = plot(time,-7*robPos(song,:),'g','LineWidth',1.5);        
-        legend(robot,'robot trajectory','Location','Best')
+        robot = plot(time,-7*robPos(song,:),'--g','LineWidth',2);        
+        %legend(robot,'robot trajectory','Location','Best','FontSize',12)
     end
 end
 
 %% plotting trial power freq x time maps (decibels)
 set(figure,'Position',scrsz)
 % plotting DB power for each song (subplots)
-for song = 1:6
-    subplot(2,3,song); hold on
-    title([conditions{song} ': Inter-Subject Mean Normalized power'])
-    ylabel('frequency (Hz)'); xlabel('trial time (msec)');    
+for song = 2:5
+    subplot(2,2,song-1); hold on
+    %title([conditions{song} ': Inter-Subject Mean Normalized power'])
+    title(titles(song),'FontSize',20);
+    ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
     
