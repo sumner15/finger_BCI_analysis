@@ -1,8 +1,8 @@
 subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
 
-% subjects = {{'BECC'},{'NAVA'},{'TRAV'},{'DIAJ'},{'DIMC'},...
-%             {'LURI'},{'TRUS'}};
+subjects = {{'NAVA'},{'TRAT'},{'NAZM'},{'TRAD'},{'DIAJ'},{'GUIR'},...
+            {'DIMC'},{'LURI'}};
 nSubs = length(subjects);
 
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};

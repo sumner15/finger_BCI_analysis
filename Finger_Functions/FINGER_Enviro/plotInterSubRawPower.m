@@ -1,6 +1,7 @@
  subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
              {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
-%subjects = {{'DIAJ'},{'DIMC'},{'GUIR'},{'NAZM'},{'POTA'},{'TRAD'},{'TRAT'}};
+% subjects = {{'NAVA'},{'TRAT'},{'NAZM'},{'TRAD'},{'DIAJ'},{'GUIR'},...
+%             {'DIMC'},{'LURI'}}; %those without raw data artifacts
 nSubs = length(subjects);
 
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
@@ -92,7 +93,8 @@ disp('Done.')
 
 %% plotting trial power
 scrsz = get(0,'ScreenSize'); 
-set(figure,'Position',scrsz)
+%set(figure,'Position',scrsz)
+figure
 
 % plotting DB power for each song (subplots)
 for song = 1:6
@@ -126,24 +128,26 @@ for song = 1:6
 end
 
 %% plotting trial power freq x time maps 
-set(figure,'Position',scrsz)
+%set(figure,'Position',scrsz)
+figure
 % plotting DB power for each song (subplots)
-titles = ['a' 'A' 'B' 'C' 'D' 'p' 'F'];
+songs = [3 2 4 5];
 songs = [1 6];
-for i = 1:2
+for i = 1:length(songs)
     song = songs(i);
-    subplot(1,2,i); hold on
+    subplot(2,2,i); hold on
     %title([conditions{song} ': Inter-Subject Mean power'])
-    if i==1; title('PRE-EXAM','FontSize',20); end
-    if i==2; title('POST-EXAM','FontSize',20); end
-    ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
+    if song==1; title('PRE-EXAM','FontSize',30); end
+    if song==6; title('POST-EXAM','FontSize',30); end
+    if song==1; ylabel('freq (Hz)','FontSize',24); end
+    xlabel('time (s)','FontSize',24);    
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
-    
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[0 350]); 
-    if song==5; colorbar; end;
+        
+    scale = [0 350];
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},scale);     
     axis([-1500 1500 5 40]);
-    set(gca,'YDir','normal')
+    set(gca,'YDir','normal')  
 end
 
 %% Preparing maximum desync and rebound values for export to ANOVA

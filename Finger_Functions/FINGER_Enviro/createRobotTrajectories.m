@@ -76,15 +76,17 @@ for song = 1:6
         plot(squeeze(allTraj(sub,song,:)));
     end
 end
-figure(3); suptitle('Average robot trajectory for each song across all subjects/notes')
+%%
+figure(3); %suptitle('Average robot trajectory for each song across all subjects/notes')
 colors = {'y','r','g','y','b','y',};
-for song = 1:6
-    %subplot(2,3,song)
-    hold on
-    plot(robPos(song,:),colors{song},'LineWidth',3)
-    axis([0 3000 -0.1 1.2])
+time = -1.5:.001:1.499;
+for song = 2:5
+    subplot(2,2,song-1)    
+    plot(time,-robPos(song,:),'LineWidth',3)
+    axis([time(1) time(end) -1.2 .2])
+    xlabel('time (s)','FontSize',24); 
 end
-legend('AV only','robot+motor','motor',' ','robot')
+%legend('AV only','robot+motor','motor',' ','robot')
 
 %% plotting robot force profiles
 figure(4); suptitle('Robot force profiles (all subjects)');
