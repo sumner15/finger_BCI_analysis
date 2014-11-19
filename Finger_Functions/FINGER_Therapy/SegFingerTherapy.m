@@ -1,111 +1,97 @@
-function [segdata1,segdata2] = SegFingerTherapy(username,subname)
-%SegFingerTherapy
+function waveletData = SegFingerEnviro(username,subname,waveletData)
+%SegFingerEnviro
 %
-% Segments FINGER therapy data into a sample by channel by trial array
+% Segments FINGER environment study data into a 
+% {song}(trial x freq x chn x time) cell array of segmented data
 %
 % Input: subname (identifier) as string, e.g. 'LASF', 
-%        username ast string, e.g. 'Sumner'
+%        username as string, e.g. 'Sumner'
+%        waveletData (optional) data set will speed up loading procedure
 
 
-%% Load in subject .mat data file, timing data, and head model
+%% loading data 
+setPathTherapy(username,subname)
 
-switch username
-    case 'Sumner'
-        if ispc==1
-            cd('C:\Users\Sumner\Desktop\FINGER-EEG study')             
-        else
-            cd('/Users/sum/Desktop/Finger-EEG study');
-        end
-    case 'Omar'
-        cd('/Users/omarshanta/Desktop/Finger-EEG study')  
-    case 'Camilo'
-        cd('C:\Users\Camilo\Desktop\FINGER-EEG study') 
-    case 'Thuong'
-        cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Therapy_Study_Data');
+%If the wavelet data variable isn't already in the global workspace
+if nargin < 3
+    %Read in .mat file
+    filename = celldir([subname '*waveletData.mat']);
+    
+    filename{1} = filename{1}(1:end-4);
+    disp(['Loading ' filename{1} '...']);    
+    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+    disp('Done.');
 end
-addpath .
-if ispc==1
-    cd(strcat(subname,'\raw data\'))    
-else
-    cd(strcat(subname,'/raw data/'))    
+%Remove the eeg only component if it exists (legacy scripts kept eeg field)
+if(isfield(waveletData,'eeg'))
+    waveletData = rmfield(waveletData,'eeg');
 end
 
-% Read in .mat file
-filename = celldir([subname '*.mat']);
-filename = filename{1}(1:end-4);
-disp(['Loading ' filename '...']);
-load(filename);
-
-% Read in note/trial timing data 
-cd .. ; cd ..;
-load('note_timing_SunshineDay') %creates var speedTest   <70x1 double>
-load('note_timing_SpeedTest')   %creates var sunshineDay <43x1 double>
-% note: speedTest only includes notes spaced > 1500ms
-
-% load the EGI head model
-load egihc256redhm
-segdata1.hm = EGIHC256RED;
-segdata2.hm = EGIHC256RED;
+%Read in note/trial timing data 
+cd .. ; 
+%load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
+load('song')
+cd(subname);
 
 %% info regarding the experimental setup
-sr = samplingRate;
-triallength = 3; % approximate length of a one note trial in seconds
-nchans = length(EGIHC256RED.ChansUsed); % number of eeg channels in the headmodel
+nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
+triallength = 3;                            % length - one note trial (sec)
+nTrials = length(blackBird);                % Number of notes in song
+sr = waveletData.sr;                        % sampling rate
+nChans = size(waveletData.wavelet{1},2);    % number of active channels
+freqBins = length(waveletData.wavFreq);     % number of frequency bins 
 
-%% Variables determined from the data
-numtrials1 = length(sunshineDay);   % Number of notes in Sunshine Day
-numtrials2 = length(speedTest);     % Number of notes in Speed Test
+
+%% Create marker spike trains                       %%%%%%%%%%% ADJUST TO ACCEPT MULTIPLE SONGS %%%%%%%%%%%
+markerInds = cell(1,nSongs);
+marker =     cell(1,nSongs);
+
+for songNo = 1:nSongs
+    %start index of time sample marking beginning of trial (from labjack)
+    startInd = min(find(abs(waveletData.vid{songNo})>2000));
+    %markerInds is an integer array of marker indices (for all trials)
+    markerInds{songNo} = startInd+round(blackBird);
+end
 
 %% Initialize data structure components
-segdata1.sr = sr; segdata2.sr = sr;
-segdata1.data = zeros(sr*triallength,nchans,numtrials1);
-segdata2.data = zeros(sr*triallength,nchans,numtrials2);
-
-%% Create marker spike trains
-
-% Marker data for FINGER Game
-filename = strrep(filename,' ','_');
-marker1 = eval([filename '2Video_trigger']);
-marker2 = eval([filename '3Video_trigger']);
-ind1 = find(getspike(marker1) > 0);
-ind2 = find(getspike(marker2) > 0);
-
-for n = 1:numtrials1
-    segdata1.marker1(1,ind1+sunshineDay(n)) = 1;    
+for songNo = 1:nSongs
+    %structure: {song}(trial x freq x chn x trial-time)
+    waveletData.segWavData{songNo} = zeros(nTrials,freqBins,nChans,sr*triallength);    
+    %structure: {song}(trial x chn x trial-time)
+    waveletData.segEEG{songNo}     = zeros(nTrials,nChans,sr*triallength);
 end
 
-for n = 1:numtrials2
-    segdata2.marker2(1,ind2+speedTest(n)) = 1;    
+%% Reordering data according to run type
+% cd ..
+% load runOrder.mat   %identifying run order
+% subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
+%             'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
+% subNum = find(ismember(subjects,subname));
+% waveletData.runOrder = runOrder(subNum,:);
+% cd(subname)
+
+%% Segment EEG data
+for songNo = 1:nSongs
+    fprintf('\n Song Number %i / %i \n',songNo,nSongs);
+    runNo = waveletData.runOrder(songNo);
+    for trialNo = 1:nTrials
+        fprintf('- %2i ',trialNo);
+        %time indices that the current trial spans (3 sec total)
+        timeSpan = markerInds{songNo}(trialNo)-(sr*triallength/2):markerInds{songNo}(trialNo)+(sr*triallength/2)-1; 
+        %filling segment into segEEG
+        waveletData.segEEG{runNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
+        %filling segment into waveletData
+        waveletData.segWavData{runNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
+    end
 end
 
-marker1inds = find(segdata1.marker1 > 0);
-marker2inds = find(segdata2.marker2 > 0);
-
-
-%% Load, filter, and segment EEG data
-
-eeg1 = eval([filename '2']);
-eeg2 = eval([filename '3']);
-disp('Filtering the data...');
-eeg1 = filtereeg(eeg1(EGIHC256RED.ChansUsed,:)',sr);
-eeg2 = filtereeg(eeg2(EGIHC256RED.ChansUsed,:)',sr);
-  
-% segment into sample x channel x trial matrix
-for t = 1:numtrials1
-    segdata1.data(:,:,t) = eeg1(marker1inds(t)-(sr*1.5):marker1inds(t)+(sr*1.5)-1,:);
+%% Saving data
+if(isfield(waveletData,'vid'))
+    waveletData = rmfield(waveletData,{'vid','motorEEG','wavelet'});
 end
 
-for t = 1:numtrials2
-    segdata2.data(:,:,t) = eeg2(marker2inds(t)-(sr*1.5):marker2inds(t)+(sr*1.5)-1,:);
-end
-
-disp('Saving segmented data...');
-if ispc == 1 
-    cd(strcat(subname,'\raw data\'))  
-else
-    cd(strcat(subname,'/raw data/'))
-end
-save(strcat(subname,'_segdata1'),'segdata1');
-save(strcat(subname,'_segdata2'),'segdata2');
+fprintf('\n'); disp('Saving SEGMENTED wavelet frequency-domain data...')
+save(strcat(subname,'_segWavData'),'waveletData','-v7.3');
+disp('Done.');
 
 end
