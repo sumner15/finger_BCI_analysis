@@ -1,4 +1,4 @@
-function intraSubject(username, subname, waveletData)
+function intraSubjectTherapy(username, subname, waveletData)
 % This function analyzes the results of the FINGER environment study.  
 %
 % The function pulls the final cleaned EEG data as a structure from the
@@ -13,7 +13,7 @@ function intraSubject(username, subname, waveletData)
 %        waveletData (optional) data set will speed up loading procedure
 
 %% loading data 
-setPathEnviro(username,subname)
+setPathTherapy(username,subname)
 
 %If the wavelet data variable isn't already in the global workspace
 if nargin < 3
@@ -45,7 +45,7 @@ for song = 1:nSongs
     
     % Averaging across all trials, and deleting singleton dimension
     % Final result: trialPower{song}(freqBin,hemisphere,trialTimeSample)
-    % Final   size:             {6}  ( 36    x    2     x     3000 )
+    % Final   size:             {4}  ( 36    x    2     x     3000 )
     trialPower{song} = squeeze(mean(power{song},1));
     
     % Computing decibel power
