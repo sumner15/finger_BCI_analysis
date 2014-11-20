@@ -1,10 +1,9 @@
 function setPathEnviro(username,subname)
 
 switch username
-    case 'Sumner'
-        error('Invalid username');
-        if ispc==1
-            %cd('C:\Users\Sumner\Desktop\FINGER-Enviro study')             
+    case 'Sumner'        
+        if ispc==1                     
+            cd('C:\Users\Sumner\Desktop\FINGER-EEG study')
         else
             %cd('/Users/sum/Desktop/Finger-Enviro study');
         end
