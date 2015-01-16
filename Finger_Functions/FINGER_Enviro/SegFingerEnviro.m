@@ -64,8 +64,16 @@ end
 %% Reordering data according to run type
 cd ..
 load runOrder.mat   %identifying run order
-subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
-            'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
+
+if size(waveletData.motorEEG{1},1) == 256
+    subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
+                'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
+elseif size(waveletData.motorEEG{1},1) == 14
+    subjects = {'SHAO'};
+else
+    error('Run order not defined for this experiment/headset combination');
+end
+
 subNum = find(ismember(subjects,subname));
 waveletData.runOrder = runOrder(subNum,:);
 cd(subname)

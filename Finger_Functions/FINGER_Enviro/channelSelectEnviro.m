@@ -101,7 +101,13 @@ end; fprintf('\n');
 motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
 
 for song = 1:length(concatData.eeg)
-    concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
+    if size(concatData.eeg{song},1) >= 256      % if this is the geodesic cap
+        concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
+    elseif size(concatData.eeg{song},1) <= 14   % if this is the emotiv
+        concatData.motorEEG{song} = concatData.eeg{song};
+    else
+        error('Capture hardware undefined');
+    end
 end
 
 %% save concatenated data

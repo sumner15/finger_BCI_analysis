@@ -1,7 +1,8 @@
 clc; clear concatData; 
 
- subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
+%  subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
+%              {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
+subjects = {{'SHAO'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -20,7 +21,7 @@ for currentSub = 1:length(subjects)
     disp('-------------------------------------');
     
     
-    concatEnviro(username,subname);
+    %concatEnviro(username,subname);
     clear ans concatData selectData
     channelSelectEnviro(username,subname);
     clear ans concatData selectData     
