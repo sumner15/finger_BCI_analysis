@@ -17,14 +17,19 @@ setPathTherapy(username,subname)
 
 %If the wavelet data variable isn't already in the global workspace
 if nargin < 3
-    %Read in .mat file
-    filename = celldir([subname '*segWavData.mat']);
+    loadBool = input('Do you want to load data from file? Type y or n:','s');
+    if loadBool == 'y'
+        %Read in .mat file
+        filename = celldir([subname '*segWavData.mat']);
 
-    filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);
-    global waveletData;
-    %waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
-    disp('Done.');
+        filename{1} = filename{1}(1:end-4);
+        disp(['Loading ' filename{1} '...']);
+        %global waveletData;
+        waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+        disp('Done.');
+    else
+        error('You must pass waveletData structure to intraSubjectTherapy');
+    end
 end
 
 %% Some experiment variables
@@ -32,6 +37,8 @@ nSongs = length(waveletData.segWavData);
 
 %% Computing EEG power
 disp('Computing EEG power!')
+power = cell(1,nSongs); trialPower = cell(1,nSongs); 
+baselinePower = cell(1,nSongs); trialPowerDB = cell(1,nSongs);
 for song = 1:nSongs
     fprintf('--- Working on Song %i / %i --- \n',song,nSongs);
     
