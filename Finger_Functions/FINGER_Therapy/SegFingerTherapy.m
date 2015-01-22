@@ -9,25 +9,7 @@ function waveletData = SegFingerTherapy(username,subname,waveletData)
 %        waveletData (optional) data set will speed up loading procedure
 
 
-%% loading data 
-setPathTherapy(username,subname)
-
-%If the wavelet data variable isn't already in the global workspace
-if nargin < 3
-    %Read in .mat file
-    filename = celldir([subname '*waveletData.mat']);
-    
-    filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);    
-    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
-    disp('Done.');
-end
-%Remove the eeg only component if it exists (legacy scripts kept eeg field)
-if(isfield(waveletData,'eeg'))
-    waveletData = rmfield(waveletData,'eeg');
-end
-
-%Read in note/trial timing data 
+%% Read in note/trial timing data 
 cd .. ; cd .. ;
 %load('songName') %creates var songName <nNotes x 1 double> (ms)
 load('note_timing_SpeedTest')
@@ -35,13 +17,14 @@ load('note_timing_SunshineDay')
 setPathTherapy(username,subname)
 
 %% info regarding the experimental setup
-nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
-triallength = 3;                            % length - one note trial (sec)
+nSongs = length(waveletData.motorEEG);          % # songs per recording (6)
+triallength = 3;                                % length - one note trial (sec)
 nTrials = [length(sunshineDay) length(speedTest)];  % Number of notes 
-nTrials = repmat(nTrials,[1 2]);            % (extending to 4 songs)
-sr = waveletData.sr;                        % sampling rate
-nChans = size(waveletData.wavelet{1},2);    % number of active channels
-freqBins = length(waveletData.wavFreq);     % number of frequency bins 
+nTrials = repmat(nTrials,[1 2]);                % (extending to 4 songs)
+sr = waveletData.sr;                            % sampling rate
+nChans = size(waveletData.eeg{1},1);            % number of active channels
+nMotorChans = size(waveletData.motorEEG{1},1);  % number of ,motor channels
+freqBins = length(waveletData.wavFreq);         % number of frequency bins 
 
 %% Create marker spike trains                       
 markerInds = cell(1,nSongs);
@@ -56,23 +39,41 @@ for songNo = 1:nSongs
     end
 end
 
-%% Initialize data structure components
+%% Segment all-channel EEG data
+fprintf('Beginning Segmentation');
+% Initialize data structure components
 for songNo = 1:nSongs
-    %structure: {song}(trial x freq x chn x trial-time)
-    waveletData.segWavData{songNo} = zeros(nTrials(songNo),freqBins,nChans,sr*triallength);    
     %structure: {song}(trial x chn x trial-time)
-    waveletData.segEEG{songNo}     = zeros(nTrials(songNo),nChans,sr*triallength);
+    waveletData.segEEG{songNo} = zeros(nTrials(songNo),nChans,sr*triallength);    
 end
-
-%% Segment EEG data
-for songNo = 1:nSongs
-    fprintf('\n Song Number %i / %i \n',songNo,nSongs);
-    for trialNo = 1:nTrials(songNo)
-        fprintf('- %2i ',trialNo);
+% segmentation
+for songNo = 1:nSongs    
+    fprintf('\n----song number: %i / %i----\n signal ',songNo,nSongs);
+    for trialNo = 1:nTrials(songNo)        
+        fprintf('%i -',trialNo);
         %time indices that the current trial spans (3 sec total)
         timeSpan = markerInds{songNo}(trialNo)-(sr*triallength/2):markerInds{songNo}(trialNo)+(sr*triallength/2)-1; 
         %filling segment into segEEG
-        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.motorEEG{songNo}(:,timeSpan);
+        waveletData.segEEG{songNo}(trialNo,:,:) = waveletData.eeg{songNo}(:,timeSpan); %all channels       
+    end    
+end
+% clear memory
+waveletData = rmfield(waveletData,'eeg');
+
+%% Segment Wavelet data & Motor EEG
+for songNo = 1:nSongs
+    %structure: {song}(trial x freq x chn x trial-time)
+    waveletData.segWavData{songNo} = zeros(nTrials(songNo),freqBins,nMotorChans,sr*triallength);  
+    %structure: {song}(trial x chn x trial-time)    
+    waveletData.segMotorEEG{songNo}= waveletData.segEEG{songNo}(:,waveletData.motorChannels,:);
+end
+% segmentation
+for songNo = 1:nSongs
+    fprintf('\n----song number: %i / %i----\n signal ',songNo,nSongs);
+    for trialNo = 1:nTrials(songNo)
+        fprintf('%i -',trialNo);
+        %time indices that the current trial spans (3 sec total)
+        timeSpan = markerInds{songNo}(trialNo)-(sr*triallength/2):markerInds{songNo}(trialNo)+(sr*triallength/2)-1; 
         %filling segment into waveletData
         waveletData.segWavData{songNo}(trialNo,:,:,:) = waveletData.wavelet{songNo}(:,:,timeSpan);
     end

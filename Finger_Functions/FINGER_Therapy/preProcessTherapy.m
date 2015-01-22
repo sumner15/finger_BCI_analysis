@@ -1,4 +1,4 @@
-function channelSelectEnviro(username,subname)
+function concatData = preProcessTherapy(username,subname)
 % Manual selection of channels overlying left and right sensorimotor
 % cortices. This step should be performed before wavelet analysis to speed
 % wavelet computation time in large data sets.
@@ -29,6 +29,9 @@ fprintf(['Loading ' filename{1} '...']);
 load(filename{1});  
 fprintf('Done.\n');
 
+%% common vars
+nSongs = length(concatData.eeg);
+
 %% re-referencing
 % %refChannels = [62 63 73 70 74 75 84];
 % for i = 1:length(concatData.eeg)
@@ -41,17 +44,18 @@ fprintf('Done.\n');
 
 %% subtracting DC offset and trend from channels
 fprintf('Detrending Data...')
-for song = 1:length(concatData.eeg)
-   for channel = 1:size(concatData.eeg{song},1)
+for song = 1:nSongs
+    %detrending channels
+    for channel = 1:size(concatData.eeg{song},1)
        concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
-   end
+   end   
 end
 fprintf('Done.\n')
 
 %% Low pass filter
 disp('Filtering Data...'); fprintf('Song Number...');
 fCut = 50; %cutoff freq in Hz
-for song = 1:length(concatData.eeg)
+for song = 1:nSongs
     fprintf('%i...',song);
     concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut);    
 end; fprintf('\n'); 
@@ -94,19 +98,18 @@ end; fprintf('\n');
 % end
 % fprintf('Done.\n');
 
-%% saving motor channels separately
-% identifying channels (based on EGI 256 saline net only! - no HM applied)
-%motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL
-%selection
-motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
+%% saving motor channels & implementing head model (reducing channels)
 
-for song = 1:length(concatData.eeg)
-    concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
+% identifying channels (based on EGI 256 saline net only!)
+%motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
+concatData.motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
+
+load('egihc256redhm');
+concatData.hm = EGIHC256RED; 
+
+for song = 1:nSongs
+    concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChannels,:);
+    concatData.eeg{song} = concatData.eeg{song}(concatData.hm.ChansUsed,:);
 end
-
-%% save concatenated data
-fprintf('Saving detrended, filtered, motor data...');
-save(strcat(subname,'_concatData'),'concatData');
-fprintf('Done.\n');
 
 end
