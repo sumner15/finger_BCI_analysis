@@ -1,21 +1,18 @@
-function setPathEnviro(username,subname)
+function setPathTherapy(username,subname)
 
 switch username
     case 'Sumner'        
         if ispc==1                     
-            cd('C:\Users\Sumner\Desktop\FINGER-EEG study')
+            cd('C:\Users\Sumner\Desktop\fingerTherapyData')
         else
-            %cd('/Users/sum/Desktop/Finger-Enviro study');
+            cd('/Users/sum/Desktop/fingerTherapyData');            
         end
     case 'Omar'
-        %cd('C:\Users\Omar\Desktop\FINGER-Enviro study')  
-        error('Invalid username');
+        cd('/Users/Omar/Desktop/fingerTherapyData');              
     case 'Camilo'
-        %cd('C:\Users\Camilo\Desktop\FINGER-Enviro study') 
-        error('Invalid username');
+        cd('C:\Users\Camilo\Desktop\fingerTherapyData') 
     case 'Thuong'
-        %cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
-        error('Invalid username');
+        cd('C:\Users\Thuong\Desktop\fingerTherapyData');        
     case 'LAB'
         cd('D:\FINGER_therapy');    
     otherwise
@@ -26,7 +23,6 @@ addpath(cd);
 
 if nargin==2
     cd(subname);
-    cd('raw data');
 else
     disp('No subname given. Staying in root dir');
 end

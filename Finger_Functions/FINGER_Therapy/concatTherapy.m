@@ -11,6 +11,7 @@ function [concatData] = concatTherapy(username,subname)
 
 % change path to user home
 setPathTherapy(username,subname);
+cd('raw data');
 
 % Read in .mat file
 filename = celldir([subname '*.mat']);
@@ -51,6 +52,7 @@ concatData.vid{4} = eval([filePost '3Video_trigger']);
 
 %% save concatenated data
 fprintf('Saving concatenated data...');
+cd ..; 
 save(strcat(subname,'_concatData'),'concatData');
 fprintf('Done.\n');
 
