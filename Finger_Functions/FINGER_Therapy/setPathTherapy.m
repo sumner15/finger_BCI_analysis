@@ -8,7 +8,7 @@ switch username
             cd('/Users/sum/Desktop/fingerTherapyData');            
         end
     case 'Omar'
-        cd('/Users/Omar/Desktop/fingerTherapyData');              
+        cd('/Users/omarshanta/Desktop/fingerTherapyData');              
     case 'Camilo'
         cd('C:\Users\Camilo\Desktop\fingerTherapyData') 
     case 'Thuong'
