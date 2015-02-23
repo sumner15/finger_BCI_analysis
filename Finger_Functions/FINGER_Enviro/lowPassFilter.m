@@ -1,12 +1,12 @@
-function filteredEEG = lowPassFilter(data, fCut)
+function filteredEEG = lowPassFilter(data, fCut, sr)
 
 % this function takes in time series data (chan x time-sample) as a 2D
 % array. It then uses the matlab filtfilt function to filter that data
 % using a low pass approach. The cutoff freq is passed in Hz. Sampling rate
-% is assumed (hard coded) to be 1000;
+% is in Hz
 
 %% Creating the filter TF
-sr = 1000; nyq = floor(sr/2);
+nyq = floor(sr/2);
 n = floor(sr/3)-1;   % filter order
 fLo =(fCut - 5)/nyq; % low cutoff in terms of nyquist
 fHi = ( fCut+5)/nyq; % high cutoff in terms of nyquist
