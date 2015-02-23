@@ -6,8 +6,7 @@ function addFingerFunctions
 
 dir = pwd;
 
-%BCI2000 = input('Are you using BCI2000? (type y or n -- press ''enter'')\n','s');
-BCI2000 = 'n';
+BCI2000 = input('Are you using BCI2000? (type y or n -- press ''enter'')\n','s');
 
 if ispc == 1
     addpath(genpath(strcat(dir,'\Finger_Functions')));    

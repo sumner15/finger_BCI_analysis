@@ -10,8 +10,12 @@ function plotSubTherapy(username,subname)
 
 conditions = {'PRE-song','PRE-speed','POST-song','POST-speed'};
 
+%% plot settings
+dbRange = 8; % +/- dB range
+
 %% loading data
 setPathTherapy(username,subname)
+cd('raw data')
 filename = celldir([subname '*trialPower.mat']);
 filename{1} = filename{1}(1:end-4);
 disp(['Loading ' filename{1} '...'])
@@ -54,7 +58,7 @@ for song = 1:length(trialPowerDB)
     subplot(2,2,song);
     trialPowerDBrHem{song} = squeeze(trialPowerDB{song}(:,2,:));
     
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-3 3]); colorbar    
+    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-dbRange dbRange]); colorbar    
     set(gca,'YDir','normal')
     
     title([subname ' ' conditions{song} ': Normalized Power (dB)'],'FontSize',18);
