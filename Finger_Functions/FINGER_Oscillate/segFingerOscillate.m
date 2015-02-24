@@ -13,36 +13,36 @@ function subData = segFingerOscillate(subData)
 %% info regarding the experimental setup
 nExams = length(subData.eeg);           % number of recordings
 sr = subData.sr;                        % sampling rate
-nChans = size(subData.eeg{1},1);        % number of active channels
 
-subData.trialLength = 20;                       % length of oscillation (sec)
-subData.breakLength = 8;                        % length of inter-trial break(sec)
-subData.introLength = 5;                        % length of introduction (sec)
-subData.nTrials = 6;                            % number of trials per exam
+subData.trialLength = 20;               % length of oscillation (sec)
+subData.breakLength = 8;                % length of inter-trial break(sec)
+subData.introLength = 5;                % length of introduction (sec)
+subData.nTrials = 6;                    % number of trials per exam
 
 %% Create marker spike train
 markerTimes = zeros(1,subData.nTrials); % beginning of trial in seconds
 for trial = 1:subData.nTrials
     markerTimes(trial) = (trial-1)*(subData.trialLength+subData.breakLength)+subData.introLength;
 end
-markerInds = markerTimes*sr;    % beginning of trial in samples 
-
-%% Initialize data structure components
-for examNo = 1:nExams  
-    %structure:    {exam}          (trial x chn x trial-time)
-    subData.segEEG{examNo} = zeros(subData.nTrials,nChans,sr*subData.trialLength);
-end
+markerInds = markerTimes*sr;            % beginning of trial in samples 
 
 %% Segment EEG data
 for examNo = 1:nExams
     fprintf('\n Exam Number %i / %i \n',examNo,nExams);    
     for trialNo = 1:subData.nTrials
         fprintf('- %2i ',trialNo);
-        %time indices that the current trial spans
-        timeSpan = markerInds(trialNo):markerInds(trialNo)+sr*subData.trialLength-1;
+        
+        %time indices that the current trial and following break spans
+        timeSpan = markerInds(trialNo) : markerInds(trialNo)+sr*subData.trialLength-1;
+        timeSpanBreak = timeSpan(end)+1 : timeSpan(end)+sr*subData.breakLength;
+        
         %filling segment into segEEG
-        subData.segEEG{examNo}(trialNo,:,:) = subData.eeg{examNo}(:,timeSpan);
+        %structure:         {exam}  (trial x chn x trial-time)
+             subData.segEEG{examNo}(trialNo, :, :) = subData.eeg{examNo}(:,timeSpan);
+        subData.segEEGBreak{examNo}(trialNo, :, :) = subData.eeg{examNo}(:,timeSpanBreak);
+        
     end
     fprintf('\n');
 end
-end
+
+end %function
