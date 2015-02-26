@@ -1,5 +1,5 @@
 clear; close all; clc; 
-subjects = {{'PASK'}};
+subjects = {{'PASK','AGUC'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 
@@ -19,7 +19,7 @@ for currentSub = 1:length(subjects)
     subData = segFingerOscillate(subData);    
     subData = fourierOscillate(subData);
     save(strcat(subname,'_subData'),'subData');
-    plotSubOscillate(username,subname);
+    %plotSubOscillate(username,subname);
     fprintf('\n'); toc
 end
 %sendEmail;
