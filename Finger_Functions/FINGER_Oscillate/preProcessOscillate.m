@@ -85,19 +85,8 @@ end; fprintf('\n');
 % end
 % fprintf('Done.\n');
 
-%% saving motor channels & implementing head model (reducing channels) (for
-%% Geodesic cap only)
-% 
-% % identifying channels (based on EGI 256 saline net only!)
-% %motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
-% concatData.motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
-% 
-% load('egihc256redhm');
-% concatData.hm = EGIHC256RED; 
-% 
-% for song = 1:nSongs
-%     concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChannels,:);
-%     concatData.eeg{song} = concatData.eeg{song}(concatData.hm.ChansUsed,:);
-% end
+%% implementing head model 
+load('fake16hm'); %temporary 16-ch hm based on EGI coords. Will need to check this
+concatData.hm = FAKE16; 
 
 end
