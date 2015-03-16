@@ -17,15 +17,13 @@ concatData.sr = 600;                %Hz - note: not proper from BCI2000
 nSongs = length(concatData.eeg);
 
 
-%% re-referencing (for Geodesic cap only)
-% % % % %refChannels = [62 63 73 70 74 75 84];
-% % % % for i = 1:length(concatData.eeg)
-% % % %     % T4 reference ...
-% % % %     %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
-% % % %     % common average reference... 
-% % % %     reference = repmat(squeeze(mean(concatData.eeg{i}(:,:),1)),[size(concatData.eeg{i},1) 1]);
-% % % %     concatData.eeg{i} = concatData.eeg{i} - reference;
-% % % % end
+%% re-referencing 
+%refChannels = [4 8]; %T7 & T8
+refChannels = [1:14 16]; %All except PO8 (too noisy)
+for i = 1:length(concatData.eeg)    
+    reference = repmat(squeeze(mean(concatData.eeg{i}(:,refChannels),2)),[1 size(concatData.eeg{i},2)]);
+    concatData.eeg{i} = concatData.eeg{i} - reference;
+end
 
 %% subtracting DC offset and trend from channels
 fprintf('Detrending Data...')
@@ -40,12 +38,12 @@ end
 fprintf('Done.\n')
 
 %% Low pass filter
-disp('Filtering Data...'); fprintf('Song Number...');
-fCut = 50; %cutoff freq in Hz
-for song = 1:nSongs
-    fprintf('%i...',song);
-    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,concatData.sr);    
-end; fprintf('\n'); 
+% disp('Filtering Data...'); fprintf('Song Number...');
+% fCut = 50; %cutoff freq in Hz
+% for song = 1:nSongs
+%     fprintf('%i...',song);
+%     concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,concatData.sr);    
+% end; fprintf('\n'); 
 
 %% LAPLACIAN FILTER (for Geodesic cap only)
 % fprintf('LaPlacian Filter...');

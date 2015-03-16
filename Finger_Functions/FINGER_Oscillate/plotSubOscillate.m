@@ -21,14 +21,18 @@ load(filename{1}); fprintf('Done.\n');
 close all 
 
 %% some vars
-nExams = length(subData.segEEG);
+nExams = length(subData.power);
 nTrials = size(subData.segEEG{1},1);
 nChans = size(subData.power{1},2);
 nFreqs = size(subData.power{1},3);
-freqTested = [4 6 8 10 12 14];
+freqTested = [2 4 8 16 32 64];
 
 % channels of interest
-chansUsed = 1:16;
+%chansUsed = 1:16;
+chansUsed = [5 6 7 9 10 11 12 13];
+%           C3 Cz C4 CP3 Cp4 P3 P2 P4              
+%chansUsed = [6 7 10];
+%           Cz C4 Cp4
 
 %% %%%%%%%%%%%%%%%%%%% BEGIN TOPOGRAPHICAL PLOTTING %%%%%%%%%%%%%%%%%%%%%%%
 %array of 3d space, size: (nChans x 3)
@@ -41,7 +45,8 @@ for exam = 1:nExams
         dPowArray = trialArray - breakArray;
         subplot(floor(sqrt(subData.nTrials)),ceil(sqrt(subData.nTrials)),trial)   
         corttopo(dPowArray,subData.hm,'drawelectrodes',0,'drawcolorbar',1); 
-        set(gca,'clim',[-400 400]);  title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']);         
+        %set(gca,'clim',[-400 400]);  
+        title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']);         
     end
 end   
 
@@ -56,14 +61,16 @@ for exam = 1:nExams
        powArray = squeeze(mean(subData.power{exam}(trial,chansUsed,2:70,:),2));
        % plotting result
        subplot(2,nTrials,trial);
-       title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']); 
+       %title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']); 
        imagesc(powArray,clim); set(gca,'YDir','normal')
+       %axis([1 20 1 50]);
        
        % repeating for the break
        powArray = squeeze(mean(subData.breakPower{exam}(trial,chansUsed,2:70,:),2));
-       subplot(2,nTrials,nTrials+trial);
-       title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']); 
-       imagesc(powArray,clim); set(gca,'YDir','normal')       
+       subplot(2,nTrials,nTrials+trial);       
+       imagesc(powArray,clim); set(gca,'YDir','normal') 
+       %axis([1 8 1 50]);
+       title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz'],'FontSize', 14); 
    end
 end
 
@@ -71,12 +78,12 @@ end
 % take average across temporal space (1-s epochs within trial)
 for exam = 1:length(subData.power)
     subData.power{exam} = squeeze(mean(subData.power{exam},4));
-    subData.power{exam} = squeeze(mean(subData.breakPower{exam},4));
+    subData.breakPower{exam} = squeeze(mean(subData.breakPower{exam},4));
 end
 
-%% plotting spectra for all tested freqs averaged across all channels  
+%% plotting spectra for all tested freqs averaged across used channels  
  for exam = 1:nExams
-    figure; hold on; suptitle([subname ' oscilating power spectra']); 
+    figure; hold on; suptitle([subname ' oscillating power spectra']); 
     for trial = 1:subData.nTrials
         
         % computing average power spectra across channels of interest        
@@ -85,7 +92,7 @@ end
         %plotting results
         subplot(floor(sqrt(subData.nTrials)),ceil(sqrt(subData.nTrials)),trial)             
         plot(powVec);
-        axis([0 40 0 1000]); 
+        axis([0 100 0 1500]); 
         title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']);   
         xlabel('Hz'); ylabel('power')                            
     end     
@@ -113,28 +120,23 @@ end
 % end
 
 %% plotting delta spectra (trial vs. break) across channels  
-%  for exam = 1:nExams
-%     figure; hold on; suptitle([subname ' power spectra vs. baseline (chan-avg)']); 
-%     for trial = 1:subData.nTrials
-%         
-%         % computing average power spectra across all channels
-%         powVec = zeros(nFreqs,1); 
-%         for channel = 1:nChans     
-%             %power computed as difference between trial power and
-%             %break/resting power
-%             powVec = powVec+(squeeze(subData.power{exam}(trial,channel,:))...
-%                 -squeeze(subData.breakPower{exam}(trial,channel,:)));            
-%         end
-%         powVec = powVec./nChans; 
-%         
-%         %plotting results
-%         subplot(floor(sqrt(subData.nTrials)),ceil(sqrt(subData.nTrials)),trial)             
-%         plot(freqLinspace,powVec);
-%         axis([0 40 -1000 200]);
-%         title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']);   
-%         xlabel('Hz'); ylabel('power')                            
-%     end     
-% end
+ for exam = 1:nExams
+    figure; hold on; suptitle([subname ' DELTA power spectra']); 
+    for trial = 1:subData.nTrials
+        
+        % computing average power spectra across channels of interest        
+        powVec = squeeze(mean(subData.power{exam}(trial,chansUsed,:),2));
+        breVec = squeeze(mean(subData.breakPower{exam}(trial,chansUsed,:),2));
+        delVec = powVec-breVec;
+        
+        %plotting results
+        subplot(floor(sqrt(subData.nTrials)),ceil(sqrt(subData.nTrials)),trial)             
+        plot(delVec);
+        axis([0 100 -500 500]); 
+        title(['Robot Freq: ' num2str(freqTested(trial)) ' Hz']);   
+        xlabel('Hz'); ylabel('power')                            
+    end     
+end
 
 %% plotting spectra for all tested freqs and each channel individually
 % for exam = 1:nExams

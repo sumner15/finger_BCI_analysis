@@ -44,3 +44,20 @@ for exam = 1:nExams
    end % trial
 end % exam
 
+%% if you want to average over exams, enable this area
+meanPower = subData.power{1};
+meanBreak = subData.breakPower{1};
+for exam = 2:nExams
+    meanPower = meanPower + subData.power{exam};
+    meanBreak = meanBreak + subData.breakPower{exam};
+end
+meanPower = meanPower./nExams;
+meanBreak = meanBreak./nExams;
+
+clear subData.power subData.breakPower
+subData.power = cell(1,1);
+subData.breakPower = cell(1,1);
+subData.power{1} = meanPower;
+subData.breakPower{1} = meanBreak;
+        
+    
