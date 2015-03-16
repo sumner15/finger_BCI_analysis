@@ -1,5 +1,5 @@
 clear; close all; clc; 
-subjects = {{'PASK','AGUC'}};
+subjects = {{'PASK'}};
 
 if (~exist('username','var'))
    username = input('Username: ','s'); 

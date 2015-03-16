@@ -6,10 +6,6 @@ function subData = segFingerOscillate(subData)
 % Input: subData as structure including .eeg{1 x nExams}(chan x sample)
 %                                       .sr as double 
 
-
-%% loading data 
-%Read in note/trial timing data when ready
-
 %% info regarding the experimental setup
 nExams = length(subData.eeg);           % number of recordings
 sr = subData.sr;                        % sampling rate
@@ -18,6 +14,13 @@ subData.trialLength = 20;               % length of oscillation (sec)
 subData.breakLength = 8;                % length of inter-trial break(sec)
 subData.introLength = 5;                % length of introduction (sec)
 subData.nTrials = 6;                    % number of trials per exam
+
+badChans = 15; %used for PASK (PO8 bad connection)
+
+%% zero-ing bad channels
+for examNo = 1:nExams
+   subData.eeg{examNo}(badChans,:) = 0;   
+end
 
 %% Create marker spike train
 markerTimes = zeros(1,subData.nTrials); % beginning of trial in seconds
