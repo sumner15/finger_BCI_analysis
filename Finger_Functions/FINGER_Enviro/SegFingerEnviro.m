@@ -48,7 +48,7 @@ marker =     cell(1,nSongs);
 
 for songNo = 1:nSongs
     %start index of time sample marking beginning of trial (from labjack)
-    startInd = min(find(abs(waveletData.vid{songNo})>2000));
+    startInd = min(find(abs(waveletData.vid{songNo})>1000));
     %markerInds is an integer array of marker indices (for all trials)
     markerInds{songNo} = startInd+round(blackBird);
 end
@@ -65,11 +65,11 @@ end
 cd ..
 load runOrder.mat   %identifying run order
 
-if size(waveletData.motorEEG{1},1) == 256
+if waveletData.nChans == 256 || waveletData.nChans == 194
     subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
                 'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
-elseif size(waveletData.motorEEG{1},1) == 14
-    subjects = {'SHAO'};
+elseif waveletData.nChans == 14
+    subjects = {'BECC','POTA','TRAT','DIAJ','NAVA','TRAV'};
 else
     error('Run order not defined for this experiment/headset combination');
 end
