@@ -102,13 +102,15 @@ end; fprintf('\n');
 
 % identifying channels (based on EGI 256 saline net only!)
 %motorChannels = [58 51 65 59 52 60 66 195 196 182 183 184 155 164]; %HNL selection
-concatData.motorChannels = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
+if ~exist('concatData.motorChans','var')
+    concatData.motorChans = [81 90  101 119 131 130 129 128 143 142];% CL & SMC correct!
+end
 
 load('egihc256redhm');
 concatData.hm = EGIHC256RED; 
 
 for song = 1:nSongs
-    concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChannels,:);
+    concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);
     concatData.eeg{song} = concatData.eeg{song}(concatData.hm.ChansUsed,:);
 end
 

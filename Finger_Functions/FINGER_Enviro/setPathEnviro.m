@@ -14,8 +14,8 @@ switch username
     case 'Thuong'
         cd('C:\Users\Thuong\Documents\SPRING 2014\Research\Enviro_Study_Data');
     case 'LAB'
-        cd('D:\emotiv');   
-        %cd('D:\environmental');
+        %cd('D:\emotiv');   
+        cd('D:\environmental');
     otherwise
         disp('Invalid username selected');
         error('Invalid username');
