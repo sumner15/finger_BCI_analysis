@@ -1,4 +1,4 @@
-function channelSelectEnviro(username,subname)
+function channelSelectEnviro(username,subname,concatData)
 % Manual selection of channels overlying left and right sensorimotor
 % cortices. This step should be performed before wavelet analysis to speed
 % wavelet computation time in large data sets.
@@ -25,15 +25,17 @@ concatData.params.lowPass = false;
 concatData.params.laPlacian.bool = false;
 
 %% loading data 
-setPathEnviro(username,subname)
+if nargin <= 2 % if we didn't give the func a concatData struct to use
+    setPathEnviro(username,subname)
 
-%Read in .mat file
-filename = celldir([subname '*concatData.mat']);
-filename{1} = filename{1}(1:end-4);
+    %Read in .mat file
+    filename = celldir([subname '*concatData.mat']);
+    filename{1} = filename{1}(1:end-4);
 
-fprintf(['Loading ' filename{1} '...']);
-load(filename{1});  
-fprintf('Done.\n');
+    fprintf(['Loading ' filename{1} '...']);
+    load(filename{1});  
+    fprintf('Done.\n');
+end
 
 %% re-referencing
 % %refChannels = [62 63 73 70 74 75 84];
@@ -57,13 +59,13 @@ concatData.params.detrend = true;
 fprintf('Done.\n')
 
 %% Low pass filter
-disp('Filtering Data...'); fprintf('Song Number...');
-fCut = 50; %cutoff freq in Hz
-for song = 1:length(concatData.eeg)
-    fprintf('%i...',song);
-    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,1000);    
-end; fprintf('\n'); 
-concatData.params.lowPass = true;
+% disp('Filtering Data...'); fprintf('Song Number...');
+% fCut = 50; %cutoff freq in Hz
+% for song = 1:length(concatData.eeg)
+%     fprintf('%i...',song);
+%     concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,1000);    
+% end; fprintf('\n'); 
+% concatData.params.lowPass = true;
 
 %% LAPLACIAN FILTER
 % fprintf('LaPlacian Filter...');
@@ -120,7 +122,8 @@ for song = 1:length(concatData.eeg)
         concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
     elseif size(concatData.eeg{song},1) <= 14   % if this is the emotiv
         concatData.motorChans = motorChannelsEmotiv;
-        concatData.motorEEG{song} = concatData.eeg{song}(motorChannelsEmotiv,:);
+%         concatData.motorEEG{song} = concatData.eeg{song}(motorChannelsEmotiv,:);
+        concatData.motorEEG{song} = concatData.eeg{song}(:,:);
     else
         error('Capture hardware undefined');
     end
