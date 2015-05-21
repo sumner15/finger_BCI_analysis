@@ -51,15 +51,19 @@ nConds = 6;                     % number of conditions
 condTitles = {'AV Only','Robot+Motor','Motor','AV Only','Robot','AV Only'};
 nChans = 194;                   % using EGI HC 256 RED Head Model!
 
-%% loading run order data
+%% loading run order and song data
 setPathEnviro('LAB');
+disp('Loading run order and song data')
 load runOrder.mat   %identifying run order
 subRuns  = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
             'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};       
 condStr = {'AV','motor','motor+robot','AV','robot','AV'};
 
+load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>      
+nTrials = length(blackBird); 
 
 %% loading data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf('\n'); disp('head model, CAR, ordering, and segmenting...');
 for currentSub = 1:nSubs
     clear concatData
     subname = subjects{currentSub}{1};
@@ -70,14 +74,18 @@ for currentSub = 1:nSubs
     load(filename);  
     
     %% applying head model
-    if isfield(concatData,'hm')==1 && length(concatData.hm.ChansUsed) ~= 194
-        hm = load('egihc256redhm');    
-        for cond = 1:nConds
-            concatData.eeg = concatData.eeg{cond}(hm.ChansUsed,:);  
+    load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
+    for cond = 1:nConds
+        if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
+            concatData.eeg{cond} = concatData.eeg{cond}(hm.ChansUsed,:);  
         end
-    else
-        load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
-    end
+    end 
+
+    %% Common Average Reference
+    for cond = 1:nConds
+        concatData.eeg{cond} = ...
+            concatData.eeg{cond} - repmat(mean(concatData.eeg{cond},1),[nChans 1]);
+    end       
     
     %% Reordering data according to run type
     subNum = find(ismember(subRuns,subname));
@@ -87,11 +95,7 @@ for currentSub = 1:nSubs
     end  
     concatData.eeg = orderedEEG; clear orderedEEG;
         
-    %% segmenting data
-    setPathEnviro('LAB');
-    load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>      
-    nTrials = length(blackBird);
-    
+    %% segmenting data    
     for cond = 1:nConds
         %start index of time sample marking beginning of trial (from labjack)
         startInd = find(abs(concatData.vid{cond})>2000, 1 );
@@ -108,12 +112,13 @@ for currentSub = 1:nSubs
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% processing subject data (FFT)
+disp('processing subject data (FFT)');
 % input:   screenEEG {sub,condition}(trialTime x chan x trial)
 % outcome: trialPOWER(sub x condition x window(time) x freqBins x channels)
 trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans);
 
 for currentSub = 1:nSubs
+    fprintf('.');
     for currentCond = 1:nConds
         for currentChan = 1:nChans
             % compute FFT for currentSub & condition (nFreqs x nWins x nChans x nTrials)
@@ -130,12 +135,46 @@ for currentSub = 1:nSubs
         end
     end
 end
+fprintf('\n\n');
 clear sampleWin currentData currentFFT
 
+%% zero-ing outlier channels
+disp('zero-ing outlier channels');
+nChansReject = zeros(1,nSubs);
+
+% trialPOWER(sub x cond x window x freq x channels)
+% --> mean power across windows (time)
+chanMeans = squeeze(mean(trialPOWER,3)); % --> (sub x cond x freq x chan)
+for sub = 1:nSubs
+    fprintf('.');
+    for cond = 1:nConds
+        for freq = 1:nFreqs            
+            % average power across all channels
+            commonAvg = squeeze(mean(chanMeans(sub,cond,freq,:),4)); %(1x1)
+            % standard deviation across all channels
+            stdOfChans = std(squeeze(chanMeans(sub,cond,freq,:))); %(1x1)
+            
+            for chan = 1:nChans
+                % if this channel is 2*std away from the common average for
+                % this subj/cond/freq, set it equal to the common average
+                if chanMeans(sub,cond,freq,chan) > commonAvg + 2*stdOfChans || ...
+                        chanMeans(sub,cond,freq,chan) < commonAvg - 3*stdOfChans
+                    trialPOWER(sub,cond,:,freq,chan) = commonAvg;
+                    nChansReject(sub) = nChansReject(sub)+1;
+                end
+            end
+            
+        end
+    end
+end
+fprintf('\nNumber of Channels Rejected (%%): \n')
+fprintf([num2str(nChansReject./(nConds*nFreqs*nChans)*100) '\n\n']);
 
 %% compute decibel power 
+disp('computing decibel power');
 trialPowerDB = NaN(size(trialPOWER));
 for currentSub = 1:nSubs
+    fprintf('.');
 for currentCond = 1:nConds
 for currentFreq = 1:nFreqs
 for currentChan = 1:nChans
@@ -146,6 +185,7 @@ end
 end
 end
 end
+fprintf('\n');
 
 %% save results for later
 savebool = input('Would you like to save the fft power results? (y or n): ','s');
@@ -155,5 +195,6 @@ if savebool == 'y'
     save('cleanFFTPower','trialPOWER','trialPowerDB','dimensionLabels',...
         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');  
 end
+disp('done');
 
 

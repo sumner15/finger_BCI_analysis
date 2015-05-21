@@ -1,4 +1,4 @@
-function sendEmail()
+function sendEmail(success)
 
 mail_address = 'slnorman@uci.edu';
 user_name = 'slnorman@uci.edu'; 
@@ -13,7 +13,12 @@ props.setProperty('mail.smtp.auth', 'true');
 props.setProperty('mail.smtp.socketFactory.class', 'javax.net.ssl.SSLSocketFactory');
 props.setProperty('mail.smtp.socketFactory.port', '465');
 
-sendmail('slnorman@uci.edu','MATLAB: Processing complete!', ...
-    'Congratulations, your latest script completed successfuly!');
+if success == false
+    sendmail('slnorman@uci.edu','MATLAB: Processing failed :(', ...
+        'Your last script encountered an error!');
+else
+    sendmail('slnorman@uci.edu','MATLAB: Processing complete!', ...
+        'Congratulations, your latest script completed successfuly!');
+end
 
 end
