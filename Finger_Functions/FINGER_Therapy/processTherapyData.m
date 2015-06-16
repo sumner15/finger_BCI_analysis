@@ -9,17 +9,26 @@ clc; clear concatData;
 % subjects =   {{'ARRS'},{'CHIB'},{'KILB'},{'LAMK'},...
 %               {'POOJ'},{'PRIJ'},{'VANT'},{'YAMK'}};
 % --------------------------------------------------------------------- %
+% ------ CLEANED   (05/05/2015 ---------------------------------------- %
+% subjects =   {{'AGUJ'},{'BROR'},{'CORJ'},{'FLOA'},{'GONA'},{'HAAN'},{'JOHG'},...
+%               {'KILB'},{'LAMK'},{'LEUW'},{'NGUT'},{'POOJ'},{'PRIJ'},{'RITJ'},...
+%               {'SARS'},{'WHIL'},{'WILJ'},{'WRIJ'},{'YAMK'}}; 
+% --------------------------------------------------------------------- %
 %
 % SUBJECTS NOT YET WORKING (02/23/2014) ------------------------------- %         
 %{'LOUW'},{'MALJ'},...
 %{'MCCL'},{'MILS'},
+%
+%{'CROD'},{'ESCH'}
 %
 % problem with segmentation (index exceeds matrix
 % {'LOUW'}
 % problem with channelSelect/filtfilt
 % {'MCCL'}
 % EXCLUDED
-% {'MILS'} (corn-rows)
+% {'MILS'} (corn-rows), {'CROD'} (too noisy)
+% problem with cleaning (preprocessing ok)
+% {'ESCH'} 
 % --------------------------------------------------------------------- %
 
 if (~exist('username','var'))

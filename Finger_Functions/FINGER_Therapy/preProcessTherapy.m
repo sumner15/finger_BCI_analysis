@@ -112,6 +112,7 @@ concatData.hm = EGIHC256RED;
 for song = 1:nSongs
     concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);
     concatData.eeg{song} = concatData.eeg{song}(concatData.hm.ChansUsed,:);
+    error('motor channels indices need updating for new head model');
 end
 
 end

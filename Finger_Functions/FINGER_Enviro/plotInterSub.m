@@ -1,11 +1,14 @@
-subjects = {{'SHAO'}};
+subjects = {{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
 
 % subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
 %             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
 
 %subjects = {{'NAVA'},{'TRAT'},{'NAZM'},{'TRAD'},{'DIAJ'},{'GUIR'},...
 %           {'DIMC'},{'LURI'}};
+
 nSubs = length(subjects);
+%scrsz = get(0,'ScreenSize'); 
+scrsz = [ 1 1 1306 677]+50;
 
 conditions = {'AV-only','robot+motor','motor only','AV-only','robot only','AV-only'};
 time = -1500:1499;
@@ -76,7 +79,7 @@ end
 disp('Done.')
 
 disp('Determining significance...')
-sigInds = cell(6,10);
+sigInds = cell(6,20);
 for song = 1:6
     nArea = 1; %number of significant areas
     for sample = 1:length(time)         %read through each sample pt
@@ -85,7 +88,7 @@ for song = 1:6
            muPower{song}(nSubs+1,sample)<(mu(sample)-conf(sample))
             sigInds{song,nArea} = [sigInds{song,nArea} sample];
         else  %if not sig, but last sample was, we are in a new area                                      
-            if ~isempty(sigInds{song,nArea})
+            if ~isempty(sigInds{song,nArea}) && nArea<20
                 nArea = nArea+1;
             end %done adding new area
         end %if significant
@@ -94,18 +97,17 @@ end %for each song
 disp('Done.')
 
 %% plotting trial power (decibels)
-scrsz = get(0,'ScreenSize'); 
 set(figure,'Position',scrsz)
+suptitle('Inter-Subject Mean Mu (8-13Hz) normalized power');
 
 % plotting DB power for each song (subplots)
-titles = ['A' 'A' 'B' 'C' 'D' 'E' 'F'];
 for song = 2:5
     subplot(2,2,song-1); hold on
-    %title([conditions{song} ': Inter-Subject Mean Mu (8-13Hz) normalized power'])
-    %title(titles(song),'FontSize',20);
+    title(conditions{song})    
     if song == 2 || song == 3; xlabel('time (ms)','FontSize',16); end
     if song == 3 || song == 5; ylabel('dB','FontSize',16); end
-    axis([-1500 1500 -10 13]);     
+    %axis([-1500 1500 -10 13]);     
+    axis([-1500 1500 -5 5]);     
     
     %shading significance
     for nArea = 1:size(sigInds,2)
@@ -133,11 +135,12 @@ end
 
 %% plotting trial power freq x time maps (decibels)
 set(figure,'Position',scrsz)
+suptitle('Inter-Subject Mean Normalized power (dB)')
+
 % plotting DB power for each song (subplots)
 for song = 2:5
     subplot(2,2,song-1); hold on
-    %title([conditions{song} ': Inter-Subject Mean Normalized power'])
-    title(titles(song),'FontSize',20);
+    title(conditions{song});
     ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
     
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));

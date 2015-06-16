@@ -20,5 +20,6 @@ else
     sendmail('slnorman@uci.edu','MATLAB: Processing complete!', ...
         'Congratulations, your latest script completed successfuly!');
 end
+disp('Email Sent.');
 
 end

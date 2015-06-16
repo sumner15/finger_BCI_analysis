@@ -49,10 +49,17 @@ trialSpan = ceil(trialTime/1000*concatData.sr); %n samples in trial
 
 % common vars
 nSongs = length(concatData.eeg);
-if nSongs ~= 6; error('wrong number of exams'); end; %check data size
-load egihc256redhm; 
-screenIn.hm = EGIHC256RED;
 screenIn.sr = concatData.sr;
+if nSongs ~= 6; error('wrong number of exams'); end; %check data size
+if size(concatData.eeg{1},1)==194
+    load egihc256redhm; 
+    screenIn.hm = EGIHC256RED;    
+elseif size(concatData.eeg{1},1)==14
+    load('EMOTIV14RED') 
+    screenIn.hm = EMOTIV14RED;   
+else
+    error('nChans not matched to a head model')
+end
 
 %% Create marker spike trains
 markerInds = cell(1,nSongs);
@@ -80,7 +87,7 @@ for song = 1:nSongs
    fprintf('\\\\%i//',song)   
    for trial = 1:nTrials       
        %sample index of trial               
-       sampleSpan = (1:trialSpan)+markerInds{song}(trial);
+       sampleSpan = (1:trialSpan)+markerInds{song}(trial)-trialSpan/2;
        %screenIn:  {song}(sample, channel, trial)
        screenIn.eeg{song}(:,:,trial) = ...     
             concatData.eeg{song}(1:nChans,sampleSpan)';             
@@ -99,12 +106,12 @@ for song = 1:nSongs
         screenIn.data = screenIn.eeg{song}(:,screenIn.hm.ChansUsed,:);    
     end
     
-    %skip AV only conds
-    if song == 1 || song == 6 
+    %skip some conditions
+    if max(song == [1 6]) 
         dataOut = screenIn;
     else
     %% actual screening performed here!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        dataOut = artscreen(screenIn);
+        dataOut = artscreen(screenIn);        
         dataOut = icasegdata(dataOut);
         dataOut = icareview(dataOut);
         dataOut = icatochan(dataOut);
@@ -123,18 +130,12 @@ for song = 1:nSongs
     end
     % concatData is filled here and changes size depending on HM!!!
     concatData.eeg{song} = flatData; 
-    concatData.hm = EGIHC256RED;        
+    concatData.hm = screenIn.hm;        
 end
-%% modifying for new hm & saving motor channels separately 
-if size(screenIn.eeg{song},2)==length(screenIn.hm.ChansUsed)
-    %oldMotorChans = concatData.motorChans; %[81 90  101 119 131 130 129 128 143 142]
-    oldMotorChans = [81 90  101 119 131 130 129 128 143 142];
-    [~,concatData.motorChans] = ismember(oldMotorChans,concatData.hm.ChansUsed);
-
-    for song = 1:nSongs
-        clear concatData.motorEEG
-        concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);    
-    end
+%% modifying for new hm & saving motor channels separately  
+for song = 1:nSongs
+    clear concatData.motorEEG
+    concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);    
 end
 
 %% save concatenated data
