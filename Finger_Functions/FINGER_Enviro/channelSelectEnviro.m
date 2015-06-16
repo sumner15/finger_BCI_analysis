@@ -17,14 +17,8 @@ function concatData = channelSelectEnviro(username,subname,concatData)
 % motorEEG = (channel x sample) 2D array of time domain data of motor
 % channels only.
 
-%% setting default values
-disp('Preprocessing Data');
-concatData.params.reRef = false;
-concatData.params.detrend = false;
-concatData.params.lowPass = false;
-concatData.params.laPlacian.bool = false;
-
 %% loading data 
+disp('Preprocessing Data');
 if nargin <= 2 % if we didn't give the func a concatData struct to use
     setPathEnviro(username,subname)
 
@@ -37,36 +31,52 @@ if nargin <= 2 % if we didn't give the func a concatData struct to use
     fprintf('Done.\n');
 end
 
+%% setting default values
+concatData.params.reRef = false;
+% concatData.params.detrend = false;
+% concatData.params.lowPass = false;
+% concatData.params.bandPass = false;
+concatData.params.laPlacian.bool = false;
+
 %% re-referencing
-%refChannels = [62 63 73 70 74 75 84];
-for i = 1:length(concatData.eeg)
-    % T4 reference ...
-    %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
-    % common average reference... 
-    nChans = size(concatData.eeg{i},1);
-    reference = repmat(squeeze(mean(concatData.eeg{i},1)),[nChans 1]);
-    concatData.eeg{i} = concatData.eeg{i} - reference;
-end
-concatData.params.reRef = true;
+% %refChannels = [62 63 73 70 74 75 84];
+% for i = 1:length(concatData.eeg)
+%     % T4 reference ...
+%     %reference = repmat(squeeze(mean(concatData.eeg{i}(refChannels,:),1)),[length(motorChannels) 1]);
+%     % common average reference... 
+%     nChans = size(concatData.eeg{i},1);
+%     reference = repmat(squeeze(mean(concatData.eeg{i},1)),[nChans 1]);
+%     concatData.eeg{i} = concatData.eeg{i} - reference;
+% end
+% concatData.params.reRef = true;
 
 %% subtracting DC offset and trend from channels
-fprintf('Detrending Data...')
-for song = 1:length(concatData.eeg)
-   for channel = 1:size(concatData.eeg{song},1)
-       concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
-   end
-end
-concatData.params.detrend = true;
-fprintf('Done.\n')
+% fprintf('Detrending Data...')
+% for song = 1:length(concatData.eeg)
+%    for channel = 1:size(concatData.eeg{song},1)
+%        concatData.eeg{song}(channel,:) = detrend(concatData.eeg{song}(channel,:));
+%    end
+% end
+% concatData.params.detrend = true;
+% fprintf('Done.\n')
 
 %% Low pass filter
-disp('Filtering Data...'); fprintf('Song Number...');
-fCut = 50; %cutoff freq in Hz
-for song = 1:length(concatData.eeg)
-    fprintf('%i...',song);
-    concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,1000);    
-end; fprintf('\n'); 
-concatData.params.lowPass = true;
+% disp('Filtering Data...'); fprintf('Song Number...');
+% fCut = 50; %cutoff freq in Hz
+% for song = 1:length(concatData.eeg)
+%     fprintf('%i...',song);
+%     concatData.eeg{song} = lowPassFilter(concatData.eeg{song},fCut,1000);    
+% end; fprintf('\n'); 
+% concatData.params.lowPass = true;
+
+%% band pass filter
+% disp('Bandpass filtering Data...'); fprintf('Song Number...');
+% fCut = 50; %cutoff freq in Hz
+% for song = 1:length(concatData.eeg)
+%     fprintf('%i...',song);
+%     concatData.eeg{song} = bandPassFilter(concatData.eeg{song},fCut,1000);    
+% end; fprintf('\n'); 
+% concatData.params.bandPass = true;
 
 %% LAPLACIAN FILTER
 % fprintf('LaPlacian Filter...');
@@ -119,6 +129,9 @@ for song = 1:length(concatData.eeg)
     if size(concatData.eeg{song},1) >= 256      % if this is the geodesic cap
         concatData.motorChans = motorChannels;
         concatData.motorEEG{song} = concatData.eeg{song}(motorChannels,:);
+    elseif size(concatData.eeg{song},1) == 194
+        concatData.motorChans = find(ismember(concatData.hm.ChansUsed,motorChannels));
+        concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);
     elseif size(concatData.eeg{song},1) <= 14   % if this is the emotiv
         concatData.motorChans = motorChannelsEmotiv;
         concatData.motorEEG{song} = concatData.eeg{song}(motorChannelsEmotiv,:);
@@ -126,6 +139,16 @@ for song = 1:length(concatData.eeg)
         error('Capture hardware undefined');
     end
 end
+
+%% applying head model
+% load egihc256redhm; 
+% concatData.hm = EGIHC256RED;
+% concatData.motorChans = find(ismember(concatData.hm.ChansUsed,motorChannels));
+% for song =1:length(concatData.eeg)
+%     if size(concatData.eeg{song},1) >= 256               
+%         concatData.eeg{song} = concatData.eeg{song}(concatData.hm.ChansUsed,:);        
+%     end
+% end
 
 %% save concatenated data
 fprintf('Saving pre-processed data...');
