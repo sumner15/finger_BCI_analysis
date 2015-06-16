@@ -20,11 +20,14 @@ opengl software
 % bilateral HNL channels 
 chansInterest = [59 51 52 43 44 165 175 164 174 163 66 60 53 131 140 148];
 
-% COMMON AVERAGE REFERENCE 
+% emotiv channels
+chansInterest = [12 13]; % Right side P8,T8,FC6,F4
+
+%% COMMON AVERAGE REFERENCE 
 % trialPOWER = trialPOWER - repmat(mean(trialPOWER,5),[1 1 1 1 nChans]);
 % trialPowerDB = trialPowerDB - repmat(mean(trialPowerDB,5),[1 1 1 1 nChans]);
 
-% Picking 4 conditions of interest
+%% Picking 4 conditions of interest
 if size(trialPOWER,2) == 6
     trialPOWER = trialPOWER(:,2:5,:,:,:);
     trialPowerDB = trialPowerDB(:,2:5,:,:,:);
@@ -57,7 +60,7 @@ for currentCond = 1:nConds
     ylabel('freq (Hz)'); xlabel('average power');
 end
 
-%% interSub Power @frequency of interest
+%% interSub Power @frequency of interest 
 freqInds = 3; freqUsed = fVec(freqInds);
 % subInterest = [2 11 12 14 16 18];
 subInterest = 1:nSubs;
@@ -97,8 +100,8 @@ freqInds = 3; freqUsed = fVec(freqInds);
 %% topography: subject max desync (IMPORTANT!) for single condition
 % for freqInterest = 1:9; %1:9
 condInterest = 2; timeInterest = 4:6; %-1.3:-.2 sec
-freqInterest = [4 4 4 5 9 2 2 5 7 5 6 3];
-% freqInterest = ones(1,nSubs)*freqInterest;
+% freqInterest = [4 4 4 5 9 2 2 5 7 5 6 3]; %best freqs for uncleaned enviro study
+freqInterest = 3; freqInterest = ones(1,nSubs)*freqInterest;
 
 set(figure,'Position',scrsz); 
 suptitle(['Max ERD, ' condTitles{condInterest}]);%', ' num2str(fVec(freqInterest(1))) ' Hz']);
@@ -112,8 +115,8 @@ for currentSub = 1:nSubs
     subTopoData = squeeze(topoData(currentSub,freqInterest(currentSub),:));
     % topoData(sub,freq,chan)  ==>  subTopoData(chan)
     
-   subplot(3,4,currentSub);   
-   corttopo(-subTopoData,hm,'drawElectrodes',0);
+   subplot(2,3,currentSub);   
+   corttopo(-subTopoData,hm,'drawElectrodes',1);
 %    set(gca,'clim',[-2 2]);
 
    title(subjects{currentSub}{1});          
@@ -136,7 +139,7 @@ set(figure,'Position',scrsz);
 suptitle('InterSubject Max ERD (dB)');
 for cond = 1:4
     subplot(2,2,cond); 
-    corttopo(squeeze(-topoData(cond,:)'),hm,'drawElectrodes',0);
+    corttopo(squeeze(-topoData(cond,:)'),hm,'drawElectrodes',1);
     set(gca,'clim',[-0.5 1.3]);
     title(condTitles{cond})
 end

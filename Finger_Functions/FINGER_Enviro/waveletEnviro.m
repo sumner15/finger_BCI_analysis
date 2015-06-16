@@ -1,4 +1,4 @@
-function waveletData = waveletEnviro(username,subname)
+function waveletData = waveletEnviro(username,subname,concatData)
 % Wavelet convolution of continuous EEG signal (not yet segmented) to avoid
 % edge artifacts. See details: 
 %
@@ -21,19 +21,22 @@ function waveletData = waveletEnviro(username,subname)
 
 
 %% loading data 
-setPathEnviro(username,subname)
+if nargin < 3
+    setPathEnviro(username,subname)
 
-%Read in .mat file
-filename = celldir([subname '*concatData.mat']);
+    %Read in .mat file
+    filename = celldir([subname '*concatData.mat']);
 
-filename{1} = filename{1}(1:end-4);
-disp(['Loading ' filename{1} '...']);
-load(filename{1});  
-disp('Done.');
+    filename{1} = filename{1}(1:end-4);
+    disp(['Loading ' filename{1} '...']);
+    load(filename{1});  
+    disp('Done.');
+else
+    disp('concatData passed directly.');
+end
 
 
 %% setting constants
-global waveletData
 nSongs = length(concatData.motorEEG);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
@@ -42,15 +45,15 @@ concatData.wavFreq = wFreq;             % saving to structure
 concatData.nCycles = nCycles;           % saving to structure
 
 %% performing convolution
-disp('Beginning wavelet convolution'); 
+fprintf('Beginning wavelet convolution'); 
 %preallocating for speed
 for songNo = 1:nSongs          %for each song (6 total)
-    fprintf('----song number: %i / %i----\n',songNo,nSongs);
+    fprintf('\n----song number: %i / %i----\nsignal ',songNo,nSongs);
     dataDimensions = [length(wFreq),size(concatData.motorEEG{songNo})];
     concatData.wavelet{songNo} = zeros(dataDimensions);
     for ii = 1:size(concatData.motorEEG{songNo},1)  %for each channel (signal) 
         currentSig = concatData.motorEEG{songNo}(ii,:);
-        fprintf('signal %i / %i \n',ii,size(concatData.motorEEG{songNo},1));
+        fprintf('%i - ',ii);
         for i = 1:length(wFreq)             %convolve with each freq wavelet
             f = wFreq(i);
             s = nCycles/(2*pi*f);   
@@ -74,15 +77,15 @@ for songNo = 1:nSongs          %for each song (6 total)
         end %for each frequency
     end %for each signal
 end % for each song
-disp('Done.');
+fprintf('\nDone.\n');
 
 
-%% save concatenated data    
+%% output data    
 concatData.nChans = size(concatData.eeg{1},1);
 concatData = rmfield(concatData,'eeg');
 waveletData = concatData; clear concatData
-disp('Saving wavelet frequency-domain data...');
-%save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
-disp('Done.');
+disp('waveletData structure created (no save).');
+% save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
+% disp('Done.');
 
 end %function

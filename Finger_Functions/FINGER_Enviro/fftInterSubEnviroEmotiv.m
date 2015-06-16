@@ -27,36 +27,32 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Movement Anticipation and EEG: Implications for BCI-robot therapy
- subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
+subjects = {{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
 % subjects = {{'TRUS'},{'DIMC'}}; % for testing purposes
 nSubs = length(subjects);       % number of subjects analyzed 
 
 %% options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 trialLength = 3;                % trial length (in sec)
-windowLength = 200;             % Sample length 
+windowLength = 25;             % Sample length 
 baseInd = 1:2;                  % baseline period (in int multiples of 
                                 % windowLength ms) for use in dB change 
-fs = 1000;                      % sampling frequency (Hz)
-% Hz (desired center freq used for topography)
+fs = 128;                      % sampling frequency (Hz)
 fVec = linspace(0,fs/2,windowLength/2+1);  % frequency vector resolved by fft
 nFreqs = length(fVec);          % number of independent freqs resolved
-nWins = floor(fs*3/windowLength); % number of windows per epoch (3 sec)
+nWins = floor(fs*trialLength/windowLength); % number of windows per epoch (3 sec)
 t = linspace(-trialLength/2,trialLength/2,nWins); %time vector
 freqInd = NaN(1,nSubs);         % initializing frequency index vector
 freqUsed = NaN(1,nSubs);        % initializing frequency used vector
 
 nConds = 6;                     % number of conditions 
 condTitles = {'AV Only','Robot+Motor','Motor','AV Only','Robot','AV Only'};
-nChans = 194;                   % using EGI HC 256 RED Head Model!
+nChans = 14;                   % using emotiv 14 red head model!
 
 %% loading run order and song data
 setPathEnviro('LAB');
 disp('Loading run order and song data')
 load runOrder.mat   %identifying run order
-subRuns  = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
-            'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};       
+subRuns  = {'BECC','POTA','TRAT','DIAJ','NAVA','TRAV'};       
 condStr = {'AV','motor','motor+robot','AV','robot','AV'};
 
 load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>      
@@ -73,11 +69,13 @@ for currentSub = 1:nSubs
     disp(['Loading ' filename '...']);
     load(filename);  
     
-    %% applying head model
-    load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
+    %% applying head model    
+    load('EMOTIV14RED'); hm = EMOTIV14RED; clear EMOTIV14RED    
+    nChans = length(hm.ChansUsed);
     for cond = 1:nConds
         if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
-            concatData.eeg{cond} = concatData.eeg{cond}(hm.ChansUsed,:);  
+%             concatData.eeg{cond} = concatData.eeg{cond}(hm.ChansUsed,:); 
+            error('Data set size does not match head model');
         end
     end 
 
@@ -98,7 +96,7 @@ for currentSub = 1:nSubs
     %% segmenting data    
     for cond = 1:nConds
         %start index of time sample marking beginning of trial (from labjack)
-        startInd = find(abs(concatData.vid{cond})>2000, 1 );
+        startInd = find(abs(concatData.vid{cond})>1000, 1 );
         %markerInds is an integer vector of marker indices (rounded to 100ms)
         markerInds = startInd+round(blackBird);
         for trial = 1:nTrials
@@ -128,7 +126,8 @@ for currentSub = 1:nSubs
                % cut out current data window for analysis
                currentData = squeeze(screenEEG{currentSub,currentCond}(sampleWin,currentChan,:));
                % find power and clip FFT for negative frequencies
-               currentFFT  = abs(fft(currentData));  currentFFT = currentFFT(1:end/2+1,:);    
+               currentFFT  = abs(fft(currentData));  
+               currentFFT = currentFFT(1:(end/2+1),:);    
                % average across trials
                trialPOWER(currentSub,currentCond,window,:,currentChan) = squeeze(mean(currentFFT,2));
             end
@@ -139,36 +138,36 @@ fprintf('\n\n');
 clear sampleWin currentData currentFFT
 
 %% zero-ing outlier channels
-disp('zero-ing outlier channels');
-nChansReject = zeros(1,nSubs);
-
-% trialPOWER(sub x cond x window x freq x channels)
-% --> mean power across windows (time)
-chanMeans = squeeze(mean(trialPOWER,3)); % --> (sub x cond x freq x chan)
-for sub = 1:nSubs
-    fprintf('.');
-    for cond = 1:nConds
-        for freq = 1:nFreqs            
-            % average power across all channels
-            commonAvg = squeeze(mean(chanMeans(sub,cond,freq,:),4)); %(1x1)
-            % standard deviation across all channels
-            stdOfChans = std(squeeze(chanMeans(sub,cond,freq,:))); %(1x1)
-            
-            for chan = 1:nChans
-                % if this channel is 2*std away from the common average for
-                % this subj/cond/freq, set it equal to the common average
-                if chanMeans(sub,cond,freq,chan) > commonAvg + 2*stdOfChans || ...
-                        chanMeans(sub,cond,freq,chan) < commonAvg - 3*stdOfChans
-                    trialPOWER(sub,cond,:,freq,chan) = commonAvg;
-                    nChansReject(sub) = nChansReject(sub)+1;
-                end
-            end
-            
-        end
-    end
-end
-fprintf('\nNumber of Channels Rejected (%%): \n')
-fprintf([num2str(nChansReject./(nConds*nFreqs*nChans)*100) '\n\n']);
+% disp('zero-ing outlier channels');
+% nChansReject = zeros(1,nSubs);
+% 
+% % trialPOWER(sub x cond x window x freq x channels)
+% % --> mean power across windows (time)
+% chanMeans = squeeze(mean(trialPOWER,3)); % --> (sub x cond x freq x chan)
+% for sub = 1:nSubs
+%     fprintf('.');
+%     for cond = 1:nConds
+%         for freq = 1:nFreqs            
+%             % average power across all channels
+%             commonAvg = squeeze(mean(chanMeans(sub,cond,freq,:),4)); %(1x1)
+%             % standard deviation across all channels
+%             stdOfChans = std(squeeze(chanMeans(sub,cond,freq,:))); %(1x1)
+%             
+%             for chan = 1:nChans
+%                 % if this channel is 2*std away from the common average for
+%                 % this subj/cond/freq, set it equal to the common average
+%                 if chanMeans(sub,cond,freq,chan) > commonAvg + 2*stdOfChans || ...
+%                         chanMeans(sub,cond,freq,chan) < commonAvg - 3*stdOfChans
+%                     trialPOWER(sub,cond,:,freq,chan) = commonAvg;
+%                     nChansReject(sub) = nChansReject(sub)+1;
+%                 end
+%             end
+%             
+%         end
+%     end
+% end
+% fprintf('\nNumber of Channels Rejected (%%): \n')
+% fprintf([num2str(nChansReject./(nConds*nFreqs*nChans)*100) '\n\n']);
 
 %% compute decibel power 
 disp('computing decibel power');

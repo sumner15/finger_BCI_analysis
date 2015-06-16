@@ -11,6 +11,7 @@ function waveletData = SegFingerEnviro(username,subname,waveletData)
 
 %% loading data 
 setPathEnviro(username,subname)
+disp('Beginning Segmentation');
 
 %If the wavelet data variable isn't already in the global workspace
 if nargin < 3
@@ -21,6 +22,8 @@ if nargin < 3
     disp(['Loading ' filename{1} '...']);    
     waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
     disp('Done.');
+else
+    fprintf('waveletData passed directly.');
 end
 %Remove the eeg only component if it exists (legacy scripts kept eeg field)
 if(isfield(waveletData,'eeg'))
@@ -48,7 +51,7 @@ marker =     cell(1,nSongs);
 
 for songNo = 1:nSongs
     %start index of time sample marking beginning of trial (from labjack)
-    startInd = min(find(abs(waveletData.vid{songNo})>1000));
+    startInd = find(abs(waveletData.vid{songNo})>1000, 1 );
     %markerInds is an integer array of marker indices (for all trials)
     markerInds{songNo} = startInd+round(blackBird);
 end
@@ -80,7 +83,7 @@ cd(subname)
 
 %% Segment EEG data
 for songNo = 1:nSongs
-    fprintf('\n Song Number %i / %i \n',songNo,nSongs);
+    fprintf('\n Song Number %i / %i \ntrial',songNo,nSongs);
     runNo = waveletData.runOrder(songNo);
     for trialNo = 1:nTrials
         fprintf('- %2i ',trialNo);

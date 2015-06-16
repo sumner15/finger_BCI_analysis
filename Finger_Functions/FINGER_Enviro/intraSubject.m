@@ -15,15 +15,14 @@ function intraSubject(username, subname, waveletData)
 %% loading data 
 setPathEnviro(username,subname)
 
-%If the wavelet data variable isn't already in the global workspace
+%If the wavelet data variable isn't given
 if nargin < 3
     %Read in .mat file
     filename = celldir([subname '*segWavData.mat']);
 
     filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);
-    global waveletData;
-    %waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+    disp(['Loading ' filename{1} '...']);    
+    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
     disp('Done.');
 end
 
@@ -53,7 +52,7 @@ for song = 1:nSongs
     baselinePower{song} = mean(trialPower{song}(:,:,1:250),3);
     baselinePower{song} = repmat(baselinePower{song},[1,1,size(trialPower{song},3)]);
     trialPowerDB{song} = trialPower{song}./baselinePower{song};
-    trialPowerDB{song} = 10*log(trialPowerDB{song});
+    trialPowerDB{song} = 10*log10(trialPowerDB{song});
 end
 
 %% Organizing remaining data to save out  
