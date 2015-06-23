@@ -1,4 +1,4 @@
-function [concatData] = concatTherapy(username,subname)
+function [concatData] = concatTherapy(username,subname,saveBool)
 %SegFingerTherapy
 %
 % Segments FINGER therapy data into a sample by channel by trial array
@@ -22,12 +22,6 @@ filePost = filename{2}(1:end-4);
 disp(['Loading ' filePost '...']);
 load(filePost); % post-exam
 
-% load the EGI head model
-% load egihc256redhm;
-% concatData.hm = EGIHC256RED;
-% number of eeg channels in the headmodel
-% nChans = length(EGIHC256RED.ChansUsed); 
-
 %% info regarding the experimental setup
 concatData.sr = samplingRate;
 
@@ -46,14 +40,15 @@ concatData.vid{2} = eval([filePre  '3Video_trigger']);
 concatData.vid{3} = eval([filePost '2Video_trigger']);
 concatData.vid{4} = eval([filePost '3Video_trigger']);
 
-%% filtering data
-% disp('Filtering the data...');
-% eeg1 = filtereeg(eeg1(EGIHC256RED.ChansUsed,:)',sr);
-
 %% save concatenated data
-fprintf('Saving concatenated data...');
-cd ..; 
-save(strcat(subname,'_concatData'),'concatData');
-fprintf('Done.\n');
+if saveBool
+    fprintf('Saving concatenated data...');
+    cd ..; 
+    concatData.params.preProcess = false;
+    save(strcat(subname,'_concatData'),'concatData');
+    fprintf('Done.\n');
+else
+    disp('warning: data not saved, must pass directly');
+end
 
 end

@@ -2,11 +2,12 @@ clc; clear; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
 % subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-%             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};         
+%             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};  
+subjects = {{'POTA'}};
 
 %  Emotiv study:
 % subjects = {{'BECC'},{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
-subjects = {{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
+% subjects = {{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
 % subjects = {{'POTA'}};
 
 % note: double check that setPathEnviro is set to proper study!!
@@ -31,11 +32,11 @@ try
 
 
 %         concatenatedData = concatEnviro(username,subname);        
-%         concatenatedData = channelSelectEnviro(username,subname,concatenatedData)
-%         concatenatedData = channelSelectEnviro(username,subname);      
-%         waveletData = waveletEnviro(username,subname,concatenatedData);   
-%         waveletData = SegFingerEnviro(username,subname,waveletData);
-%         intraSubject(username,subname,waveletData);
+%         concatenatedData = channelSelectEnviro(username,subname,concatenatedData);
+        concatenatedData = channelSelectEnviro(username,subname);
+        waveletData = waveletEnviro(username,subname,concatenatedData);   
+        waveletData = SegFingerEnviro(username,subname,waveletData);
+        intraSubject(username,subname,waveletData);
         plotSub(username,subname);    
         fprintf('Elapsed time: %3.2f minutes\n',toc/60);
     end

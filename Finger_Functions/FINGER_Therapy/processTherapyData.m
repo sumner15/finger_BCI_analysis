@@ -1,91 +1,110 @@
 clc; clear concatData; 
 
-% ------ COMPLETED (01/28/2015 ---------------------------------------- %
-% subjects =   {{'AGUJ'},{'BROR'},{'CORJ'},{'CROD'},{'ESCH'},{'FLOA'},...
-%               {'GONA'},{'HAAN'},{'JOHG'},{'LEUW'},{'NGUT'},{'RITJ'},...
-%               {'SARS'},{'WHIL'},{'WILJ'},{'WRIJ'}};     
-%
-% ------ COMPLETED (02/23/2015 ---------------------------------------- %
-% subjects =   {{'ARRS'},{'CHIB'},{'KILB'},{'LAMK'},...
-%               {'POOJ'},{'PRIJ'},{'VANT'},{'YAMK'}};
-% --------------------------------------------------------------------- %
-% ------ CLEANED   (05/05/2015 ---------------------------------------- %
-% subjects =   {{'AGUJ'},{'BROR'},{'CORJ'},{'FLOA'},{'GONA'},{'HAAN'},{'JOHG'},...
-%               {'KILB'},{'LAMK'},{'LEUW'},{'NGUT'},{'POOJ'},{'PRIJ'},{'RITJ'},...
-%               {'SARS'},{'WHIL'},{'WILJ'},{'WRIJ'},{'YAMK'}}; 
-% --------------------------------------------------------------------- %
-%
-% SUBJECTS NOT YET WORKING (02/23/2014) ------------------------------- %         
-%{'LOUW'},{'MALJ'},...
-%{'MCCL'},{'MILS'},
-%
-%{'CROD'},{'ESCH'}
-%
-% problem with segmentation (index exceeds matrix
-% {'LOUW'}
-% problem with channelSelect/filtfilt
-% {'MCCL'}
+% SUBJECTS EXCLUDED (02/23/2014) -------------------------------------- %
 % EXCLUDED
-% {'MILS'} (corn-rows), {'CROD'} (too noisy)
-% problem with cleaning (preprocessing ok)
-% {'ESCH'} 
+% {'MILS'} (corn-rows)
+% --------------------------------------------------------------------- %
+subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD','ESCH','FLOA',...
+            'GONA','HAAN','JOHG','KILB','LAMK','LEUW','LOUW','MALJ',...
+            'MCCL','MILS','NGUT','POOJ','PRIJ','RITJ','SARS','VANT',...
+            'WHIL','WILJ','WRIJ','YAMK'};        
+% --------------------------------------------------------------------- %        
+% define motor channels (used in wavelet) here! (in terms of 194Ch HM)
+%                       bilateral HNL channels 
+chansInterest = [59 51 52 43 44 165 175 164 174 163 66 60 53 131 140 148];
 % --------------------------------------------------------------------- %
 
+
+
+
+
+%% processing options (prompting)
 if (~exist('username','var'))
    username = input('Username: ','s'); 
 end
+preProcessBool = input('Would you like to Concatenate & Pre-Process? Type y or n: ','s');
+cleanDataBool = input('Would you like to begin cleaning data? Type y or n: ','s');
+waveletBool = input('Would you like to process using wavelet? Type y or n: ','s');
+fftBool = input('Would you like to process using fft (topography)? Type y or n: ','s');
+tic; successBool = true;
 
-concatBool = input('Would you like to Concatenate? Type y or n: ','s');
-processBool = input('Would you like to Process? Type y or n: ','s');
-computeBool = input('Would you like to Compute results? Type y or n: ','s');
-
-
-%% concatenate data 
-tic
-if concatBool == 'y'
+%% concatenate & pre-process data 
+if preProcessBool == 'y'
     for currentSub = 1:length(subjects)       
-        subname = subjects{currentSub};   
-        subname = subname{1};
+        subname = subjects{currentSub};           
 
         disp('-------------------------------------');
-        disp(['Data concatenation for ' subname]);
+        disp(['Pre-Processing data for ' subname]);
         disp('-------------------------------------');
-
-        clear ans concatData selectData waveletData;
-        concatTherapy(username,subname);    %note: saves to file
+        
+        try 
+            data = concatTherapy(username,subname,false);                  
+            data = preProcessTherapy(username,subname,true,data);  
+            %note: saves file (e.g. AAAA_concatData.mat)            
+        catch me
+            disp(['Preprocessing failed: ' subname]);
+            disp(me.message);
+            successBool = false;
+        end
+        
     end
 end
 
-%% process all data
-if processBool == 'y'
+%% cleaning data
+if cleanDataBool == 'y'    
+    % note: check that data is pre-processed in cleaning script
+    % make this check params and continue where you left off cleaning last.
+    % need to re-write cleaning script
+    for currentSub = 1:length(subjects)
+        subname = subjects{currentSub};
+        
+        disp('-------------------------------------');
+        disp(['Cleaning ' subname '''s data']);
+        disp('-------------------------------------');
+        
+        try
+            screenTherapy(username,subname)
+            %note: overwrites file (e.g. AAAA_concatData.mat)
+        catch me
+            disp(['Screening failed: ' subname]);
+            disp(me.message);
+            successBool = false;
+        end
+        
+    end
+end
+
+%% time -> freq domain (wavelet)
+if waveletBool == 'y'
+    disp(['Channels of interest: ' num2str(chansInterest)]);
     for currentSub = 1:length(subjects)
         subname = subjects{currentSub};   
-        subname = subname{1};
+        
 
         disp('-------------------------------------');
-        disp(['Beginning data processing for ' subname]);
+        disp(['Beginning wavelet processing for ' subname]);
         disp('-------------------------------------');
-
-        concatData = preProcessTherapy(username,subname);   clear ans
-        waveletData = waveletTherapy(concatData);   
-        waveletData = SegFingerTherapy(username,subname,waveletData);            
+        
+        try
+            freqData = waveletTherapy(username,subname,chansInterest);   
+            freqData = SegFingerTherapy(username,subname,true,freqData);
+            %note: saves file (e.g. AAAA_segWavData.mat)
+            intraSubjectTherapy(username,subname,freqData,true); 
+            %note: saves file (e.g. AAAA_trialPower.mat)
+        catch me 
+            disp(['Wavelet Processing failed: ' subname]);
+            disp(me.message);
+            successBool = false;
+        end
     end
 end
 
-%% compute results
-if computeBool == 'y'
-    clear concatData waveletData 
-    disp('-------------------------------');
-    disp(' Beginning results computation ');
-    disp('-------------------------------');
-   for currentSub = 1:length(subjects)
-        subname = subjects{currentSub};   
-        subname = subname{1};                       
-        intraSubjectTherapy(username,subname);
-   end
+%% time -> freq domain (fft)
+if fftBool == 'y'
+    error('not yet set up');
 end
 
 %% finish up
-toc
-sendEmail;
-clear ans subname concatData selectData waveletData;
+timeElapsed = round(toc/60); 
+disp(['Elapsed time: ' num2str(timeElapsed) ' min']);
+sendEmail(successBool);

@@ -1,4 +1,4 @@
-function waveletData = waveletTherapy(concatData)
+function waveletData = waveletTherapy(username,subname,motorChans,saveBool,concatData)
 % Wavelet convolution of continuous EEG signal (not yet segmented) to avoid
 % edge artifacts. See details: 
 %
@@ -17,14 +17,39 @@ function waveletData = waveletTherapy(concatData)
 % concatData now contains concatData.wave where:
 % wave = (frequency_bin x channel x sample) 3D array of freq. domain data
 
+%% loading data 
+setPathTherapy(username,subname)
+
+%Read in .mat file
+if exist('concatData','var')
+    disp('Concatenated data passed directly; skipping load...');
+else
+    filename = celldir([subname '*concatData.mat']);
+    filename{1} = filename{1}(1:end-4);
+
+    fprintf(['Loading ' filename{1} '...']);
+    load(filename{1});  
+    fprintf('Done.\n');
+end
+
+%% checking data for cleaning
+if ~concatData.params.screened
+    error([subname ' data not cleaned!']);
+end
 
 %% setting constants
-nSongs = length(concatData.motorEEG);   % number of songs
+nSongs = length(concatData.eeg);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
 nCycles = 4;                    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;             % saving to structure
 concatData.nCycles = nCycles;           % saving to structure
+
+%% saving motor channels to structure & defining new data 
+concatData.chansInterest = motorChans;
+for song = 1:nSongs
+    concatData.motorEEG{song} = concatData.eeg{song}(motorChans,:);
+end
 
 %% performing convolution
 fprintf('Beginning wavelet convolution'); 
@@ -63,7 +88,14 @@ fprintf('\n Done.');
 
 
 %% save concatenated data    
-%concatData = rmfield(concatData,'eeg');
+concatData.params.wavelet = true;
 waveletData = concatData; clear concatData
+if exist('saveBool','var') && saveBool
+    disp('Saving wavelet frequency-domain data...')
+    save(strcat(subname,'_wavData'),'waveletData','-v7.3');
+    disp('Done.');
+else
+    disp('Warning: Data not saved to disk; must pass directly');
+end
 
 end %function
