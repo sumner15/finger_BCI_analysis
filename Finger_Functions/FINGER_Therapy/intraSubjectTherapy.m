@@ -27,7 +27,10 @@ if ~exist('cleanWavData','var')
 end
 
 %% Some experiment variables
-nSongs = length(cleanWavData.segWavData);
+if isfield(cleanWavData,'waveletData')
+    cleanWavData = cleanWavData.waveletData;
+end
+nSongs = length(cleanWavData.segEEG);
 
 %% Computing EEG power
 % note: segWavData is size {song}(trial x freq x chn x time) 

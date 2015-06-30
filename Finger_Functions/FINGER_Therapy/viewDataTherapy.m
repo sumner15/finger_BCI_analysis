@@ -1,4 +1,7 @@
-function screenOut = screenTherapy(username, subname, concatData)
+function viewDataTherapy(username, subname, concatData)
+
+% function viewData(username, subname, concatData)
+%
 % This is a wrapper function that allows the use of the artscreen.m
 % function on the FINGER therapy clinical EEG data
 %
@@ -17,17 +20,15 @@ if ~exist('concatData','var')
     disp(['Loading ' filename '...']);
     load(filename);  
 end
-% Read in note/trial timing data 
 setPathTherapy(username);
-%load('songName') %creates var songName <nNotes x 1 double> (ms)
-load('note_timing_SpeedTest')
-load('note_timing_SunshineDay')
+load('note_timing_SpeedTest');
+load('note_timing_SunshineDay');
 
 %% check to see if we've already cleaned this data
 if concatData.params.screened && concatData.params.ICA
     disp('This data has already been cleaned');
-    screenOut = NaN;
-    return
+else 
+    disp('This data is DIRTY!');
 end
 
 %% common var definition
@@ -41,14 +42,13 @@ nTrials = repmat(nTrials,[1 2]);    % (extending to 4 songs)
 %% Segment all-channel EEG data
 markerInds = cell(1,nSongs);
 % creating marker spike train
-for song = 1:nSongs
-    %start index of time sample marking beginning of trial (from labjack)
-    startInd = find(abs(concatData.vid{song})>1000000, 1 );
-    %markerInds is an integer array of marker indices (for all trials)
-    if song==1 || song==3
-        markerInds{song} = startInd+round(sunshineDay);
+for song = 1:nSongs        
+    %markerInds is an integer array of marker indices (for all trials)   
+    %*marker train of 3s epoch + 1s zero-pad for nTrials
+    if song==1 || song==3        
+        markerInds{song} = 1:(sr*(trialLength+1)):nTrials(1)*(sr*(trialLength+1));
     else
-        markerInds{song} = startInd+round(speedTest);
+        markerInds{song} = 1:(sr*(trialLength+1)):nTrials(2)*(sr*(trialLength+1));
     end
 end
 disp('Segmenting EEG for cleaning...');      
@@ -59,7 +59,7 @@ for song = 1:nSongs
         
     for trialNo = 1:nTrials(song)            
         %time indices that the current trial spans (3 sec total)
-        timeSpan = markerInds{song}(trialNo)-(sr*trialLength/2):markerInds{song}(trialNo)+(sr*trialLength/2)-1; 
+        timeSpan = markerInds{song}(trialNo):markerInds{song}(trialNo)+(sr*trialLength)-1; 
         %filling segment into segEEG
         segEEG{song}(trialNo,:,:) = concatData.eeg{song}(:,timeSpan); %all channels       
     end    
@@ -76,32 +76,32 @@ for song = 1:nSongs
    dataIn.data = permute(segEEG{song},[3 2 1]);  
    
    dataOut = artscreen(dataIn);        
-   dataOut = icasegdata(dataOut);
-   dataOut = icareview(dataOut);
-   dataOut = icatochan(dataOut);
-   concatData.artifact{song} = dataOut.artifact;
    % segEEG{song} (sample x channel x trial)
    segEEG{song} = dataOut.data;   
 end
 
+%% This script will function if you want...
+saveBool = input('Would you like to save? Type y or n: ','s');
+
 %% compile data back into continuous EEG (zero-padded)
-disp('re-structuring data (to continuous eeg :: zero-padded, 1sec)...');
-for song = 1:nSongs
-    totalSamples = nTrials(song)*sr*(trialLength+1);
-    concatData.eeg{song} = zeros(nChans,totalSamples);
-    for trial = 1:nTrials(song)
-        timeStart = (trial-1)*sr*(trialLength+1)+1;
-        timeSpan = timeStart:(timeStart+sr*trialLength-1);
-        if max(concatData.eeg{song}(:,timeSpan)) ~= 0
-            error('overlapping data');
-        else
-            concatData.eeg{song}(:,timeSpan) = squeeze(segEEG{song}(:,:,trial))';
+if saveBool == 'y'
+    disp('re-structuring data (to continuous eeg :: zero-padded, 1sec)...');
+    for song = 1:nSongs
+        totalSamples = nTrials(song)*sr*(trialLength+1);
+        concatData.eeg{song} = zeros(nChans,totalSamples);
+        for trial = 1:nTrials(song)
+            timeStart = (trial-1)*sr*(trialLength+1)+1;
+            timeSpan = timeStart:(timeStart+sr*trialLength-1);
+            if max(concatData.eeg{song}(:,timeSpan)) ~= 0
+                error('overlapping data');
+            else
+                concatData.eeg{song}(:,timeSpan) = squeeze(segEEG{song}(:,:,trial))';
+            end
         end
     end
 end
 
 %% save data if wanted
-saveBool = input('Would you like to save? Type y or n: ','s');
 if saveBool == 'y'
     setPathTherapy(username,subname);    
     concatData.params.screened = true;
