@@ -26,6 +26,7 @@ preProcessBool = input('Would you like to Concatenate & Pre-Process? Type y or n
 cleanDataBool = input('Would you like to begin cleaning data? Type y or n: ','s');
 waveletBool = input('Would you like to process using wavelet? Type y or n: ','s');
 fftBool = input('Would you like to process using fft (topography)? Type y or n: ','s');
+plotBool = input('Would you like to view intersubject result plots? Type y or n: ','s');
 tic; successBool = true;
 
 %% concatenate & pre-process data 
@@ -102,6 +103,20 @@ end
 %% time -> freq domain (fft)
 if fftBool == 'y'
     error('not yet set up');
+end
+
+%% subject plotting (cell must be ran manually)
+if false
+   for currentSub = 1:length(subjects)
+       subname = subjects{currentSub};
+       plotSubTherapy(username,subname);
+   end
+end
+
+%% intersubject plotting
+if plotBool == 'y'
+    disp('Plotting inter-subject results');
+   plotInterSubTherapy 
 end
 
 %% finish up

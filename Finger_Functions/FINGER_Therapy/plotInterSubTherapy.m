@@ -24,9 +24,7 @@ disp('-----------------------------');
     
 %% loading data
 for currentSub = 1:nSubs
-    subname = subjects{currentSub};   
-    subname = subname{1};     
-    
+    subname = subjects{currentSub};       
     clear trialPower trialPowerDB
     setPathTherapy(username,subname)
     filename = celldir([subname '*trialPower.mat']);
@@ -38,7 +36,7 @@ end
 
 %% computing mean results
 for currentSub = 1:nSubs
-    subname = subjects(currentSub); subname = char(subname{1});    
+    subname = subjects{currentSub};
     if currentSub == 1
         MEAN.trialPowerDB = eval([subname '.trialPowerDB;']);
     else
@@ -52,16 +50,18 @@ for song = 1:nSongs
 end
 
 %% averaging across electrodes/frequencies and re-storing as muPower
-freq = 4:9; % 8Hz - 13Hz 
+freq = 8:13-4; % 8Hz - 13Hz 
 muPower = cell(1,nSongs);
-for song = 1:nSongs; muPower{song} = zeros(nSubs+1,length(time)); end
+for song = 1:nSongs
+    muPower{song} = zeros(nSubs+1,length(time));
+end
 
 for currentSub = 1:nSubs %for each subject
-    subname = subjects{currentSub}; subname = char(subname{1});    
+    subname = subjects{currentSub};
     trialPowerDB = eval([subname '.trialPowerDB;']);    
     for song = 1:nSongs %for each song        
         % fill in the subjects mean power profile 
-        muPower{song}(currentSub,:) = squeeze(mean(trialPowerDB{song}(freq,2,:),1));
+        muPower{song}(currentSub,:) = squeeze(mean(trialPowerDB{song}(freq,:),1));
     end
 end
 % computing mean power profile 
@@ -107,7 +107,7 @@ for song = 1:nSongs
     title(conditions{song},'FontSize',20)
     if song == 1 || song == 2; xlabel('time (ms)','FontSize',16); end
     if song == 2 || song == 4; ylabel('dB','FontSize',16); end
-    axis([-1500 1500 -10 13]);     
+    %axis([-1500 1500 -10 13]);     
     
 %     %shading significance
 %     for nArea = 1:size(sigInds,2)
@@ -136,23 +136,23 @@ for song = 1:nSongs
     subplot(2,2,song); hold on
     title(conditions{song},'FontSize',20)    
     ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
-    
-    trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));    
-    imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-3 3]); colorbar   
+        
+    imagesc(-1500:1499,5:40,MEAN.trialPowerDB{song});%,[-3 3]); 
+    colorbar   
     axis([-1500 1500 5 40]);
     set(gca,'YDir','normal')
 end
 
 
 %% computing delta-ERD, delta-ERS (dB)::both songs, all subjects
-% Preparing maximum desync and rebound values for export to ANOVA
-maxDesync = NaN(nSubs,nSongs); maxRebound = NaN(nSubs,nSongs);
-desInds = 1:1500; rebInds = 1000:3000;
-for song = 1:nSongs
-    maxDesync(:,song) = min(muPower{song}(1:nSubs,desInds),[],2);
-    maxRebound(:,song)= max(muPower{song}(1:nSubs,rebInds),[],2);
-end
-
-%%
-clear trialPowerDB trialPower currentSub scrsz song subname trialPowerDBrHem
-clear robot filename temp rest
+% % Preparing maximum desync and rebound values for export to ANOVA
+% maxDesync = NaN(nSubs,nSongs); maxRebound = NaN(nSubs,nSongs);
+% desInds = 1:1500; rebInds = 1000:3000;
+% for song = 1:nSongs
+%     maxDesync(:,song) = min(muPower{song}(1:nSubs,desInds),[],2);
+%     maxRebound(:,song)= max(muPower{song}(1:nSubs,rebInds),[],2);
+% end
+% 
+% %%
+% clear trialPowerDB trialPower currentSub scrsz song subname trialPowerDBrHem
+% clear robot filename temp rest
