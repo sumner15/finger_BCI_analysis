@@ -1,4 +1,4 @@
-function waveletData = waveletEnviro(username,subname,concatData)
+function waveletData = waveletEnviro(username,subname,motorChans,saveBool,concatData)
 % Wavelet convolution of continuous EEG signal (not yet segmented) to avoid
 % edge artifacts. See details: 
 %
@@ -21,20 +21,24 @@ function waveletData = waveletEnviro(username,subname,concatData)
 
 
 %% loading data 
-if nargin < 3
-    setPathEnviro(username,subname)
+setPathEnviro(username,subname)
 
-    %Read in .mat file
-    filename = celldir([subname '*concatData.mat']);
-
-    filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);
-    load(filename{1});  
-    disp('Done.');
+%Read in .mat file
+if exist('concatData','var')
+    disp('Concatenated data passed directly; skipping load...');
 else
-    disp('concatData passed directly.');
+    filename = celldir([subname '*concatData.mat']);
+    filename{1} = filename{1}(1:end-4);
+
+    fprintf(['Loading ' filename{1} '...']);
+    load(filename{1});  
+    fprintf('Done.\n');
 end
 
+%% checking data for cleaning
+if ~concatData.params.screened
+    error([subname ' data not cleaned!']);
+end
 
 %% setting constants
 nSongs = length(concatData.motorEEG);   % number of songs
@@ -43,6 +47,12 @@ wFreq = 5:40;                   %vector of wavelet frequencies to process
 nCycles = 4;                    %number of cycles of the wavelet wanted 
 concatData.wavFreq = wFreq;             % saving to structure
 concatData.nCycles = nCycles;           % saving to structure
+
+%% saving motor channels to structure & defining new data 
+concatData.chansInterest = motorChans;
+for song = 1:nSongs
+    concatData.motorEEG{song} = concatData.eeg{song}(motorChans,:);
+end
 
 %% performing convolution
 fprintf('Beginning wavelet convolution'); 
@@ -80,12 +90,14 @@ end % for each song
 fprintf('\nDone.\n');
 
 
-%% output data    
-concatData.nChans = size(concatData.eeg{1},1);
-concatData = rmfield(concatData,'eeg');
+%% save concatenated data    
+concatData.params.wavelet = true;
 waveletData = concatData; clear concatData
-disp('waveletData structure created (no save).');
-% save(strcat(subname,'_waveletData'),'waveletData','-v7.3');
-% disp('Done.');
-
+if exist('saveBool','var') && saveBool
+    disp('Saving wavelet frequency-domain data...')
+    save(strcat(subname,'_wavData'),'waveletData','-v7.3');
+    disp('Done.');
+else
+    disp('Warning: Data not saved to disk; must pass directly');
+end
 end %function

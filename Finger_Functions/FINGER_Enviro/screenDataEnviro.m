@@ -1,147 +1,106 @@
-function concatData = screenDataEnviro(username, subname,concatData)
-% wrapper function for artscreen to screen the environmental data set
-% also functions as wrapper for ica review
+function screenOut = screenDataEnviro(username, subname, concatData)
+% This is a wrapper function that allows the use of the artscreen.m
+% as well as HNL based ICA artifact removal tools
 %
-% Input: 
-% subname as string (e.g. 'NORS')
-% 
-% concat data as structure containing .eeg, 1x6 cell containing 256 x time
-% sample array of data
-%
-% uses subjects concatData file where concatData is a structure containing
-% concatData.sr (sampling rate) and concatData.eeg (the signal) where:
-% signal = array of signals as vectors (channel x samples)
-%
-%
-% Outputs: 
-% concatData is saved out again, now containing a clean version of 
-% concatData.eeg and also concatData.motorEEG where:
-% motorEEG = (channel x sample) 2D array of time domain data of motor
-% channels only.
+% inputs: 
+% username as string (e.g. 'Sumner')
+% subname as 4-character string (e.g. NORS)
+% concatData, a structure produced by the FINGER therapy analysis code.
+% concatData is an optional argument, mostly useful for debugging so you
+% don't have to load the data every time you run the function. 
 
-%% checks
-if ~exist('subname','var')  || ~exist('username','var')
-    error('username and subname must be defined');
-end
-
-%% %% loading data 
-setPathEnviro(username,subname)
-
-% read in .mat file
+%% loading data if necessary
 if ~exist('concatData','var')
+    setPathEnviro(username,subname);
     filename = celldir([subname '*concatData.mat']);
-    filename{1} = filename{1}(1:end-4);
+    filename = filename{1}(1:end-4);
+    disp(['Loading ' filename '...']);
+    load(filename);  
+end
+% Read in note/trial timing data 
+setPathEnviro(username);
+%load('songName') %creates var songName <nNotes x 1 double> (ms)
+load('note_timing_Blackbird.mat');
 
-    fprintf(['Loading ' filename{1} '...']);
-    load(filename{1});  
-    fprintf('Done.\n');
+%% check to see if we've already cleaned this data
+if concatData.params.screened && concatData.params.ICA
+    disp('This data has already been cleaned');
+    screenOut = NaN;
+    return
 end
 
-% read in note timing
-cd ..
-load note_timing_Blackbird.mat
-setPathEnviro(username,subname);
+%% common var definition
+nSongs = length(concatData.eeg);    % number of songs (should be 6)
+nChans = length(concatData.hm.ChansUsed); % number of channels (194)
+sr = concatData.sr;                 % sampling rate 
+trialLength = 3;                    % length - one note trial (sec)
+nTrials = length(blackBird);        % Number of notes 
 
-%% options
-trialTime = 3000;    %ms
-nChans = size(concatData.eeg{1},1);             %starts at 256 -> 194 (hm)
-trialSpan = ceil(trialTime/1000*concatData.sr); %n samples in trial
-
-% common vars
-nSongs = length(concatData.eeg);
-screenIn.sr = concatData.sr;
-if nSongs ~= 6; error('wrong number of exams'); end; %check data size
-if size(concatData.eeg{1},1)==194
-    load egihc256redhm; 
-    screenIn.hm = EGIHC256RED;    
-elseif size(concatData.eeg{1},1)==14
-    load('EMOTIV14RED') 
-    screenIn.hm = EMOTIV14RED;   
-else
-    error('nChans not matched to a head model')
-end
-
-%% Create marker spike trains
+%% Segment all-channel EEG data
 markerInds = cell(1,nSongs);
-marker =     cell(1,nSongs);
-
+% creating marker spike train
 for song = 1:nSongs
     %start index of time sample marking beginning of trial (from labjack)
-    startInd = find(abs(concatData.vid{song})>1000, 1 );
-    %markerInds is an integer array of marker indices (for all trials)
-    markerInds{song} = startInd+round(blackBird);
+    startInd = find(abs(concatData.vid{song})>1000000, 1 );
+    %markerInds is an integer array of marker indices (for all trials)    
+    markerInds{song} = startInd+round(blackBird);        
 end
-
-%% breaking into trials
-%initializing cell array to be filled
-screenIn.data = cell(1,nSongs);    
-% nSamples = zeros(1,nSongs); nTrials = zeros(1,nSongs);
-nTrials = length(blackBird);
+disp('Segmenting EEG for cleaning...');      
+segEEG = cell(1,nSongs);
 for song = 1:nSongs    
-    %{song}(sample, channel, trial) -- initializing
-    screenIn.eeg{song} = zeros(trialSpan,nChans,nTrials);
+    %structure: {song}(trial x chn x trial-time)
+    segEEG{song} = zeros(nTrials,nChans,sr*trialLength);  
+        
+    for trialNo = 1:nTrials         
+        %time indices that the current trial spans (3 sec total)
+        timeSpan = markerInds{song}(trialNo)-(sr*trialLength/2):markerInds{song}(trialNo)+(sr*trialLength/2)-1; 
+        %filling segment into segEEG
+        segEEG{song}(trialNo,:,:) = concatData.eeg{song}(:,timeSpan); %all channels       
+    end    
 end
 
-%segmenting data
+%% CLEANING (wrapper)
+% creating datain var for use in artscreen
+dataIn.sr = concatData.sr;
+dataIn.hm = concatData.hm;
 for song = 1:nSongs
-   fprintf('\\\\%i//',song)   
-   for trial = 1:nTrials       
-       %sample index of trial               
-       sampleSpan = (1:trialSpan)+markerInds{song}(trial)-trialSpan/2;
-       %screenIn:  {song}(sample, channel, trial)
-       screenIn.eeg{song}(:,:,trial) = ...     
-            concatData.eeg{song}(1:nChans,sampleSpan)';             
-   end
+   % segEEG{song} (trial x channel x sample)
+   %                   becomes
+   % datain.data  (sample x channel x trial)
+   dataIn.data = permute(segEEG{song},[3 2 1]);  
+   
+   dataOut = artscreen(dataIn);        
+   dataOut = icasegdata(dataOut);
+   dataOut = icareview(dataOut);
+   dataOut = icatochan(dataOut);
+   concatData.artifact{song} = dataOut.artifact;
+   % segEEG{song} (sample x channel x trial)
+   segEEG{song} = dataOut.data;   
 end
-fprintf('\n');
 
-%% using art screen
+%% compile data back into continuous EEG (zero-padded)
+disp('re-structuring data (to continuous eeg :: zero-padded, 1sec)...');
 for song = 1:nSongs
-    fprintf('\\\\%i//\n',song);
-    
-    %adjusting number of channels / making sure head model is correct
-    if size(screenIn.eeg{song},2)==length(screenIn.hm.ChansUsed)
-        screenIn.data = screenIn.eeg{song};
-    elseif size(screenIn.eeg{song},2)>=256
-        screenIn.data = screenIn.eeg{song}(:,screenIn.hm.ChansUsed,:);    
-    end
-    
-    %skip some conditions
-    if max(song == [1 6]) 
-        dataOut = screenIn;
-    else
-    %% actual screening performed here!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        dataOut = artscreen(screenIn);        
-        dataOut = icasegdata(dataOut);
-        dataOut = icareview(dataOut);
-        dataOut = icatochan(dataOut);
-    end
-    
-    % reshaping output (flattening trials)
-    % IMPORTANT: All eeg values are set to zero if they are outside the
-    % trial epoch periods defined. This typically only defines about 10% of
-    % the data set. However, all baseline periods or other data analysis
-    % must analyze within epoch periods from this point forward. 
+    totalSamples = nTrials*sr*(trialLength+1);
+    concatData.eeg{song} = zeros(nChans,totalSamples);
     for trial = 1:nTrials
-       %sample index of trial
-       sampleSpan = (1:trialTime) + markerInds{song}(trial);
-       %saving trial into its time slot in flat data array (chan x sample)
-       flatData(:,sampleSpan) = squeeze(dataOut.data(:,:,trial))';
+        timeStart = (trial-1)*sr*(trialLength+1)+1;
+        timeSpan = timeStart:(timeStart+sr*trialLength-1);
+        if max(concatData.eeg{song}(:,timeSpan)) ~= 0
+            error('overlapping data');
+        else
+            concatData.eeg{song}(:,timeSpan) = squeeze(segEEG{song}(:,:,trial))';
+        end
     end
-    % concatData is filled here and changes size depending on HM!!!
-    concatData.eeg{song} = flatData; 
-    concatData.hm = screenIn.hm;        
-end
-%% modifying for new hm & saving motor channels separately  
-for song = 1:nSongs
-    clear concatData.motorEEG
-    concatData.motorEEG{song} = concatData.eeg{song}(concatData.motorChans,:);    
 end
 
-%% save concatenated data
-concatData.params.screened = true; %marking the data as cleaned
-fprintf('Saving pre-processed data...');
-save(strcat(subname,'_concatData'),'concatData');
-fprintf('Done.\n');
+%% save data if wanted
+saveBool = input('Would you like to save? Type y or n: ','s');
+if saveBool == 'y'
+    setPathEnviro(username,subname);    
+    concatData.params.screened = true;
+    concatData.params.ICA = true;
+    save(strcat(subname,'_concatData'),'concatData','-v7.3');  
+end
 
 end
