@@ -102,7 +102,7 @@ end
 
 %% save data if wanted
 saveBool = input('Would you like to save? Type y or n: ','s');
-if saveBool == 'y'
+if saveBool ~= 'n'
     setPathTherapy(username,subname);    
     concatData.params.screened = true;
     concatData.params.ICA = true;
