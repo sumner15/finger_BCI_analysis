@@ -4,9 +4,7 @@
 % processed files (intraSubject.m gives trialPower) in your local directory 
 % (please download from the Cramer's lab servers). 
 
-subjects = {{'AGUJ'},{'BROR'},{'CORJ'},{'CROD'},{'ESCH'},{'FLOA'},...
-            {'GONA'},{'HAAN'},{'JOHG'},{'LEUW'},{'NGUT'},{'RITJ'},...
-            {'SARS'},{'WHIL'},{'WILJ'},{'WRIJ'}};
+subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD'};
 
 nSubs = length(subjects);
 
