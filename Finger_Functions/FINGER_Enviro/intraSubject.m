@@ -1,4 +1,4 @@
-function intraSubject(username, subname, waveletData)
+function intraSubject(username, subname, saveBool, waveletData)
 % This function analyzes the results of the FINGER environment study.  
 %
 % The function pulls the final cleaned EEG data as a structure from the
@@ -15,51 +15,57 @@ function intraSubject(username, subname, waveletData)
 %% loading data 
 setPathEnviro(username,subname)
 
-%If the wavelet data variable isn't given
-if nargin < 3
+%If the wavelet data variable isn't already in the global workspace
+if ~exist('cleanWavData','var')
     %Read in .mat file
     filename = celldir([subname '*segWavData.mat']);
 
     filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...']);    
-    waveletData = load(filename{1}); waveletData = waveletData.waveletData; 
+    disp(['Loading ' filename{1} '...']);        
+    cleanWavData = load(filename{1}); 
     disp('Done.');
 end
 
 %% Some experiment variables
-nSongs = length(waveletData.segWavData);
+if isfield(cleanWavData,'waveletData')
+    cleanWavData = cleanWavData.waveletData;
+end
+nSongs = length(cleanWavData.segEEG);
 
 %% Computing EEG power
-disp('Computing EEG power!')
+% note: segWavData is size {song}(trial x freq x chn x time) 
+disp('Computing event-related power');
+power = cell(1,nSongs);             trialPower = cell(1,nSongs); 
+baselinePower = cell(1,nSongs);     trialPowerDB = cell(1,nSongs);
 for song = 1:nSongs
-    fprintf('--- Working on Song %i / %i --- \n',song,nSongs);
+    fprintf('Song %i / %i , ',song,nSongs);
     
     %computing power
-    power{song} = abs(waveletData.segWavData{song}); 
-    
-    % Averaging across channels by hemisphere (L:1-7,R:8-14)
-    power{song}(:,:,1,:) = mean(power{song}(:,:,:,:),3); %currently evaluates all; change
-    power{song}(:,:,2,:) = mean(power{song}(:,:,:,:),3); %back to 1:7,8:14 for hemispherical
-    power{song} = power{song}(:,:,1:2,:); %clearing non-mean values
+    power{song} = abs(cleanWavData.segWavData{song}); 
+    % Averaging across motor channels
+    power{song} = squeeze(mean(power{song},3)); 
+    % power is size {song}(trial x freq x time)
     
     % Averaging across all trials, and deleting singleton dimension
-    % Final result: trialPower{song}(freqBin,hemisphere,trialTimeSample)
-    % Final   size:             {6}  ( 36    x    2     x     3000 )
     trialPower{song} = squeeze(mean(power{song},1));
+    % trialPower is size {song}(freq x time)
     
     % Computing decibel power
     % (first 250msec comprises baseline)
-    baselinePower{song} = mean(trialPower{song}(:,:,1:250),3);
-    baselinePower{song} = repmat(baselinePower{song},[1,1,size(trialPower{song},3)]);
+    baseSamples = round(0.25 * cleanWavData.sr); 
+    baselinePower{song} = mean(trialPower{song}(:,1:baseSamples),2);
+    baselinePower{song} = repmat(baselinePower{song},[1,size(trialPower{song},2)]);
     trialPowerDB{song} = trialPower{song}./baselinePower{song};
     trialPowerDB{song} = 10*log10(trialPowerDB{song});
 end
-
-%% Organizing remaining data to save out  
+fprintf('\n');
 
 %% saving data
-disp('Saving power average across trials');
-save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB','-v7.3');
-disp('Done.');
+if saveBool
+    disp('Saving power average across trials');
+    save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB','baseSamples','-v7.3');
+    disp('Done.');
+else
+    disp('Warning: Data not saved to disk; must pass directly');
 
 end

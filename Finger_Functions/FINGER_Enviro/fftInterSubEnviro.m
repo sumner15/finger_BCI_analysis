@@ -1,3 +1,4 @@
+function fftInterSubEnviro
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fftInterSubEnviro reads in the clean 'concatData' structure from the
 % subjects folder. These files are created using the screenTherapy function
@@ -197,4 +198,5 @@ if savebool == 'y'
 end
 disp('done');
 
+end
 
