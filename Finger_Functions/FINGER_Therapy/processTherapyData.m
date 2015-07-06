@@ -4,10 +4,11 @@ clc; clear concatData;
 % EXCLUDED
 % {'MILS'} (corn-rows)
 % --------------------------------------------------------------------- %
-subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD','ESCH','FLOA',...
+% subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD'};
+subjects = {'ESCH','FLOA',...
             'GONA','HAAN','JOHG','KILB','LAMK','LEUW','LOUW','MALJ',...
             'MCCL','MILS','NGUT','POOJ','PRIJ','RITJ','SARS','VANT',...
-            'WHIL','WILJ','WRIJ','YAMK'};        
+            'WHIL','WILJ','WRIJ','YAMK'};            
 % --------------------------------------------------------------------- %        
 % define motor channels (used in wavelet) here! (in terms of 194Ch HM)
 %                       bilateral HNL channels 
@@ -90,7 +91,7 @@ if waveletBool == 'y'
             freqData = waveletTherapy(username,subname,chansInterest);   
             freqData = SegFingerTherapy(username,subname,true,freqData);
             %note: saves file (e.g. AAAA_segWavData.mat)
-            intraSubjectTherapy(username,subname,freqData,true); 
+            intraSubjectTherapy(username,subname,true,freqData);                                  
             %note: saves file (e.g. AAAA_trialPower.mat)
         catch me 
             disp(['Wavelet Processing failed: ' subname]);
