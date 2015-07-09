@@ -4,8 +4,7 @@ clc; clear concatData;
 % EXCLUDED
 % {'MILS'} (corn-rows)
 % --------------------------------------------------------------------- %
-% subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD'};
-subjects = {'ESCH','FLOA',...
+subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD','ESCH','FLOA',...
             'GONA','HAAN','JOHG','KILB','LAMK','LEUW','LOUW','MALJ',...
             'MCCL','MILS','NGUT','POOJ','PRIJ','RITJ','SARS','VANT',...
             'WHIL','WILJ','WRIJ','YAMK'};            
@@ -27,6 +26,7 @@ preProcessBool = input('Would you like to Concatenate & Pre-Process? Type y or n
 cleanDataBool = input('Would you like to begin cleaning data? Type y or n: ','s');
 waveletBool = input('Would you like to process using wavelet? Type y or n: ','s');
 fftBool = input('Would you like to process using fft (topography)? Type y or n: ','s');
+subPlotBool = input('Would you like to view ALL single-subject result plots? Type y or n: ','s');
 plotBool = input('Would you like to view intersubject result plots? Type y or n: ','s');
 tic; successBool = true;
 
@@ -107,7 +107,7 @@ if fftBool == 'y'
 end
 
 %% subject plotting (cell must be ran manually)
-if false
+if subPlotBool == 'y'
    for currentSub = 1:length(subjects)
        subname = subjects{currentSub};
        plotSubTherapy(username,subname);
