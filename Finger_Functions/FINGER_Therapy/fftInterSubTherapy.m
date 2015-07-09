@@ -1,5 +1,6 @@
+% function fftInterSubTherapy(subjects)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fftInterSubTherapy reads in the 'cleanWavData' structure from the
+% fftInterSubTherapy reads in the 'waveletData' structure from the
 % subjects folder. These files are created using the screenTherapy function
 % by screening the data, and optionally using ICA to clean the data. This
 % script uses a basic FFT time-freq decomposition to transform the data to
@@ -26,27 +27,6 @@
 % Author: Sumner Norman (slnorman@uci.edu)
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ------ CLEANED   (05/05/2015 ---------------------------------------- %
-subjects =   {{'AGUJ'},{'BROR'},{'CORJ'},{'GONA'},{'HAAN'},{'JOHG'},...
-              {'KILB'},{'LAMK'},{'LEUW'},{'NGUT'},{'POOJ'},{'PRIJ'},{'RITJ'},...
-              {'SARS'},{'VANT'},{'WHIL'},{'WILJ'},{'WRIJ'},{'YAMK'}}; 
-%
-% SUBJECTS NOT YET WORKING (05/07/15) --------------------------------- %
-%
-% excluded (noise)
-% MILS, CROD
-% 
-% fails at pre-processing
-% LOUW, MALJ, MCCL
-%
-% fails at screen
-% ESCH
-% 
-% named incorrectly (needs to be re-screened or manually entered)
-% FLOA
-%
-% --------------------------------------------------------------------- %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fs = 1000;                          % sampling frequency
@@ -56,37 +36,71 @@ trialLength = 3;                    % trial length (in sec)
 fVec = linspace(0,fs/2,windowLength/2+1);  % frequency vector resolved by fft
 nSamples = trialLength*fs;          % data samples in a trial
 
-nSubs = length(subjects);           % number of subjects analyzed 
-nConds = 4;                         % number of conditions (2 pre, 2 post)
-condTitles = {'Music 1','Speed 1','Music 2','Speed 2'};
 nWins = floor(nSamples/windowLength);   % number of windows per epoch (3 sec)
 t = linspace(-trialLength/2,trialLength/2,nWins); %time vector
 nFreqs = length(fVec);              % number of frequencies resolved by FFT
 nChans = 194;                       % red head model
 
-%% TRIAL POWER AS A SINGLE ARRAY USED FOR ALL RESULTS! %%%
-trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans);
+%% setting subject list and common vars
+if ~exist('subjects','var')
+    subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD','ESCH','FLOA',...
+            'GONA','HAAN','JOHG','KILB','LAMK','LEUW','LOUW','MALJ',...
+            'MCCL','MILS','NGUT','POOJ','PRIJ','RITJ','SARS','VANT',...
+            'WHIL','WILJ','WRIJ','YAMK'};            
+    disp('no subject list passed... assuming all subjects')
+end
+nSubs = length(subjects);
+
+% experimental conditions
+condTitles = {'PRE-song','PRE-speed','POST-song','POST-speed'};
+nConds = length(condTitles);
+
+% username check
+if (~exist('username','var'))
+   username = input('Username: ','s'); 
+end
 
 %% loading data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for currentSub = 1:nSubs
-    clear cleanWavData
-    subname = subjects{currentSub}; subname = subname{1};
-    setPathTherapy('LAB',subname);
-    filename = celldir([subname '*cleanWavData.mat']);
-    filename = filename{1}(1:end-4);
-    disp(['Loading ' filename '...']);
-    load(filename);  
-    if currentSub == 1
-        screenEEG = cleanWavData.screenedEEG;
-    else
-        screenEEG = [screenEEG ; cleanWavData.screenedEEG];
-    end    
+currentSub = 1;
+while currentSub <= nSubs
+    try
+        subname = subjects{currentSub}; % subname = subname{1};
+        setPathTherapy('LAB',subname);
+        filename = celldir([subname '*segWavData.mat']);
+        filename = filename{1}(1:end-4);
+        disp(['Loading ' filename '...']);
+        load(filename);  
+        if ~waveletData.params.screened ||~waveletData.params.ICA
+            error('Data not clean');
+        else % data is clean... load it it
+            if currentSub == 1
+                screenEEG = waveletData.segEEG;
+            else
+                screenEEG = [screenEEG ; waveletData.segEEG];
+            end    
+        end
+        currentSub = currentSub+1;
+    catch me
+        disp(['Could not load data for ' subname]);
+        subjects(:,currentSub) = [];       
+        nSubs = nSubs-1;
+    end
 end
-hm = cleanWavData.hm; clear cleanWavData
+
+%setting head model
+if ~exist('waveletData','var')
+    error('no data loaded :(');
+else
+    hm = waveletData.hm; clear waveletData
+end
+
+%% TRIAL POWER AS A SINGLE ARRAY USED FOR ALL RESULTS! %%%
+trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans);
 
 %% performing FFT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for currentSub = 1:nSubs
     for currentCond = 1:nConds
+        screenEEG{currentSub,currentCond} = permute(screenEEG{currentSub,currentCond},[3 2 1]);
         for currentChan = 1:nChans
             % compute FFT for currentSub & condition (nFreqs x nWins x nChans x nTrials)
             for window = 1:nWins                         
@@ -122,13 +136,11 @@ end
 savebool = input('Would you like to save the fft power results? (y or n): ','s');
 if savebool == 'y'
     setPathTherapy('LAB');    
-    dimensionLabels = ['nSubs','nConds','nWins','nFreqs','nChans'];    
+    dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans'};   
+    % data file name: cleanFFTPower
     save('cleanFFTPower','trialPOWER','trialPowerDB','dimensionLabels',...
         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');  
 end
-
-
-
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  plot intersubject results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,9 +148,11 @@ end
 
 % trialPOWER size: (subject x condition x time-window x freq-bin x channel)
 % trialPowerDB size: ( ''       ''            ''            ''         '' )
+if ~exist('nSubs','var') || ~exist('nConds','var')
+    [nSubs nConds nWins nFreqs nChans] = size(trialPOWER);
+end
 scrsz = [ 1 1 1306 677]+50; 
 opengl software
-[nSubs nConds nWins nFreqs nChans] = size(trialPOWER);
 % R SMC (long lateral)
 % chansInterest = [79 87 120 121 131 140 148 161 162 163 164 165 166 ...
 %                  171 172 173 123 174 175 176 179 180 181 182 183 8 ];
@@ -169,7 +183,8 @@ for currentCond = 1:nConds
     freqInds = 2:9; freqUsed = fVec(freqInds);
     currentTFMap = squeeze(timeFreqMap(currentCond,:,freqInds))'; % (window, freqBin)
     imagesc(-1.5:1.5,freqUsed,currentTFMap);  %,[-3 3]
-    colorbar; set(gca,'YDir','normal')
+    %colorbar; 
+    set(gca,'YDir','normal')
     xlabel('time (s)'); ylabel('freq (Hz)');
     title(condTitles{currentCond});
     
@@ -181,23 +196,24 @@ end
 
 %% individual time-freq maps (raw power)
 condInterest = 3;
-subInterest = [2 3 8 18];
+subInterest = 1:nSubs;
 % select a condition
 timeFreqMap = squeeze(trialPOWER(:,condInterest,:,:,:)); % (sub,window,freqBin,chan)
 % average across channels of interest
-timeFreqmap = squeeze(mean(timeFreqMap(:,:,:,chansInterest),4)); % (sub,window,freqBin)
+timeFreqMap = squeeze(mean(timeFreqMap(:,:,:,chansInterest),4)); % (sub,window,freqBin)
 
 set(figure,'Position',scrsz); suptitle(['Raw Power, ' condTitles{condInterest}]);
 for currentSubInd = 1:length(subInterest)
     currentSub = subInterest(currentSubInd);
-    subplot(2,3,currentSubInd);
+    subplot(4,5,currentSubInd);
     % t-f for current subject, all windows, freq indices for 5:40 Hz
     freqInds = 2:9; freqUsed = fVec(freqInds);
     currentTFMap = squeeze(timeFreqMap(currentSub,:,freqInds))'; % (window, freqBin)
-    imagesc(-1.5:1.5,freqUsed,currentTFMap);
-    colorbar; set(gca,'YDir','normal')
+    imagesc(-1.5:1.5,freqUsed,currentTFMap,[50 300]);
+    %colorbar; 
+    set(gca,'YDir','normal')
     xlabel('time (s)'); ylabel('freq (Hz)');
-    title(subjects{currentSub}{1}); 
+    title(subjects{currentSub}); 
 end
 subplot(2,3,6);
 title('topography weighting');
@@ -205,9 +221,8 @@ topoWeight = zeros(1,nChans); topoWeight(chansInterest) = 1;
 corttopo(topoWeight,hm,'drawElectrodes',0);
 
 %% interSub Power @frequency of interest
-freqInds = 3; freqUsed = fVec(freqInds);
-subInterest = [2 11 12 14 16 18];
-% subInterest = 1:nSubs;
+freqInds = 3:7; freqUsed = fVec(freqInds);
+subInterest = 1:nSubs;
 
 % average across channels of interest
 muPower = squeeze(mean(trialPowerDB(:,:,:,:,chansInterest),5)); % (sub,cond,window,freqBin)
@@ -223,9 +238,9 @@ for currentCond = 1:nConds
         currentMuPower = squeeze(muPower(currentSub,currentCond,:));
         plot(t,currentMuPower,'b'); clear currentMuPower
     end
-    meanMuPower = squeeze(mean(muPower(subInterest,currentCond,:),1)); 
+    meanMuPower = squeeze(mean(muPower(:,currentCond,:),1)); 
     plot(t,meanMuPower,'r','LineWidth',4)
-    axis([-1.5 1.5 -1 1])
+    axis([-1.5 1.5 -1.5 1.5])
     xlabel ('time (s)'); ylabel('power change (dB)');
     title(condTitles{currentCond});
 end
@@ -242,7 +257,7 @@ xlabel('Freq (Hz)'); ylabel('Weighting'); axis([0 50 -.5 1.5]);
 freqInds = 3; freqUsed = fVec(freqInds);
 
 %% change in specific Power before/after training
-freqInds = 3; freqUsed = fVec(freqInds);
+freqInds = 3:7; freqUsed = fVec(freqInds);
 
 % average across channels of interest
 muPower = squeeze(mean(trialPowerDB(:,:,:,:,chansInterest),5)); % (sub,cond,window,freqBin)
@@ -253,7 +268,7 @@ dMuPower(:,1,:) = muPower(:,3,:)-muPower(:,1,:);
 dMuPower(:,2,:) = muPower(:,4,:)-muPower(:,2,:);
 
 set(figure,'Position',scrsz); 
-suptitle(['change in ' num2str(freqUsed) ' Hz Power (dB)']);
+suptitle(['change in Power (dB)']);
 for currentCond = 1:2
     subplot(2,2,currentCond+2); hold on
     for currentSub = 1:nSubs
@@ -262,9 +277,9 @@ for currentCond = 1:2
     end
     meanMuPower = squeeze(mean(dMuPower(:,currentCond,:),1)); 
     plot(t,meanMuPower,'r','LineWidth',4)
-    axis([-1.5 1.5 -10 10])
+    axis([-1.5 1.5 -2 2])
     xlabel ('time (s)'); ylabel('power change (dB)');
-    title(condTitles{currentCond});
+    title([condTitles{currentCond+2} ' - ' condTitles{currentCond}]);
 end
 subplot(2,2,1)
 title('topography weighting');
@@ -277,28 +292,28 @@ plot(fVec,spectralWeight,'-ok');
 xlabel('Freq (Hz)'); ylabel('Weighting'); axis([0 50 -.5 1.5]);
 
 %% topography: subject @ cond @ t=0 @ freq
-condInterest = 3; windInterest = 8; freqInterest = 3; % t=0, f=10
+condInterest = 3; windInterest = 8; freqInterest = 3:7; % t=0, f=10
 % trialPowerDB size: (subject x condition x time-window x freq-bin x channel)
 set(figure,'Position',scrsz); suptitle([condTitles{condInterest} ',t=0,f=' num2str(fVec(freqInterest))]);
 % average across condition/time/freq
-topoData = squeeze(trialPowerDB(:,condInterest,windInterest,freqInterest,:)); % (sub,chan)
+topoData = squeeze(mean(trialPowerDB(:,condInterest,windInterest,freqInterest,:),4)); % (sub,chan)
 for currentSub = 1:nSubs  
-   subplot(4,5,currentSub);
+   subplot(5,5,currentSub);
    currentTopo = squeeze(topoData(currentSub,:));
    corttopo(currentTopo,hm,'drawElectrodes',0);
-   set(gca,'clim',[-4 8]);
+%    set(gca,'clim',[-4 8]);
 
-   title(subjects{currentSub}{1});          
+   title(subjects{currentSub});          
 end
-colorbar
-subplot(4,5,20)
+subplot(5,5,25)
 title('frequency weighting');
 spectralWeight = zeros(1,nFreqs); spectralWeight(freqInterest) = 1;
 plot(fVec,spectralWeight,'-ok');
 xlabel('Freq (Hz)'); ylabel('Weighting'); axis([0 50 -.5 1.5]);
 
 %% topography: time x freq (across subjects @condition)
-condInterest = 1; subInterest = [2 11 12 14 16 18];
+condInterest = 3; subInterest = 1:nSubs;
+%subInterest = [2 11 12 14 16 18];
 %subInterest = [2 3 5 6 7 9 10 11 12 13 14 16 18];
 % trialPowerDB size: (subject x condition x time-window x freq-bin x channel)
 set(figure,'Position',scrsz); suptitle([condTitles(condInterest) ' across subjects']);
@@ -315,7 +330,7 @@ for winInd = 1:nWinsUsed
        subplot(nFreqUsed,nWinsUsed,winInd+(freqInd-1)*nWinsUsed)
        currentTopo = squeeze(topoData(currentWindow,currentFreq,:));
        corttopo(currentTopo,hm,'drawElectrodes',0);
-       set(gca,'clim',[-1.2 1.5]);
+       set(gca,'clim',[-.7 .7]);
        
        title([num2str(t(winsUsed(winInd))) ' s, ' num2str(fVec(currentFreq)) ' Hz']);        
    end

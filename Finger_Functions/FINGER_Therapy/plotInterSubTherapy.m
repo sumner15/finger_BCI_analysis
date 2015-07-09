@@ -56,8 +56,7 @@ while currentSub <= nSubs
         currentSub = currentSub+1;
     catch me
         disp(['Could not load data for ' subname]);
-        subjects(:,currentSub) = [];
-        currentSub = currentSub-1;
+        subjects(:,currentSub) = [];        
         nSubs = nSubs-1;
     end
 end
@@ -66,18 +65,21 @@ end
 % loading therapy data tables
 setPathTherapy(username)
 load('therapyData.mat');
-tableSubs = therapyTextData(:,1);       % column of subject id's
-groupIndex = ismember(therapyTextData(1,:),'group'); %finds group column
-tableGroup = therapyData(:,groupIndex); % stores group numbers (2s&3s)
+tableSubs = therapyTextData(:,1);         % column of subject id's
+groupIndex1 = ismember(therapyTextData(1,:),'FMAMA Total [1]'); %finds group column
+groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [3]');
+tableGroup1 = therapyData(:,groupIndex1); % stores group numbers (2s&3s)
+tableGroup2 = therapyData(:,groupIndex2); % stores group numbers (2s&3s)
+tableGroup = tableGroup2-tableGroup1;     % e.g. delta-B&B
 
 lowSubs = []; highSubs = [];          % array of indices for hi/lo subs
 for currentSub = 1:nSubs
     subname = subjects{currentSub};      
     tableSubInd = ismember(tableSubs,subname); %index of sub in table
     group = tableGroup(tableSubInd); %current sub's group level
-    if group == 2
+    if group < mean(tableGroup(2:end-3))
         lowSubs = [lowSubs currentSub];
-    elseif group ==3
+    elseif group > mean(tableGroup(2:end-3))
         highSubs = [highSubs currentSub];
     else 
         error('group level is not properly defined');
@@ -115,7 +117,7 @@ highGroupPower = squeeze(mean(power(:,highSubs,:,:),2));
 allGroupPower = squeeze(mean(power,2));
 
 %% plotting trial power (decibels)
-freqInterest = 12:25-4; 
+freqInterest = (25:40)-4; 
 % plotting DB power for each song (subplots)
 set(figure,'Position',scrsz)
 hsuptitle = suptitle([num2str(freqInterest(1)+4) '-' num2str(freqInterest(end)+4) ' power (dB)']);
