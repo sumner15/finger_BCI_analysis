@@ -47,6 +47,7 @@ concatData.params.laPlacian     = false;
 % used later
 concatData.params.screened = false;
 concatData.params.ICA = false;
+concatData.params.cleanedBy = NaN;
 concatData.params.wavelet = false;
 concatData.params.segmented = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -100,6 +100,7 @@ if saveBool == 'y'
     setPathEnviro(username,subname);    
     concatData.params.screened = true;
     concatData.params.ICA = true;
+    concatData.params.cleanedBy = username;
     save(strcat(subname,'_concatData'),'concatData','-v7.3');  
 end
 
