@@ -36,7 +36,8 @@ nSongs = length(cleanWavData.segEEG);
 % note: segWavData is size {song}(trial x freq x chn x time) 
 disp('Computing event-related power');
 power = cell(1,nSongs);             trialPower = cell(1,nSongs); 
-baselinePower = cell(1,nSongs);     trialPowerDB = cell(1,nSongs);
+baselinePower = cell(1,nSongs);     trialPowerDB = cell(1,nSongs); 
+trialPowerPerc = cell(1,nSongs);
 for song = 1:nSongs
     fprintf('Song %i / %i , ',song,nSongs);
     
@@ -50,20 +51,23 @@ for song = 1:nSongs
     trialPower{song} = squeeze(mean(power{song},1));
     % trialPower is size {song}(freq x time)
     
-    % Computing decibel power
+    % Computing decibel power & percentage change power
     % (first 250msec comprises baseline)
     baseSamples = round(0.25 * cleanWavData.sr); 
     baselinePower{song} = mean(trialPower{song}(:,1:baseSamples),2);
     baselinePower{song} = repmat(baselinePower{song},[1,size(trialPower{song},2)]);
     trialPowerDB{song} = trialPower{song}./baselinePower{song};
     trialPowerDB{song} = 10*log10(trialPowerDB{song});
+    trialPowerPerc{song} = 100*(trialPower{song}-baselinePower{song})./baselinePower{song};
 end
 fprintf('\n');
 
 %% saving data
 if saveBool
     disp('Saving power average across trials');
-    save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB','baseSamples','-v7.3');
+    params = cleanWavData.params;
+    save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB',...
+        'trialPowerPerc','baseSamples','params','-v7.3');
     disp('Done.');
 else
     disp('Warning: Data not saved to disk; must pass directly');
