@@ -3,8 +3,8 @@ clc; clear; close all;
 
 % --------------------------------------------------------------------- %
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
-subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-            {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};    
+subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
+            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};            
 % --------------------------------------------------------------------- %
 %  Emotiv study:
 % subjects = {{'BECC'},{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
@@ -39,14 +39,14 @@ if preProcessBool == 'y'
         
         try 
             data = concatEnviro(username,subname,false);                  
-            data = preProcessEnviro(username,subname,true,data);  
+            preProcessEnviro(username,subname,true,data);              
             %note: saves file (e.g. AAAA_concatData.mat)            
         catch me
             disp(['Preprocessing failed: ' subname]);
             disp(me.message);
             successBool = false;
         end
-        
+        clear data
     end
 end
 
@@ -88,34 +88,53 @@ if waveletBool == 'y'
             freqData = waveletEnviro(username,subname,chansInterest);   
             freqData = SegFingerEnviro(username,subname,true,freqData);
             %note: saves file (e.g. AAAA_segWavData.mat)
-            intraSubjectEnviro(username,subname,freqData,true); 
+            intraSubject(username,subname,true,freqData); 
             %note: saves file (e.g. AAAA_trialPower.mat)
         catch me 
             disp(['Wavelet Processing failed: ' subname]);
             disp(me.message);
             successBool = false;
         end
+        clear freqData
     end
 end
 
 %% time -> freq domain (fft)
 if fftBool == 'y'
-    warning('needs revising (see Hg revision on 7/6/2015)');
-    fftInterSubEnviro
+    warning('FFT scripting needs revising (see Hg revision on 7/6/2015)');
+    try
+        fftInterSubEnviro;
+    catch me 
+        disp(['FFT Processing failed: ' subname]);
+        disp(me.message);
+        successBool = false; 
+    end
 end
 
-%% subject plotting (cell must be ran manually)
+%% subject plotting 
 if subPlotBool == 'y'
    for currentSub = 1:length(subjects)
        subname = subjects{currentSub};
-       plotSubEnviro(username,subname);
+       try
+        plotSubEnviro(username,subname);
+       catch me
+           disp(['Subject Plotting failed: ' subname]);
+           disp(me.message);
+           successBool = false;
+       end
    end
 end
 
 %% intersubject plotting
 if plotBool == 'y'
     disp('Plotting inter-subject results');
-   plotInterSubTherapy 
+    try
+        plotSub(username,subname);
+    catch me 
+        disp('Inter-Subject Plotting failed');
+        disp(me.message);
+        successBool = false;
+    end
 end
 
 %% finish up

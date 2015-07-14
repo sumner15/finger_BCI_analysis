@@ -41,7 +41,7 @@ markerInds = cell(1,nSongs);
 % creating marker spike train
 for song = 1:nSongs
     %start index of time sample marking beginning of trial (from labjack)
-    startInd = find(abs(concatData.vid{song})>1000000, 1 );
+    startInd = find(abs(concatData.vid{song})>1500, 1 );
     %markerInds is an integer array of marker indices (for all trials)    
     markerInds{song} = startInd+round(blackBird);        
 end
@@ -69,11 +69,13 @@ for song = 1:nSongs
    % datain.data  (sample x channel x trial)
    dataIn.data = permute(segEEG{song},[3 2 1]);  
    
-   dataOut = artscreen(dataIn);        
-   dataOut = icasegdata(dataOut);
-   dataOut = icareview(dataOut);
-   dataOut = icatochan(dataOut);
-   concatData.artifact{song} = dataOut.artifact;
+   dataOut = artscreen(dataIn);   
+   if song==2 || song==3 || song==4 || song==5 %no ICA on AV-only songs
+       dataOut = icasegdata(dataOut);
+       dataOut = icareview(dataOut);
+       dataOut = icatochan(dataOut);
+       concatData.artifact{song} = dataOut.artifact;
+   end
    % segEEG{song} (sample x channel x trial)
    segEEG{song} = dataOut.data;   
 end

@@ -1,4 +1,4 @@
-function intraSubject(username, subname, saveBool, waveletData)
+function intraSubject(username, subname, saveBool, cleanWavData)
 % This function analyzes the results of the FINGER environment study.  
 %
 % The function pulls the final cleaned EEG data as a structure from the
@@ -63,6 +63,7 @@ fprintf('\n');
 %% saving data
 if saveBool
     disp('Saving power average across trials');
+    setPathEnviro(username,subname);
     save(strcat(subname,'_trialPower'),'trialPower','trialPowerDB','baseSamples','-v7.3');
     disp('Done.');
 else

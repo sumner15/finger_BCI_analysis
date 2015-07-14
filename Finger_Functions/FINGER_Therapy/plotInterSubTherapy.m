@@ -1,4 +1,4 @@
-function plotInterSubTherapy(subjects)
+% function plotInterSubTherapy(subjects)
 % plotInterSub pluts the inter-subject results of the FINGER therapy study.  
 %
 % Optional input: subjects, a cell array of subject identifier strings
@@ -10,7 +10,8 @@ function plotInterSubTherapy(subjects)
 % 
 % If a subject list is not given, all subjects are processed.
 % the function pulls the final analyzed EEG data from the subjects' 
-% processed files (intraSubject.m gives trialPower) in your local directory 
+% processed files (intraSubject.m gives trialPower) in your local directory
+% 
 % (please download from the Cramer's lab servers). 
 
 %% begin
@@ -18,7 +19,7 @@ disp('-----------------------------');
 disp('   Intersubject Plotting ');
 disp('-----------------------------');
 scrsz = floor((get(0,'ScreenSize')+50)/1.4);
-close all
+opengl software
 
 %% setting subject list and common vars
 if ~exist('subjects','var')
@@ -61,25 +62,29 @@ while currentSub <= nSubs
     end
 end
 
-%% creating high/low group indices
+%% creating high/low groups
 % loading therapy data tables
 setPathTherapy(username)
 load('therapyData.mat');
+% outcomes: 'FMAMA Total [#]','B&B (Affected) Test [#]'
 tableSubs = therapyTextData(:,1);         % column of subject id's
 groupIndex1 = ismember(therapyTextData(1,:),'FMAMA Total [1]'); %finds group column
-groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [3]');
+groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [2]');
 tableGroup1 = therapyData(:,groupIndex1); % stores group numbers (2s&3s)
 tableGroup2 = therapyData(:,groupIndex2); % stores group numbers (2s&3s)
-tableGroup = tableGroup2-tableGroup1;     % e.g. delta-B&B
+% tableGroup = tableGroup2-tableGroup1;     % e.g. delta-B&B
+tableGroup = tableGroup1;     % e.g. delta-B&B
 
 lowSubs = []; highSubs = [];          % array of indices for hi/lo subs
 for currentSub = 1:nSubs
     subname = subjects{currentSub};      
     tableSubInd = ismember(tableSubs,subname); %index of sub in table
     group = tableGroup(tableSubInd); %current sub's group level
-    if group < mean(tableGroup(2:end-3))
+%     if group < mean(tableGroup(2:end-3)
+    if group < 45
         lowSubs = [lowSubs currentSub];
-    elseif group > mean(tableGroup(2:end-3))
+%     elseif group > mean(tableGroup(2:end-3))
+    elseif group >= 45
         highSubs = [highSubs currentSub];
     else 
         error('group level is not properly defined');
