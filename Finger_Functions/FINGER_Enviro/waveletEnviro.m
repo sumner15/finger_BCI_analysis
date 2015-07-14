@@ -41,7 +41,7 @@ if ~concatData.params.screened
 end
 
 %% setting constants
-nSongs = length(concatData.motorEEG);   % number of songs
+nSongs = length(concatData.eeg);   % number of songs
 sampFreq = concatData.sr;               % sampling rate from concatData
 wFreq = 5:40;                   %vector of wavelet frequencies to process 
 nCycles = 4;                    %number of cycles of the wavelet wanted 
@@ -95,6 +95,7 @@ concatData.params.wavelet = true;
 waveletData = concatData; clear concatData
 if exist('saveBool','var') && saveBool
     disp('Saving wavelet frequency-domain data...')
+    setPathEnviro(username,subname);
     save(strcat(subname,'_wavData'),'waveletData','-v7.3');
     disp('Done.');
 else

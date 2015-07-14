@@ -43,10 +43,11 @@ concatData.params.lowPass       = false;
 concatData.params.highPass      = false;
 concatData.params.bandPass      = true;
 concatData.params.laPlacian     = false;
+concatData.params.reOrdered     = false;
 
-% used later
-concatData.params.screened = false;
-concatData.params.ICA = false;
+% used later (don't change these!)
+concatData.params.screened = false; 
+concatData.params.ICA = false;      
 concatData.params.cleanedBy = NaN;
 concatData.params.wavelet = false;
 concatData.params.segmented = false;
@@ -116,26 +117,28 @@ if concatData.params.laPlacian
 end
 
 %% Reordering data according to run type
-setPathEnviro(username);
-load runOrder.mat   %loading run orders
+if concatData.params.reOrdered 
+    setPathEnviro(username);
+    load runOrder.mat   %loading run orders
 
-if nChans == 194    %order that participants tested in
-    subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
-                'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
-elseif nChans == 14 %emotiv line-up
-    subjects = {'BECC','POTA','TRAT','DIAJ','NAVA','TRAV'};
-else
-    error('Run order not defined for this experiment/headset combination');
+    if nChans == 194    %order that participants tested in
+        subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
+                    'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
+    elseif nChans == 14 %emotiv line-up
+        subjects = {'BECC','POTA','TRAT','DIAJ','NAVA','TRAV'};
+    else
+        error('Run order not defined for this experiment/headset combination');
+    end
+
+    subNum = ismember(subjects,subname);
+    concatData.runOrder = runOrder(subNum,:);
+
+    newOrder = cell(size(concatData.eeg));
+    for song = 1:nSongs
+        newOrder{concatData.runOrder(song)} = concatData.eeg{song};
+    end
+    concatData.eeg = newOrder;
 end
-
-subNum = find(ismember(subjects,subname));
-concatData.runOrder = runOrder(subNum,:);
-
-newOrder = cell(size(concatData.eeg));
-for song = 1:nSongs
-    newOrder{concatData.runOrder(song)} = concatData.eeg{song};
-end
-concatData.eeg = newOrder;
 
 %% saving results (overwrites file if it exists)
 concatData.params.preProcess = true;

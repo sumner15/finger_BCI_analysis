@@ -26,24 +26,24 @@ load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>
 clear data note_timing_Blackbird sunshineDay
 
 %% info regarding the experimental setup
-nSongs = length(waveletData.motorEEG);      % # songs per recording (6)
-triallength = 3;                            % length - one note trial (sec)
+nSongs = length(waveletData.motorEEG);          % # songs per recording (6)
+trialLength = 3;                                % length - one note trial (sec)
 nTrials = length(blackBird);                % Number of notes in song
-sr = waveletData.sr;                        % sampling rate
-nChans = size(waveletData.wavelet{1},2);    % number of active channels
+sr = waveletData.sr;                            % sampling rate
+nChans = size(waveletData.eeg{1},1);            % number of active channels
 nMotorChans = size(waveletData.motorEEG{1},1);  % number of ,motor channels
-freqBins = length(waveletData.wavFreq);     % number of frequency bins 
+freqBins = length(waveletData.wavFreq);         % number of frequency bins 
 
 %% Segment all-channel EEG data & wavelet data
-fprintf('Beginning Segmentation');
+fprintf('---Beginning Segmentation---');
 for song = 1:nSongs    
     %structure: {song}(trial x chn x trial-time)
-    waveletData.segEEG{song} = zeros(nTrials(song),nChans,sr*trialLength);        
+    waveletData.segEEG{song} = zeros(nTrials,nChans,sr*trialLength);        
     %structure: {song}(trial x freq x chn x trial-time)
-    waveletData.segWavData{song} = zeros(nTrials(song),freqBins,nMotorChans,sr*trialLength);  
+    waveletData.segWavData{song} = zeros(nTrials,freqBins,nMotorChans,sr*trialLength);  
     
     fprintf('\nsong number: %i/%i ',song,nSongs);
-    for trial = 1:nTrials(song)        
+    for trial = 1:nTrials        
         fprintf('.');
         %time indices that the current trial spans (3 sec total)
         timeStart = (trial-1)*sr*(trialLength+1)+1;

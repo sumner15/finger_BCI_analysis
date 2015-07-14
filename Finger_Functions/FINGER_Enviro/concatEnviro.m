@@ -1,4 +1,4 @@
-function concatData = concatEnviro(username,subname)
+function concatData = concatEnviro(username,subname,saveBool)
 %concatEnviro
 %
 % concatEnviro concatenates the files from the environmental FINGER study
@@ -65,8 +65,12 @@ end
 %     filtereeg(concatData.eeg(EGIHC256RED.ChansUsed,:)',concatData.sr);
 
 %% save concatenated data
-disp('Saving concatenated data...');
-save(strcat(subname,'_concatData'),'concatData');
-disp('Done.');
+if saveBool
+    disp('Saving concatenated data...');
+    save(strcat(subname,'_concatData'),'concatData');
+    disp('Done.');
+else
+    disp('Warning: Data not saved to disk; must pass directly');
+end
 
 end
