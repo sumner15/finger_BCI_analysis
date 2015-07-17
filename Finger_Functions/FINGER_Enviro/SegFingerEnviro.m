@@ -56,7 +56,8 @@ for song = 1:nSongs
 end
 fprintf('\n');
 % clear memory
-waveletData = rmfield(waveletData,{'eeg','vid','wavelet'});
+waveletData = rmfield(waveletData,{'eeg','wavelet'});
+if isfield(waveletData,'vid'); waveletData = rmfield(waveletData,'vid'); end
 
 %% Saving data
 waveletData.params.segmented = false;

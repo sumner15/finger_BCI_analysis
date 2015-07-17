@@ -1,12 +1,7 @@
-subjects = {{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
-
-% subjects = {{'BECC'},{'NAVA'},{'TRAT'},{'POTA'},{'TRAV'},{'NAZM'},...
-%             {'TRAD'},{'DIAJ'},{'GUIR'},{'DIMC'},{'LURI'},{'TRUS'}};
-
-%subjects = {{'NAVA'},{'TRAT'},{'NAZM'},{'TRAD'},{'DIAJ'},{'GUIR'},...
-%           {'DIMC'},{'LURI'}};
-
+subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
+            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};      
 nSubs = length(subjects);
+
 %scrsz = get(0,'ScreenSize'); 
 scrsz = [ 1 1 1306 677]+50;
 
@@ -22,17 +17,22 @@ disp('   Intersubject Plotting ');
 disp('-----------------------------');
     
 %% loading data
-for currentSub = 1:nSubs
-    subname = subjects{currentSub};   
-    subname = subname{1};     
-    
-    clear trialPower trialPowerDB
-    setPathEnviro(username,subname)
-    filename = celldir([subname '*trialPower.mat']);
-    filename{1} = filename{1}(1:end-4);
-    disp(['Loading ' filename{1} '...'])    
-    eval([subname ' = load(filename{1});']);
-    disp('Done.')        
+currentSub = 1;
+while currentSub <= nSubs
+    try
+        subname = subjects{currentSub};       
+        clear trialPower trialPowerDB
+        setPathEnviro(username,subname)
+        filename = celldir([subname '*trialPower.mat']);
+        filename{1} = filename{1}(1:end-4);
+        disp(['Loading ' filename{1} '...'])    
+        eval([subname ' = load(filename{1});']);        
+        currentSub = currentSub+1;
+    catch me
+        disp(['Could not load data for ' subname]);
+        subjects(:,currentSub) = [];        
+        nSubs = nSubs-1;
+    end
 end
 cd .. ; load('robPos.mat'); 
 
@@ -52,16 +52,16 @@ for song = 1:6
 end
 
 %% averaging across electrodes/frequencies and re-storing as muPower
-freq = 4:9; % 8Hz - 13Hz 
+freq = 8:13-4; % 8Hz - 13Hz 
 muPower = cell(1,6);
 for song = 1:6; muPower{song} = zeros(nSubs+1,length(time)); end
 
 for currentSub = 1:nSubs %for each subject
-    subname = subjects{currentSub}; subname = char(subname{1});    
+    subname = subjects{currentSub}; 
     trialPowerDB = eval([subname '.trialPowerDB;']);    
     for song = 1:6 %for each song        
         % fill in the subjects mean power profile 
-        muPower{song}(currentSub,:) = squeeze(mean(trialPowerDB{song}(freq,2,:),1));
+        muPower{song}(currentSub,:) = squeeze(mean(trialPowerDB{song}(freq,:),1));
     end
 end
 % computing mean power profile 
@@ -96,7 +96,7 @@ for song = 1:6
 end %for each song
 disp('Done.')
 
-%% plotting trial power (decibels)
+%% plotting trial power at freq of interest (decibels)
 set(figure,'Position',scrsz)
 suptitle('Inter-Subject Mean Mu (8-13Hz) normalized power');
 
@@ -105,9 +105,8 @@ for song = 2:5
     subplot(2,2,song-1); hold on
     title(conditions{song})    
     if song == 2 || song == 3; xlabel('time (ms)','FontSize',16); end
-    if song == 3 || song == 5; ylabel('dB','FontSize',16); end
-    %axis([-1500 1500 -10 13]);     
-    axis([-1500 1500 -5 5]);     
+    if song == 3 || song == 5; ylabel('dB','FontSize',16); end    
+    xlim([-1400 1400]);
     
     %shading significance
     for nArea = 1:size(sigInds,2)
@@ -124,11 +123,11 @@ for song = 2:5
     % plotting DB power for each subject (new line within subplots)
     plot(time,muPower{song}(1:nSubs,:),'b'); set(gca,'FontSize',14);
     % plotting mean DB power across all subjects
-    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',5); set(gca,'FontSize',14);
+    plot(time,muPower{song}(nSubs+1,:),'r','LineWidth',5); set(gca,'FontSize',14);    
     
     % plotting robot trajectory when appropriate
     if song==2 || song==3 || song==5
-        robot = plot(time,-7*robPos(song,:),'--g','LineWidth',2);        
+        robot = plot(time,-1*robPos(song,:),'--g','LineWidth',2);        
         %legend(robot,'robot trajectory','Location','Best','FontSize',12)
     end
 end
@@ -143,10 +142,10 @@ for song = 2:5
     title(conditions{song});
     ylabel('frequency (Hz)','FontSize',16); xlabel('trial time (msec)','FontSize',16);    
     
-    trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,2,:));
+    trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,:));
     
     imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-1.5 1]); colorbar   
-    axis([-1500 1500 5 40]);
+    xlim([-1400 1400]);
     set(gca,'YDir','normal')
 end
 

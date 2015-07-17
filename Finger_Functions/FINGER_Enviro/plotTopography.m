@@ -21,7 +21,7 @@ opengl software
 chansInterest = [59 51 52 43 44 165 175 164 174 163 66 60 53 131 140 148];
 
 % emotiv channels
-chansInterest = [12 13]; % Right side P8,T8,FC6,F4
+% chansInterest = [12 13]; % Right side P8,T8,FC6,F4
 
 %% COMMON AVERAGE REFERENCE 
 % trialPOWER = trialPOWER - repmat(mean(trialPOWER,5),[1 1 1 1 nChans]);
