@@ -4,7 +4,7 @@ clc; clear; close all;
 % --------------------------------------------------------------------- %
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
 subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
-            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};            
+            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};                 
 % --------------------------------------------------------------------- %
 %  Emotiv study:
 % subjects = {{'BECC'},{'POTA'},{'TRAT'},{'DIAJ'},{'NAVA'},{'TRAV'}};
@@ -39,7 +39,7 @@ if preProcessBool == 'y'
         
         try 
             data = concatEnviro(username,subname,false);                  
-            preProcessEnviro(username,subname,true,data);              
+            preProcessEnviro(username,subname,true,data);                  
             %note: saves file (e.g. AAAA_concatData.mat)            
         catch me
             disp(['Preprocessing failed: ' subname]);
@@ -52,9 +52,6 @@ end
 
 %% cleaning data
 if cleanDataBool == 'y'    
-    % note: check that data is pre-processed in cleaning script
-    % make this check params and continue where you left off cleaning last.
-    % need to re-write cleaning script
     for currentSub = 1:length(subjects)
         subname = subjects{currentSub};
         
@@ -116,7 +113,7 @@ if subPlotBool == 'y'
    for currentSub = 1:length(subjects)
        subname = subjects{currentSub};
        try
-        plotSubEnviro(username,subname);
+        plotSub(username,subname);
        catch me
            disp(['Subject Plotting failed: ' subname]);
            disp(me.message);

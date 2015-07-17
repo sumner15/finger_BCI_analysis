@@ -39,6 +39,9 @@ end
 if ~concatData.params.screened
     error([subname ' data not cleaned!']);
 end
+if ~concatData.params.reOrdered     
+    error([subname ' data not in order!']);
+end
 
 %% setting constants
 nSongs = length(concatData.eeg);   % number of songs

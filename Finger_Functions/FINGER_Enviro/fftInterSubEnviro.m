@@ -1,4 +1,4 @@
-function fftInterSubEnviro
+function fftInterSubEnviro(subjects)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fftInterSubEnviro reads in the clean 'concatData' structure from the
 % subjects folder. These files are created using the screenTherapy function
@@ -29,9 +29,11 @@ function fftInterSubEnviro
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
- subjects = {{'BECC'},{'TRUS'},{'DIMC'},{'GUIR'},{'LURI'},{'NAVA'},...
-             {'NAZM'},{'TRAT'},{'TRAV'},{'POTA'},{'DIAJ'},{'TRAD'}};
-% subjects = {{'TRUS'},{'DIMC'}}; % for testing purposes
+if ~exist('subjects','var')
+    subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
+                'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};       
+    disp('no subject list passed... assuming all subjects')
+end
 nSubs = length(subjects);       % number of subjects analyzed 
 
 %% options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,11 +65,15 @@ condStr = {'AV','motor','motor+robot','AV','robot','AV'};
 load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>      
 nTrials = length(blackBird); 
 
+%markerInds is an integer array of marker indices (for all trials)   
+%*marker train of 3s epoch + 1s zero-pad for nTrials    
+markerInds = 1:(fs*(trialLength+1)):nTrials*(fs*(trialLength+1));    
+
 %% loading data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fprintf('\n'); disp('head model, CAR, ordering, and segmenting...');
 for currentSub = 1:nSubs
     clear concatData
-    subname = subjects{currentSub}{1};
+    subname = subjects{currentSub};
     setPathEnviro('LAB',subname);
     filename = celldir([subname '*_concatData.mat']);
     filename = filename{1}(1:end-4);
@@ -81,29 +87,11 @@ for currentSub = 1:nSubs
             concatData.eeg{cond} = concatData.eeg{cond}(hm.ChansUsed,:);  
         end
     end 
-
-    %% Common Average Reference
-    for cond = 1:nConds
-        concatData.eeg{cond} = ...
-            concatData.eeg{cond} - repmat(mean(concatData.eeg{cond},1),[nChans 1]);
-    end       
     
-    %% Reordering data according to run type
-    subNum = find(ismember(subRuns,subname));
-    runOrderInds = runOrder(subNum,:);
-    for cond = 1:nConds
-       orderedEEG{cond} = concatData.eeg{runOrderInds(cond)}; 
-    end  
-    concatData.eeg = orderedEEG; clear orderedEEG;
-        
-    %% segmenting data    
-    for cond = 1:nConds
-        %start index of time sample marking beginning of trial (from labjack)
-        startInd = find(abs(concatData.vid{cond})>2000, 1 );
-        %markerInds is an integer vector of marker indices (rounded to 100ms)
-        markerInds = startInd+round(blackBird);
+    %% segmenting data        
+    for cond = 1:nConds        
         for trial = 1:nTrials
-            trialInds = markerInds(trial)-1500:markerInds(trial)+1499;
+            trialInds = markerInds(trial):(markerInds(trial)+fs*trialLength-1);
             % screenEEG{sub,cond}(trialTime,chan,trial)
             currentData = concatData.eeg{cond}(:,trialInds); % chan x trialTime
             screenEEG{currentSub,cond}(:,:,trial) = currentData';
@@ -142,6 +130,7 @@ clear sampleWin currentData currentFFT
 %% zero-ing outlier channels
 disp('zero-ing outlier channels');
 nChansReject = zeros(1,nSubs);
+disp(['Rejected ' num2str(nChansReject)]);
 
 % trialPOWER(sub x cond x window x freq x channels)
 % --> mean power across windows (time)
@@ -199,4 +188,3 @@ end
 disp('done');
 
 end
-

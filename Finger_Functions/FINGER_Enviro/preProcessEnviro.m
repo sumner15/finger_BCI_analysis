@@ -43,7 +43,7 @@ concatData.params.lowPass       = false;
 concatData.params.highPass      = false;
 concatData.params.bandPass      = true;
 concatData.params.laPlacian     = false;
-concatData.params.reOrdered     = false;
+concatData.params.reOrdered     = true;
 
 % used later (don't change these!)
 concatData.params.screened = false; 
@@ -120,24 +120,21 @@ end
 if concatData.params.reOrdered 
     setPathEnviro(username);
     load runOrder.mat   %loading run orders
-
-    if nChans == 194    %order that participants tested in
-        subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
-                    'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
-    elseif nChans == 14 %emotiv line-up
-        subjects = {'BECC','POTA','TRAT','DIAJ','NAVA','TRAV'};
-    else
-        error('Run order not defined for this experiment/headset combination');
-    end
+    
+    subjects = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
+                'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};        
 
     subNum = ismember(subjects,subname);
     concatData.runOrder = runOrder(subNum,:);
 
-    newOrder = cell(size(concatData.eeg));
+    newOrderEEG = cell(size(concatData.eeg));
+    newOrderVid = cell(size(concatData.vid));    
     for song = 1:nSongs
-        newOrder{concatData.runOrder(song)} = concatData.eeg{song};
+        newOrderEEG{concatData.runOrder(song)} = concatData.eeg{song};
+        newOrderVid{concatData.runOrder(song)} = concatData.vid{song};
     end
-    concatData.eeg = newOrder;
+    concatData.eeg = newOrderEEG;
+    concatData.vid = newOrderVid;
 end
 
 %% saving results (overwrites file if it exists)
@@ -145,7 +142,7 @@ concatData.params.preProcess = true;
 if saveBool
     fprintf('Saving preProcessed data...');
     setPathEnviro(username,subname);
-    save(strcat(subname,'_concatData'),'concatData');
+    save(strcat(subname,'_concatData'),'concatData','-v7.3');
     fprintf('Done.\n');
 else
     disp('warning: data not saved, must pass directly');
