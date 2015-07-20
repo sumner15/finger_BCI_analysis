@@ -81,7 +81,7 @@ for currentCond = 1:nConds
     end
     meanMuPower = squeeze(mean(muPower(subInterest,currentCond,:),1)); 
     plot(t,meanMuPower,'r','LineWidth',4)
-    %axis([-1.5 1.5 -5 5])
+    axis([-1.5 1.5 -2 2])
     xlabel ('time (s)'); ylabel('power');
     title(condTitles{currentCond});
 end
@@ -115,11 +115,11 @@ for currentSub = 1:nSubs
     subTopoData = squeeze(topoData(currentSub,freqInterest(currentSub),:));
     % topoData(sub,freq,chan)  ==>  subTopoData(chan)
     
-   subplot(2,3,currentSub);   
-   corttopo(-subTopoData,hm,'drawElectrodes',1);
+   subplot(floor(sqrt(nSubs)),ceil(sqrt(nSubs)),currentSub);   
+   corttopo(-subTopoData,hm,'drawElectrodes',0)
 %    set(gca,'clim',[-2 2]);
 
-   title(subjects{currentSub}{1});          
+   title(subjects{currentSub});          
 end
 % end
 
@@ -139,8 +139,8 @@ set(figure,'Position',scrsz);
 suptitle('InterSubject Max ERD (dB)');
 for cond = 1:4
     subplot(2,2,cond); 
-    corttopo(squeeze(-topoData(cond,:)'),hm,'drawElectrodes',1);
-    set(gca,'clim',[-0.5 1.3]);
+    corttopo(squeeze(-topoData(cond,:)'),hm,'drawElectrodes',0);
+    set(gca,'clim',[-0.3 .5]);
     title(condTitles{cond})
 end
 
@@ -162,7 +162,7 @@ for winInd = 1:nWinsUsed
        subplot(nFreqUsed,nWinsUsed,winInd+(freqInd-1)*nWinsUsed)
        currentTopo = squeeze(topoData(currentWindow,currentFreq,:));
        corttopo(currentTopo,hm,'drawElectrodes',0);
-       %set(gca,'clim',[-0.8 1.2]);
+       set(gca,'clim',[-0.5 .3]);
        
        title([num2str(t(winsUsed(winInd))) ' s, ' num2str(fVec(currentFreq)) ' Hz']);        
    end

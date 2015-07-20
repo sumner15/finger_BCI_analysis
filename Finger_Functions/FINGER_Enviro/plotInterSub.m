@@ -15,6 +15,7 @@ end
 disp('-----------------------------');
 disp('   Intersubject Plotting ');
 disp('-----------------------------');
+opengl software
     
 %% loading data
 currentSub = 1;
@@ -106,7 +107,7 @@ for song = 2:5
     title(conditions{song})    
     if song == 2 || song == 3; xlabel('time (ms)','FontSize',16); end
     if song == 3 || song == 5; ylabel('dB','FontSize',16); end    
-    xlim([-1400 1400]);
+    axis([-1400 1400 -1.5 1.5]);
     
     %shading significance
     for nArea = 1:size(sigInds,2)
@@ -145,7 +146,7 @@ for song = 2:5
     trialPowerDBrHem{song} = squeeze(MEAN.trialPowerDB{song}(:,:));
     
     imagesc(-1500:1499,5:40,trialPowerDBrHem{song},[-1.5 1]); colorbar   
-    xlim([-1400 1400]);
+    axis([-1400 1400 5 40]);
     set(gca,'YDir','normal')
 end
 

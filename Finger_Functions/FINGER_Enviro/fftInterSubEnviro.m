@@ -181,7 +181,7 @@ fprintf('\n');
 savebool = input('Would you like to save the fft power results? (y or n): ','s');
 if savebool == 'y'
     setPathEnviro('LAB');    
-    dimensionLabels = ['nSubs','nConds','nWins','nFreqs','nChans'];    
+    dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans'};    
     save('cleanFFTPower','trialPOWER','trialPowerDB','dimensionLabels',...
         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');  
 end
