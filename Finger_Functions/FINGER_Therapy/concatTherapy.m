@@ -40,6 +40,33 @@ concatData.vid{2} = eval([filePre  '3Video_trigger']);
 concatData.vid{3} = eval([filePost '2Video_trigger']);
 concatData.vid{4} = eval([filePost '3Video_trigger']);
 
+%% %%%%%%%%%%%%%%% EXCEPTIONS (MANUAL ENTRIES) %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if strcmp(subname,'LOUW')
+    disp('warning: LOUW OVERRIDE!!!!');
+    concatData.eeg{1} = eval([filePre  '3']);
+    concatData.eeg{2} = eval([filePre  '4']);
+    concatData.eeg{3} = eval([filePost '3']);
+    concatData.eeg{4} = eval([filePost '4']);
+    concatData.vid{1} = eval([filePre  '3Video_trigger']);
+    concatData.vid{2} = eval([filePre  '4Video_trigger']);
+    concatData.vid{3} = eval([filePost '3Video_trigger']);
+    concatData.vid{4} = eval([filePost '4Video_trigger']);
+end
+if strcmp(subname,'MALJ')
+    disp('warning: MALJ OVERRIDE!!!!');    
+    concatData.eeg{2} = eval([filePost '3']);    
+    concatData.vid{2} = eval([filePost '3Video_trigger']);    
+    disp('Speed test is POST ONLY! (pre missing)');
+    concatData.warning = 'Speed test is POST ONLY! (pre missing)';
+end
+if strcmp(subname,'MCCL')
+    disp('warning: MCCL OVERRIDE!!!!');    
+    concatData.eeg{4} = eval([filePre '3']);    
+    concatData.vid{4} = eval([filePre '3Video_trigger']);    
+    disp('Speed test is PRE ONLY! (post missing)');
+    concatData.warning = 'Speed test is PRE ONLY! (post missing)';
+end 
+
 %% save concatenated data
 if saveBool
     fprintf('Saving concatenated data...');

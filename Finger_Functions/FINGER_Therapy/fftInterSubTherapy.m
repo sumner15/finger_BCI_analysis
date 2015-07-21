@@ -1,4 +1,4 @@
-% function fftInterSubTherapy(subjects)
+function fftInterSubTherapy(subjects)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fftInterSubTherapy reads in the 'waveletData' structure from the
 % subjects folder. These files are created using the screenTherapy function
@@ -336,3 +336,4 @@ for winInd = 1:nWinsUsed
    end
 end
 
+end
