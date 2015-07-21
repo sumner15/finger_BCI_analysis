@@ -32,10 +32,6 @@ evals = diag(evals);
 PC.evals = 100*evals(end:-1:1)./sum(evals);
 
 %% computing time course of each PC
-PC.pcTime = PC.component'*datain;
-
-%% computing spectra of each PC
-pcSpectra = fft(PC.pcTime,[],2);
-pcSpectra = pcSpectra(1:end/2+1); %positive frequencies only
+PC.time = PC.component'*datain;
 
 end
