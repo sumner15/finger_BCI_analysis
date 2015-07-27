@@ -103,7 +103,12 @@ end
 
 %% time -> freq domain (fft)
 if fftBool == 'y'
-    error('not yet set up');
+    try
+        fftInterSubTherapy()
+    catch me
+        disp(me.message);
+        successBool = false;
+    end
 end
 
 %% subject plotting (cell must be ran manually)
