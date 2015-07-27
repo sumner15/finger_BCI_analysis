@@ -65,13 +65,13 @@ end
 %% creating high/low groups
 % loading therapy data tables
 setPathTherapy(username)
-load('therapyData.mat');
-% outcomes: 'FMAMA Total [#]','B&B (Affected) Test [#]'
+load('therapyData2.mat');
+% outcomes: 'FMAMA Total [#]','B&B (Affected) Test [#]','PercHitSD[#]'
 tableSubs = therapyTextData(:,1);         % column of subject id's
-groupIndex1 = ismember(therapyTextData(1,:),'FMAMA Total [1]'); %finds group column
-groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [2]');
-tableGroup1 = therapyData(:,groupIndex1); % stores group numbers (2s&3s)
-tableGroup2 = therapyData(:,groupIndex2); % stores group numbers (2s&3s)
+groupIndex1 = ismember(therapyTextData(1,:),'PercHitSD[1]'); %finds group column
+groupIndex2 = ismember(therapyTextData(1,:),'PercHitSD[2]'); %finds group column
+tableGroup1 = therapyData(:,groupIndex1); % stores group numbers
+tableGroup2 = therapyData(:,groupIndex2); % stores group numbers
 % tableGroup = tableGroup2-tableGroup1;     % e.g. delta-B&B
 tableGroup = tableGroup1;     % e.g. delta-B&B
 
@@ -80,14 +80,14 @@ for currentSub = 1:nSubs
     subname = subjects{currentSub};      
     tableSubInd = ismember(tableSubs,subname); %index of sub in table
     group = tableGroup(tableSubInd); %current sub's group level
-%     if group < mean(tableGroup(2:end-3)
-    if group < 45
+%     if group < nanmean(tableGroup(2:end-3))
+    if group <= 10
         lowSubs = [lowSubs currentSub];
-%     elseif group > mean(tableGroup(2:end-3))
-    elseif group >= 45
+%     elseif group > nanmean(tableGroup(2:end-3))
+    elseif group > 10
         highSubs = [highSubs currentSub];
     else 
-        error('group level is not properly defined');
+        warning([subname ': group level is not properly defined']);
     end
 end
 
@@ -194,3 +194,8 @@ for song = 1:nSongs
     axis([-1350 1350 5 40]);
     set(gca,'YDir','normal')
 end
+
+%% plotting histogram 
+set(figure,'Position',scrsz./2)
+hist(tableGroup)
+ylabel('# subjects');
