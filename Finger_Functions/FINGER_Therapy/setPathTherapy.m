@@ -1,5 +1,10 @@
 function setPathTherapy(username,subname)
 
+if nargin == 0
+    username = 'LAB';
+    disp('assuming username ''LAB''');
+end
+
 switch username
     case 'Sumner'        
         if ispc==1                     
@@ -22,9 +27,7 @@ end
 addpath(cd); 
 
 if nargin==2
-    cd(subname);
-else
-    disp('No subname given. Staying in root dir');
+    cd(subname);   
 end
 
 end

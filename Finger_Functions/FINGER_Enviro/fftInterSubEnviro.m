@@ -29,9 +29,10 @@ function fftInterSubEnviro(subjects)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
+tic
 if ~exist('subjects','var')
     subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
-                'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};       
+                'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};               
     disp('no subject list passed... assuming all subjects')
 end
 nSubs = length(subjects);       % number of subjects analyzed 
@@ -42,29 +43,17 @@ windowLength = 200;             % Sample length
 baseInd = 1:2;                  % baseline period (in int multiples of 
                                 % windowLength ms) for use in dB change 
 fs = 1000;                      % sampling frequency (Hz)
-% Hz (desired center freq used for topography)
 fVec = linspace(0,fs/2,windowLength/2+1);  % frequency vector resolved by fft
 nFreqs = length(fVec);          % number of independent freqs resolved
 nWins = floor(fs*3/windowLength); % number of windows per epoch (3 sec)
-t = linspace(-trialLength/2,trialLength/2,nWins); %time vector
-freqInd = NaN(1,nSubs);         % initializing frequency index vector
-freqUsed = NaN(1,nSubs);        % initializing frequency used vector
+t = linspace(-trialLength/2,trialLength/2,nWins); %time vector (saved2file)
 
 nConds = 6;                     % number of conditions 
+nTrials = 62;
 condTitles = {'AV Only','Robot+Motor','Motor','AV Only','Robot','AV Only'};
 nChans = 194;                   % using EGI HC 256 RED Head Model!
 
-%% loading run order and song data
-setPathEnviro('LAB');
-disp('Loading run order and song data')
-load runOrder.mat   %identifying run order
-subRuns  = {'BECC','NAVA','TRAT','POTA','TRAV','NAZM',...
-            'TRAD','DIAJ','GUIR','DIMC','LURI','TRUS'};       
-condStr = {'AV','motor','motor+robot','AV','robot','AV'};
-
-load('note_timing_Blackbird') %creates var Blackbird   <nNotes x 1 double>      
-nTrials = length(blackBird); 
-
+%% setting marker indices
 %markerInds is an integer array of marker indices (for all trials)   
 %*marker train of 3s epoch + 1s zero-pad for nTrials    
 markerInds = 1:(fs*(trialLength+1)):nTrials*(fs*(trialLength+1));    
@@ -80,11 +69,13 @@ for currentSub = 1:nSubs
     disp(['Loading ' filename '...']);
     load(filename);  
     
-    %% applying head model
+    %% check that data has correct head model and parameters
     load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
     for cond = 1:nConds
         if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
-            concatData.eeg{cond} = concatData.eeg{cond}(hm.ChansUsed,:);  
+            error('head model not applied')
+        elseif ~concatData.params.ICA || ~concatData.params.reOrdered 
+            error('data not fully cleaned or processed; check params')
         end
     end 
     
@@ -103,8 +94,9 @@ end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('processing subject data (FFT)');
 % input:   screenEEG {sub,condition}(trialTime x chan x trial)
-% outcome: trialPOWER(sub x condition x window(time) x freqBins x channels)
-trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans);
+% outcome: trialPOWER(sub x condition x window(time) x freqBin x channel x trial)
+trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans,nTrials);
+dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans','nTrials'};    
 
 for currentSub = 1:nSubs
     fprintf('.');
@@ -114,74 +106,43 @@ for currentSub = 1:nSubs
             for window = 1:nWins                         
                % create sample window indices
                sampleWin = (window-1)*windowLength+1:window*windowLength;
-               % cut out current data window for analysis
+               % cut out current data window for analysis (sample x trial)
                currentData = squeeze(screenEEG{currentSub,currentCond}(sampleWin,currentChan,:));
-               % find power and clip FFT for negative frequencies
+               % find power and clip FFT for negative frequencies (freq x trial)
                currentFFT  = abs(fft(currentData));  currentFFT = currentFFT(1:end/2+1,:);    
                % average across trials
-               trialPOWER(currentSub,currentCond,window,:,currentChan) = squeeze(mean(currentFFT,2));
+               trialPOWER(currentSub,currentCond,window,:,currentChan,:) = currentFFT;
             end
         end
     end
 end
 fprintf('\n\n');
-clear sampleWin currentData currentFFT
 
-%% zero-ing outlier channels
-disp('zero-ing outlier channels');
-nChansReject = zeros(1,nSubs);
-disp(['Rejected ' num2str(nChansReject)]);
-
-% trialPOWER(sub x cond x window x freq x channels)
-% --> mean power across windows (time)
-chanMeans = squeeze(mean(trialPOWER,3)); % --> (sub x cond x freq x chan)
-for sub = 1:nSubs
-    fprintf('.');
-    for cond = 1:nConds
-        for freq = 1:nFreqs            
-            % average power across all channels
-            commonAvg = squeeze(mean(chanMeans(sub,cond,freq,:),4)); %(1x1)
-            % standard deviation across all channels
-            stdOfChans = std(squeeze(chanMeans(sub,cond,freq,:))); %(1x1)
-            
-            for chan = 1:nChans
-                % if this channel is 2*std away from the common average for
-                % this subj/cond/freq, set it equal to the common average
-                if chanMeans(sub,cond,freq,chan) > commonAvg + 2*stdOfChans || ...
-                        chanMeans(sub,cond,freq,chan) < commonAvg - 3*stdOfChans
-                    trialPOWER(sub,cond,:,freq,chan) = commonAvg;
-                    nChansReject(sub) = nChansReject(sub)+1;
-                end
-            end
-            
-        end
-    end
-end
-fprintf('\nNumber of Channels Rejected (%%): \n')
-fprintf([num2str(nChansReject./(nConds*nFreqs*nChans)*100) '\n\n']);
+%% we need to free memory at this point
+clearvars -except baseInd nWins nSubs trialPOWER dimensionLabels ...
+                  windowLength subjects condTitles fVec hm t
 
 %% compute decibel power 
 disp('computing decibel power');
-trialPowerDB = NaN(size(trialPOWER));
-for currentSub = 1:nSubs
-    fprintf('.');
-for currentCond = 1:nConds
-for currentFreq = 1:nFreqs
-for currentChan = 1:nChans
-baseline = mean(trialPOWER(currentSub,currentCond,baseInd,currentFreq,currentChan),3);
-trialPowerDB(currentSub,currentCond,:,currentFreq,currentChan) = ...
-10*log10(trialPOWER(currentSub,currentCond,:,currentFreq,currentChan)./baseline);
-end
-end
-end
-end
+baseline = repmat(mean(trialPOWER(:,:,baseInd,:,:,:),3),[1 1 nWins 1 1 1]);
+trialPowerDB = 10*log10(trialPOWER./baseline);
 fprintf('\n');
 
 %% save results for later
+fprintf('Elapsed time (min): %2.1f \nElapased time per subject %2.1f \n', toc/60,toc/60/nSubs);
 savebool = input('Would you like to save the fft power results? (y or n): ','s');
 if savebool == 'y'
     setPathEnviro('LAB');    
-    dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans'};    
+    % save single trial data (does not save raw power to save space!)
+    save('singleTrialFFT','trialPowerDB','dimensionLabels',...
+        'windowLength','subjects','condTitles','fVec','hm','t','-v7.3'); 
+    
+    % average across trials for analysis across trials (topo analysis etc)
+    trialPOWER = squeeze(mean(trialPOWER,6));
+    trialPowerDB = squeeze(mean(trialPowerDB,6));
+    dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans'}; 
+    
+    % save power across trials
     save('cleanFFTPower','trialPOWER','trialPowerDB','dimensionLabels',...
         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');  
 end

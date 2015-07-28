@@ -1,5 +1,10 @@
 function setPathEnviro(username,subname)
 
+if nargin == 0
+    username = 'LAB';
+    disp('assuming username ''LAB''');
+end
+
 switch username
     case 'Sumner'
         if ispc==1
@@ -24,8 +29,6 @@ addpath(cd);
 
 if nargin==2
     cd(subname);
-else
-    disp('No subname given. Staying in root dir');
 end
 
 end
