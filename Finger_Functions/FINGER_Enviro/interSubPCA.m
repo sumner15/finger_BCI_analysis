@@ -1,9 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % interSub reads in the trial power data for all participants from file
 %
-% trialPOWER: {song} (freq x time) 
-% trialPowerDB: {song} (freq x time)
-% baseSamples
+% trialPOWER: {song} (subs x condition x t-windows x freq x channel)
+% trialPowerDB: {song} (subs x condition x t-windows x freq x channel)
+% condtitles: {song} string of condition titles
+% fVec: (1 x nFreqs) vector of frequencies resolved by fft
+% hm: head model
+% subjects: {nSubs} 4-letter string of sub identifier (e.g. 'AAAA')
 % 
 % Author: Sumner Norman (slnorman@uci.edu)
 % 
