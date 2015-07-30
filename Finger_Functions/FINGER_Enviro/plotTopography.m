@@ -32,8 +32,10 @@ if size(trialPOWER,2) == 6
     trialPOWER = trialPOWER(:,2:5,:,:,:);
     trialPowerDB = trialPowerDB(:,2:5,:,:,:);
     nConds = 4;
-    condTitles = {'Robot+Motor','Motor','AV Only','Robot'};
+elseif size(trialPOWER,2) ~= 4
+    error('trialPOWER is badly sized');
 end
+condTitles = {'Robot+Motor','Motor','AV Only','Robot'};
 
 %% interSub time-freq maps (raw power)
 % average across subjects

@@ -1,7 +1,7 @@
-function fftInterSubEnviro(subjects)
+% function fftInterSubEnviro(subjects,username)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fftInterSubEnviro reads in the clean 'concatData' structure from the
-% subjects folder. These files are created using the screenTherapy function
+% subjects folder. These files are created using the screenEnviro function
 % by screening the data, and optionally using ICA to clean the data. This
 % script uses a basic FFT time-freq decomposition to transform the data to
 % freq domain. It then arranges the data for all subjects and conditions
@@ -29,13 +29,17 @@ function fftInterSubEnviro(subjects)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
-tic
+tic; clearvars -except username subjects; % need to clear memory!
 if ~exist('subjects','var')
     subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
                 'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};               
     disp('no subject list passed... assuming all subjects')
 end
 nSubs = length(subjects);       % number of subjects analyzed 
+if ~exist('username','var')
+    username = 'LAB';
+    disp('Username set to ''LAB''');
+end
 
 %% options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 trialLength = 3;                % trial length (in sec)
@@ -44,11 +48,11 @@ baseInd = 1:2;                  % baseline period (in int multiples of
                                 % windowLength ms) for use in dB change 
 fs = 1000;                      % sampling frequency (Hz)
 fVec = linspace(0,fs/2,windowLength/2+1);  % frequency vector resolved by fft
-nFreqs = length(fVec);          % number of independent freqs resolved
+nFreqs = find(fVec==50);          % number of independent freqs resolved (capped at 50Hz)
 nWins = floor(fs*3/windowLength); % number of windows per epoch (3 sec)
 t = linspace(-trialLength/2,trialLength/2,nWins); %time vector (saved2file)
 
-nConds = 6;                     % number of conditions 
+nConds = 4;                     % number of conditions 
 nTrials = 62;
 condTitles = {'AV Only','Robot+Motor','Motor','AV Only','Robot','AV Only'};
 nChans = 194;                   % using EGI HC 256 RED Head Model!
@@ -59,18 +63,18 @@ nChans = 194;                   % using EGI HC 256 RED Head Model!
 markerInds = 1:(fs*(trialLength+1)):nTrials*(fs*(trialLength+1));    
 
 %% loading data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fprintf('\n'); disp('head model, CAR, ordering, and segmenting...');
+fprintf('\n'); disp('Loading data...');
+load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
 for currentSub = 1:nSubs
     clear concatData
     subname = subjects{currentSub};
-    setPathEnviro('LAB',subname);
+    setPathEnviro(username,subname);
     filename = celldir([subname '*_concatData.mat']);
     filename = filename{1}(1:end-4);
     disp(['Loading ' filename '...']);
     load(filename);  
     
-    %% check that data has correct head model and parameters
-    load('egihc256redhm');   hm = EGIHC256RED; clear EGIHC256RED
+    %% check that data has correct head model and parameters    
     for cond = 1:nConds
         if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
             error('head model not applied')
@@ -79,7 +83,8 @@ for currentSub = 1:nSubs
         end
     end 
     
-    %% segmenting data        
+    %% segmenting data 
+    concatData.eeg = concatData.eeg(2:5); % excluding AV only trials!!
     for cond = 1:nConds        
         for trial = 1:nTrials
             trialInds = markerInds(trial):(markerInds(trial)+fs*trialLength-1);
@@ -98,54 +103,66 @@ disp('processing subject data (FFT)');
 trialPOWER = NaN(nSubs,nConds,nWins,nFreqs,nChans,nTrials);
 dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans','nTrials'};    
 
-for currentSub = 1:nSubs
+for sub = 1:nSubs
     fprintf('.');
-    for currentCond = 1:nConds
-        for currentChan = 1:nChans
-            % compute FFT for currentSub & condition (nFreqs x nWins x nChans x nTrials)
-            for window = 1:nWins                         
-               % create sample window indices
-               sampleWin = (window-1)*windowLength+1:window*windowLength;
-               % cut out current data window for analysis (sample x trial)
-               currentData = squeeze(screenEEG{currentSub,currentCond}(sampleWin,currentChan,:));
-               % find power and clip FFT for negative frequencies (freq x trial)
-               currentFFT  = abs(fft(currentData));  currentFFT = currentFFT(1:end/2+1,:);    
-               % average across trials
-               trialPOWER(currentSub,currentCond,window,:,currentChan,:) = currentFFT;
+    for cond = 1:nConds
+        for chan = 1:nChans
+            for trial = 1:nTrials
+                for window = 1:nWins                         
+                   % create sample window indices
+                   sampleWin = (window-1)*windowLength+1:window*windowLength;
+                   % cut out current data window for analysis (sample x trial)
+                   currentData = squeeze(screenEEG{sub,cond}(sampleWin,chan,trial));
+                   % find power and clip FFT for negative frequencies (freq x trial)
+                   currentFFT  = abs(fft(currentData));  
+                   currentFFT = currentFFT(1:nFreqs);  
+                   % if we have a zero-d window, ignore 
+                   if ~sum(currentFFT==0)
+                       % fill in trialPOWER array
+                       trialPOWER(sub,cond,window,:,chan,trial) = squeeze(currentFFT);                   
+                   end
+                end
             end
         end
     end
 end
-fprintf('\n\n');
+fVec = fVec(1:nFreqs);
+fprintf('\n');
 
-%% we need to free memory at this point
-clearvars -except baseInd nWins nSubs trialPOWER dimensionLabels ...
-                  windowLength subjects condTitles fVec hm t
+
+%% we need to free memory at this point 
+clearvars -except trialPOWER baseInd nWins nSubs dimensionLabels ...
+                  windowLength subjects condTitles fVec hm t username;
 
 %% compute decibel power 
 disp('computing decibel power');
-baseline = repmat(mean(trialPOWER(:,:,baseInd,:,:,:),3),[1 1 nWins 1 1 1]);
+baseline = nanmean(trialPOWER(:,:,baseInd,:,:,:),3);
+baseline = repmat(baseline,[1 1 nWins 1 1 1]);
 trialPowerDB = 10*log10(trialPOWER./baseline);
-fprintf('\n');
+% % set NaN values to 0s for future computation
+% trialPOWER(isnan(trialPOWER)) = 0;
+% trialPowerDB(isnan(trialPowerDB)) = 0;
 
-%% save results for later
+%% save results
 fprintf('Elapsed time (min): %2.1f \nElapased time per subject %2.1f \n', toc/60,toc/60/nSubs);
-savebool = input('Would you like to save the fft power results? (y or n): ','s');
+savebool = input('Would you like to save the data? Input y or n: ','s');
 if savebool == 'y'
-    setPathEnviro('LAB');    
-    % save single trial data (does not save raw power to save space!)
-    save('singleTrialFFT','trialPowerDB','dimensionLabels',...
-        'windowLength','subjects','condTitles','fVec','hm','t','-v7.3'); 
-    
-    % average across trials for analysis across trials (topo analysis etc)
-    trialPOWER = squeeze(mean(trialPOWER,6));
-    trialPowerDB = squeeze(mean(trialPowerDB,6));
+    % save single trial results
+    setPathEnviro(username);              
+    save('singleTrialFFT','trialPOWER','trialPowerDB','dimensionLabels',...
+         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');
+     
+     % average across trials (overwrite trialPOWER 6D --> 5D)
+    trialPOWER = squeeze(nanmean(trialPOWER,6));
+    baseline = mean(trialPOWER(:,:,baseInd,:,:),3);
+    baseline = repmat(baseline,[1 1 nWins 1 1]);
+    trialPowerDB = 10*log10(trialPOWER./baseline);    
     dimensionLabels = {'nSubs','nConds','nWins','nFreqs','nChans'}; 
-    
+     
     % save power across trials
     save('cleanFFTPower','trialPOWER','trialPowerDB','dimensionLabels',...
         'windowLength','subjects','condTitles','fVec','hm','t','-v7.3');  
 end
-disp('done');
+fprintf('Elapsed time (min): %2.1f \nElapased time per subject %2.1f \n', toc/60,toc/60/nSubs);
 
-end
+% end
