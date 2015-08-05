@@ -35,10 +35,14 @@ cd(startDir)
 figSize = [ 10 50 1400 750];
 [nSubs nSongs nWins nFreqs nChans nTrials] = size(trialPowerDB);
 
-fInterestInd = 3;           %index of frequencies of interest 
+fInterestInd = 7;           %index of frequencies of interest 
 fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
-songsInterest = [1 3];      %songs of interest to plot
+songsInterest = [2 4];      %songs of interest to plot
 nSongsInt = length(songsInterest);
+if length(condTitles)==6
+    condTitles = condTitles(2:5);
+end
+disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}]);
 
 %% organizing data for use in ida_feature_extraction_matrix.m:
 % average across subs
@@ -88,14 +92,24 @@ Nruns = 10;
 % IDA ANALYSIS RUNS HERE
 [T Mu] =  ida_feature_extraction_matrix(m,Train,Group, ...
           Method,Tol,MaxIter,InitCond,Nruns);
-                              
-%% computing T-weighted time domain results
+      
+% find feature space
+FeatureTrain = Train*T';                             
 
-%% plotting results
+%% plotting channel weighting
 set(figure,'Position',figSize); 
 suptitle(['IDA Feature Space (T) topography (m=' num2str(m)...
-    ') :: Active vs. Passive movement (' num2str(nSongsInt) ' classes)']);
+    ') :: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}...
+    ' (' num2str(nSongsInt) ' classes) ' num2str(fVec(fInterestInd)) ' Hz']);
 for feature = 1:m
     subplot(floor(sqrt(m)),ceil(sqrt(m)),feature)
     corttopo(T(feature,:),hm,'drawElectrodes','false')
 end
+
+%% plotting feature space
+set(figure,'Position',[10 50 700 700]); 
+for feature = 1:m    
+    ph = plot(FeatureTrain(Group==feature-1,1),FeatureTrain(Group==feature-1,2),'o');   
+    hold on
+end
+set(gca,'DataAspectRatio',[1 1 1])
