@@ -74,17 +74,9 @@ for currentSub = 1:nSubs
     disp(['Loading ' filename '...']);
     load(filename);  
     
-    %% check that data has correct head model and parameters    
-    for cond = 1:nConds
-        if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
-            error('head model not applied')
-        elseif ~concatData.params.ICA || ~concatData.params.reOrdered 
-            error('data not fully cleaned or processed; check params')
-        end
-    end 
-    
     %% segmenting data 
     concatData.eeg = concatData.eeg(2:5); % excluding AV only trials!!
+    condTitles = condTitles(2:5);
     for cond = 1:nConds        
         for trial = 1:nTrials
             trialInds = markerInds(trial):(markerInds(trial)+fs*trialLength-1);
@@ -94,6 +86,15 @@ for currentSub = 1:nSubs
         end
     end
     
+    %% check that data has correct head model and parameters
+    for cond = 1:nConds
+        if size(concatData.eeg{cond},1) ~= length(hm.ChansUsed)
+            error('head model not applied')
+        elseif ~concatData.params.ICA || ~concatData.params.reOrdered 
+            error('data not fully cleaned or processed; check params')
+        end
+    end 
+      
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
