@@ -32,84 +32,96 @@ load singleTrialFFT.mat
 cd(startDir)
 
 %% common vars
-figSize = [ 10 50 1400 750];
-[nSubs nSongs nWins nFreqs nChans nTrials] = size(trialPowerDB);
+figSize = [ 10 50 1600 900];
+[nSubs, nSongs, nWins, nFreqs, nChans, nTrials] = size(trialPowerDB);
+C = 2;  %number of classes
 
-fInterestInd = 7;           %index of frequencies of interest 
+%% chosen vars
+fInterestInd = 3;           %index of frequencies of interest 
+songsInterest = [2 3];      %songs of interest to plot
+% subsInterest = 1:nSubs;     %subs of interest (averaged)
+m = 1;                      %m: size of feature space 
+
 fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
-songsInterest = [2 4];      %songs of interest to plot
-nSongsInt = length(songsInterest);
-if length(condTitles)==6
-    condTitles = condTitles(2:5);
-end
+if length(condTitles)==6; condTitles = condTitles(2:5); end
 disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}]);
 
-%% organizing data for use in ida_feature_extraction_matrix.m:
+%% Averaging/Selecting across dimensions (reduction)
 % average across subs
-interSubPower = squeeze(nanmean(trialPowerDB,1)); %now (cond,win,freq,chan,trial)
+interSubPower = squeeze(nanmean(trialPowerDB(subsInterest,:,:,:,:,:),1)); %now (cond,win,freq,chan,trial)
 % flatten at frequency of interest
 interSubPower = squeeze(nanmean(interSubPower(:,:,fInterestInd,:,:),3)); %(cond,win,chan,trial)
-% get rid of conditions we don't care about
+% select conditions (classes) we want to classify
 interSubPower = interSubPower(songsInterest,:,:,:); %(cond,win,chan,trial)
-% organize into correct size (nWins*nTrials*nClasses x nChans)
+
+%% organize into correct size (nTrials*nClasses x nChans*nWins)
 % this is a tall matrix of flattened windows/trials/classes of width channels
-Train = NaN(nSongsInt*nTrials*nWins , nChans);
-Group = NaN(nSongsInt*nTrials*nWins , 1);
-for class = 1:nSongsInt
+Train = NaN(C*nTrials , nChans*nWins);
+Group = NaN(C*nTrials , 1);
+for class = 1:C
    for trial = 1:nTrials
+       verticalIndex = (class-1)*nTrials + trial;
+       % vertical vector of class labels corresponding to 'Train'
+       Group(verticalIndex) = class-1;
        for window = 1:nWins
-           verticalIndex = (class-1)*(nTrials*nWins)+(trial-1)*nWins+window;
-           % Training data (lotsOfReplicates x channel)
-           Train(verticalIndex,:) = squeeze(interSubPower(class,window,:,trial));
-           % vertical vector of class labels corresponding to 'Train'
-           Group(verticalIndex) = class-1;
+           horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
+           % Training data 
+           Train(verticalIndex,horizontalIndex) = ...
+               squeeze(interSubPower(class,window,:,trial));
        end
    end
 end
-%remove NaN 
+%remove NaN rows
 nanInds = max(isnan(Train),[],2);
 Train(nanInds,:) = [];
 Group(nanInds) = [];
 
-%% running ida analysis!
-%m: size of feature space 
-m = 2;                     
-%Train: (Nt x n) is the statistical data of interest
-%Group: vector of class labels corresponding to Train
-%Method: is a string: 'tr' trust-region, 'cg' conjugate gradient 
-Method = 'tr';
-%Tol: (1 x 2) vector of tolerances:
-Tol = 10^(-8)*[1 1];
-%MaxIter - (1 x 1) maximum number of iterations
-MaxIter = 2000;
-%InitCondition - is a string: 'random' random initial feature extraction matrix
-%                             'lda' linear discriminant analysis matrix
-%                             'che' the matrix proposed by Loog & Duin
-InitCond = 'lda';
-%Nruns - (1 x 1) the number of optimization runs.
-Nruns = 10;
+%% choosing analysis based on data size
+ida = size(Train,2)*10 < size(Train,1);
+cpca = ~ida;
 
-% IDA ANALYSIS RUNS HERE
-[T Mu] =  ida_feature_extraction_matrix(m,Train,Group, ...
-          Method,Tol,MaxIter,InitCond,Nruns);
-      
-% find feature space
-FeatureTrain = Train*T';                             
+%% running CPCA analysis
+if cpca   
+    methodString = 'CPCA & AIDA';
+    DRmatC = dataproc_func_cpca(Train,Group,m,'empirical',{'mean'},'aida');
+    % find feature space
+    FeatureTrain = Train*DRmatC{1};  %(C*nTrials x 1)
+    M = max([abs(DRmatC{1}); abs(DRmatC{2})]); %normalizes to +-1
+    T = reshape(DRmatC{1},nChans,nWins)/M;       
+end
+
+%% running ida analysis!
+if ida       
+    methodString = 'IDA';
+    Method = 'tr';    
+    Tol = 10^(-8)*[1 1];    
+    MaxIter = 2000;    
+    InitCond = 'lda';    
+    Nruns = 10;
+
+    % IDA ANALYSIS RUNS HERE
+    [T, Mu] =  ida_feature_extraction_matrix(m,Train,Group, ...
+              Method,Tol,MaxIter,InitCond,Nruns);   
+    
+    % find feature space      
+    FeatureTrain = Train*T';  %(C*nTrials x 1)
+end
 
 %% plotting channel weighting
 set(figure,'Position',figSize); 
-suptitle(['IDA Feature Space (T) topography (m=' num2str(m)...
-    ') :: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}...
-    ' (' num2str(nSongsInt) ' classes) ' num2str(fVec(fInterestInd)) ' Hz']);
-for feature = 1:m
-    subplot(floor(sqrt(m)),ceil(sqrt(m)),feature)
-    corttopo(T(feature,:),hm,'drawElectrodes','false')
+suptitle([methodString ' topography :: ' condTitles{songsInterest(1)}...
+    ' vs. ' condTitles{songsInterest(2)} ', ' num2str(fVec(fInterestInd))... 
+    ' Hz, ' num2str(length(subsInterest)) ' subject(s)']);
+for window = 1:nWins
+    subplot(4,5,window)
+    corttopo(T(:,window),hm,'drawElectrodes',0)
+    caxis([-1 1]); 
 end
 
 %% plotting feature space
-set(figure,'Position',[10 50 700 700]); 
-for feature = 1:m    
-    ph = plot(FeatureTrain(Group==feature-1,1),FeatureTrain(Group==feature-1,2),'o');   
+subplot(4,5,16:20)
+for class = 1:C   
+    ph = plot(FeatureTrain(Group==class-1,1),zeros(size(FeatureTrain(Group==class-1,1))),'o');      
     hold on
 end
-set(gca,'DataAspectRatio',[1 1 1])
+title([methodString ' feature space']);
