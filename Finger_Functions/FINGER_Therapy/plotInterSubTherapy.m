@@ -65,7 +65,7 @@ end
 %% creating high/low groups
 % loading therapy data tables
 setPathTherapy(username)
-load('therapyData2.mat');
+load('therapyData.mat');
 % outcomes: 'FMAMA Total [#]','B&B (Affected) Test [#]','PercHitSD[#]'
 tableSubs = therapyTextData(:,1);         % column of subject id's
 groupIndex1 = ismember(therapyTextData(1,:),'PercHitSD[1]'); %finds group column

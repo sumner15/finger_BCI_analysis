@@ -39,7 +39,7 @@ C = 2;  %number of classes
 %% chosen vars
 fInterestInd = 3;           %index of frequencies of interest 
 songsInterest = [2 3];      %songs of interest to plot
-% subsInterest = 1:nSubs;     %subs of interest (averaged)
+subsInterest = 3;     %subs of interest (averaged)
 m = 1;                      %m: size of feature space 
 
 fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
@@ -85,12 +85,12 @@ if cpca
     methodString = 'CPCA & AIDA';
     DRmatC = dataproc_func_cpca(Train,Group,m,'empirical',{'mean'},'aida');
     % find feature space
-    FeatureTrain = Train*DRmatC{1};  %(C*nTrials x 1)
+    FeatureTrain = Train*DRmatC{1};  %(C*nTrials x m)
     M = max([abs(DRmatC{1}); abs(DRmatC{2})]); %normalizes to +-1
     T = reshape(DRmatC{1},nChans,nWins)/M;       
 end
 
-%% running ida analysis!
+%% running ida analysis
 if ida       
     methodString = 'IDA';
     Method = 'tr';    
@@ -98,8 +98,7 @@ if ida
     MaxIter = 2000;    
     InitCond = 'lda';    
     Nruns = 10;
-
-    % IDA ANALYSIS RUNS HERE
+    
     [T, Mu] =  ida_feature_extraction_matrix(m,Train,Group, ...
               Method,Tol,MaxIter,InitCond,Nruns);   
     
@@ -107,21 +106,39 @@ if ida
     FeatureTrain = Train*T';  %(C*nTrials x 1)
 end
 
-%% plotting channel weighting
+%% computing resulting time series
+classPower = zeros(C,nWins);
+chanPower = squeeze(mean(interSubPower,4)); %avg trials (cond,win,chan)
+for class = 1:C
+    for window = 1:nWins
+        classPower(class,window) = squeeze(chanPower(class,window,:))'*T(:,window);
+    end
+end
+
+%% plotting channel weighting & feature space
 set(figure,'Position',figSize); 
 suptitle([methodString ' topography :: ' condTitles{songsInterest(1)}...
     ' vs. ' condTitles{songsInterest(2)} ', ' num2str(fVec(fInterestInd))... 
     ' Hz, ' num2str(length(subsInterest)) ' subject(s)']);
-for window = 1:nWins
-    subplot(4,5,window)
-    corttopo(T(:,window),hm,'drawElectrodes',0)
+for window = 1:5
+    subplot(3,5,window)
+    fftWins = (window-1)*3+1:(window*3);
+    corttopo(mean(T(:,fftWins),2),hm,'drawElectrodes',0)
     caxis([-1 1]); 
 end
 
-%% plotting feature space
-subplot(4,5,16:20)
+% class power
+subplot(3,5,6:10)
+plot(t,classPower','LineWidth',4)
+legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
+title('time series representation by class')
+xlabel('time(sec relative to target time)'); ylabel('Power (dB)')
+
+% feature space
+subplot(3,5,11:15)
 for class = 1:C   
     ph = plot(FeatureTrain(Group==class-1,1),zeros(size(FeatureTrain(Group==class-1,1))),'o');      
     hold on
 end
 title([methodString ' feature space']);
+legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
