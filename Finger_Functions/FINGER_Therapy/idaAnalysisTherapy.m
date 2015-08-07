@@ -51,7 +51,7 @@ condTitles = {'low delta FM','high delta FM'};
 disp(['reset conditions to ' condTitles{1} ' & ' condTitles{2}]);
 tableSubs = therapyTextData(:,1);         % column of subject id's
 groupIndex1 = ismember(therapyTextData(1,:),'FMAMA Total [1]'); %finds group column
-groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [4]'); %finds group column
+groupIndex2 = ismember(therapyTextData(1,:),'FMAMA Total [2]'); %finds group column
 tableGroup1 = therapyData(:,groupIndex1); % stores group numbers
 tableGroup2 = therapyData(:,groupIndex2); % stores group numbers
 tableGroup = tableGroup2-tableGroup1;     % e.g. delta-B&B
@@ -180,46 +180,36 @@ end
 testClassify = input('Would you like to classify? (type y or n): ','s');
 nSubs = length(lowSubs)+length(highSubs);
 
-if strcmp(testClassify,'y') && cpca
-    percCorrect = NaN(1,nSubs); % classification accuracy for each subject
-    for subject = 1:nSubs
-        
-        nCorrect = 0;
-        for trial = 1:length(Group)        
-            leaveOut = trial;
+if strcmp(testClassify,'y') && cpca                
+    nCorrect = 0;
+    for trial = 1:length(Group)        
+        leaveOut = trial;
 
-            % average across subs by class (making the subs our condition!)
-            interSubPower(1,:,:,:,:) = nanmean(reshapedPower(lowSubs ,:,:,:,:),1); 
-            interSubPower(2,:,:,:,:) = nanmean(reshapedPower(highSubs,:,:,:,:),1); %now (cond,win,freq,chan,trial)
-            % flatten at frequency of interest
-            interSubPower = squeeze(nanmean(interSubPower(:,:,fInterestInd,:,:),3)); %(cond,win,chan,trial)
-            
-            % create training set (leaves one out)
-            trainValid = Train; 
-            trainValid(leaveOut,:)=[];
-            trainValidGroup = Group;
-            trainValidGroup(leaveOut) = [];
-            % create validate point(the one left out)        
-            valid = Train(leaveOut,:);
-            validGroup = Group(leaveOut,:);
+        % create training set (leaves one out)
+        trainValid = Train; 
+        trainValid(leaveOut,:)=[];
+        trainValidGroup = Group;
+        trainValidGroup(leaveOut) = [];
+        % create validate point(the one left out)        
+        valid = Train(leaveOut,:);
+        validGroup = Group(leaveOut,:);
 
-            % Use CPCA/IDA to create train the set
-            DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,'empirical',{'mean'},'aida');
+        % Use CPCA/IDA to create train the set
+        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,'empirical',{'mean'},'aida');
 
-            % find feature space points
-            FeatureTrain = (trainValid * DRmatC{1});
-            FeatureValid = (valid * DRmatC{1});        
+        % find feature space points
+        FeatureTrain = (trainValid * DRmatC{1});
+        FeatureValid = (valid * DRmatC{1});        
 
-            % classify our left out trial
-            classPredicted = classify(FeatureValid,FeatureTrain,trainValidGroup,'linear', ...
-                     'empirical');
+        % classify our left out trial
+        classPredicted = classify(FeatureValid,FeatureTrain,trainValidGroup,'linear', ...
+                 'empirical');
 
-            % count how many we got right
-            if classPredicted == validGroup
-                nCorrect = nCorrect+1;
-            end
+        % count how many we got right
+        if classPredicted == validGroup
+            nCorrect = nCorrect+1;
         end
-        percCorrect(subject) = nCorrect/length(Group)*100;
-        fprintf('Classifaction Accuracy: %3.2f \n',percCorrect);
     end
+    percCorrect = nCorrect/length(Group)*100;
+    fprintf('Classifaction Accuracy: %3.2f \n',percCorrect);    
 end
