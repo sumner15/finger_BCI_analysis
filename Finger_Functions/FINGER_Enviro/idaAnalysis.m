@@ -34,25 +34,28 @@ cd(startDir)
 %% common vars
 figSize = [ 10 50 1600 900];
 [nSubs, nSongs, nWins, nFreqs, nChans, nTrials] = size(trialPowerDB);
-C = 2;  %number of classes
 
 %% chosen vars
 fInterestInd = 3;           %index of frequencies of interest 
 songsInterest = [2 3];      %songs of interest to plot
-subsInterest = 3;     %subs of interest (averaged)
+C = length(songsInterest);  %number of classes
+subsInterest = 1:nSubs;     %subs of interest (averaged)
 m = 1;                      %m: size of feature space 
 
+%print selections
 fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
 if length(condTitles)==6; condTitles = condTitles(2:5); end
 disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}]);
+disp(['N = ' num2str(length(subsInterest)) ' subjects analyzed']);
+disp(['m = ' num2str(m)]);
 
 %% Averaging/Selecting across dimensions (reduction)
 % average across subs
-interSubPower = squeeze(nanmean(trialPowerDB(subsInterest,:,:,:,:,:),1)); %now (cond,win,freq,chan,trial)
+reshapedPower = squeeze(nanmean(trialPowerDB(subsInterest,:,:,:,:,:),1)); %now (cond,win,freq,chan,trial)
 % flatten at frequency of interest
-interSubPower = squeeze(nanmean(interSubPower(:,:,fInterestInd,:,:),3)); %(cond,win,chan,trial)
+reshapedPower = squeeze(nanmean(reshapedPower(:,:,fInterestInd,:,:),3)); %(cond,win,chan,trial)
 % select conditions (classes) we want to classify
-interSubPower = interSubPower(songsInterest,:,:,:); %(cond,win,chan,trial)
+reshapedPower = reshapedPower(songsInterest,:,:,:); %(cond,win,chan,trial)
 
 %% organize into correct size (nTrials*nClasses x nChans*nWins)
 % this is a tall matrix of flattened windows/trials/classes of width channels
@@ -67,7 +70,7 @@ for class = 1:C
            horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
            % Training data 
            Train(verticalIndex,horizontalIndex) = ...
-               squeeze(interSubPower(class,window,:,trial));
+               squeeze(reshapedPower(class,window,:,trial));
        end
    end
 end
@@ -108,7 +111,7 @@ end
 
 %% computing resulting time series
 classPower = zeros(C,nWins);
-chanPower = squeeze(mean(interSubPower,4)); %avg trials (cond,win,chan)
+chanPower = squeeze(nanmean(reshapedPower,4)); %avg trials (cond,win,chan)
 for class = 1:C
     for window = 1:nWins
         classPower(class,window) = squeeze(chanPower(class,window,:))'*T(:,window);
@@ -142,3 +145,43 @@ for class = 1:C
 end
 title([methodString ' feature space']);
 legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
+
+%% commence classification testing
+testClassify = input('Would you like to classify? (type y or n): ','s');
+
+if strcmp(testClassify,'y') && cpca     
+    fprintf('Classifying ');
+    nReps = size(Train,1);
+    correct = zeros(1,nReps);
+    confidence = zeros(1,nReps);
+    for rep = 1:nReps 
+        if mod(rep,5)==0; fprintf('.'); end
+        
+        % leave one out index
+        leaveOut = rep;
+
+        % create training set for validation (leaves one out)
+        trainValid = Train; 
+        trainValid(leaveOut,:)=[];
+        trainValidGroup = Group;
+        trainValidGroup(leaveOut) = [];
+        % create validation set (the one left out)        
+        valid = Train(leaveOut,:);
+        validGroup = Group(leaveOut,:);
+
+        % Use CPCA/IDA to create train the set
+        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,'empirical',{'mean'},'aida');
+
+        % find feature space points
+        FeatureTrain = (trainValid * DRmatC{1});
+        FeatureValid = (valid * DRmatC{1});        
+
+        % classify our left out trial
+        classPredicted = classify(FeatureValid,FeatureTrain,trainValidGroup,'linear','empirical');               
+
+        % count how many we got right        
+        correct(rep) = classPredicted == Group(rep);        
+    end
+    percCorrect = mean(correct)*100;
+    fprintf('\nClassifaction Accuracy: %i/%i = %3.2f%% \n',sum(correct),nReps,percCorrect);    
+end
