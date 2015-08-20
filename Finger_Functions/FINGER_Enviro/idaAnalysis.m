@@ -37,7 +37,7 @@ figSize = [ 10 50 1600 900];
 
 %% chosen vars
 fInterestInd = 3;           %index of frequencies of interest 
-songsInterest = [2 3];      %songs of interest to plot
+songsInterest = [2 4];      %songs of interest to plot
 C = length(songsInterest);  %number of classes
 subsInterest = 1:nSubs;     %subs of interest (averaged)
 m = 1;                      %m: size of feature space 
@@ -50,29 +50,32 @@ disp(['N = ' num2str(length(subsInterest)) ' subjects analyzed']);
 disp(['m = ' num2str(m)]);
 
 %% Averaging/Selecting across dimensions (reduction)
-% average across subs
-reshapedPower = squeeze(nanmean(trialPowerDB(subsInterest,:,:,:,:,:),1)); %now (cond,win,freq,chan,trial)
+% only keeping subjects of interest
+reshapedPower = trialPowerDB(subsInterest,:,:,:,:,:); %(sub,cond,win,freq,chan,trial)
 % flatten at frequency of interest
-reshapedPower = squeeze(nanmean(reshapedPower(:,:,fInterestInd,:,:),3)); %(cond,win,chan,trial)
+reshapedPower = squeeze(nanmean(reshapedPower(:,:,:,fInterestInd,:,:),4)); %(sub,cond,win,chan,trial)
 % select conditions (classes) we want to classify
-reshapedPower = reshapedPower(songsInterest,:,:,:); %(cond,win,chan,trial)
+reshapedPower = reshapedPower(:,songsInterest,:,:,:); %(sub,cond,win,chan,trial)
 
 %% organize into correct size (nTrials*nClasses x nChans*nWins)
-% this is a tall matrix of flattened windows/trials/classes of width channels
-Train = NaN(C*nTrials , nChans*nWins);
-Group = NaN(C*nTrials , 1);
-for class = 1:C
-   for trial = 1:nTrials
-       verticalIndex = (class-1)*nTrials + trial;
-       % vertical vector of class labels corresponding to 'Train'
-       Group(verticalIndex) = class-1;
-       for window = 1:nWins
-           horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
-           % Training data 
-           Train(verticalIndex,horizontalIndex) = ...
-               squeeze(reshapedPower(class,window,:,trial));
+% this is a tall matrix of flattened subs*class*trial of width
+% channels*windows
+Train = NaN(nSubs*C*nTrials , nChans*nWins);
+Group = NaN(nSubs*C*nTrials , 1);
+for sub = 1:nSubs
+    for class = 1:C
+       for trial = 1:nTrials
+           verticalIndex = (sub-1)*(C*nTrials)+(class-1)*nTrials + trial;
+           % vertical vector of class labels corresponding to 'Train'
+           Group(verticalIndex) = class-1;
+           for window = 1:nWins
+               horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
+               % Training data 
+               Train(verticalIndex,horizontalIndex) = ...
+                   squeeze(reshapedPower(sub,class,window,:,trial));
+           end
        end
-   end
+    end
 end
 %remove NaN rows
 nanInds = max(isnan(Train),[],2);
@@ -111,7 +114,8 @@ end
 
 %% computing resulting time series
 classPower = zeros(C,nWins);
-chanPower = squeeze(nanmean(reshapedPower,4)); %avg trials (cond,win,chan)
+chanPower = squeeze(nanmean(reshapedPower,5));  %avg trials 
+chanPower = squeeze(nanmean(chanPower,1));      %avg subs
 for class = 1:C
     for window = 1:nWins
         classPower(class,window) = squeeze(chanPower(class,window,:))'*T(:,window);
