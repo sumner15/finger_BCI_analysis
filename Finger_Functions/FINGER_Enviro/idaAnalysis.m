@@ -24,19 +24,26 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Movement Anticipation and EEG: Implications for BCI-robot therapy
-clear
+clearvars -except condTitles dimensionLables fVec hm subjects t ...
+                  trialPOWER trialPowerDB windowLength
 %% loading data
 startDir = pwd;
-setPathEnviro('LAB')
-load singleTrialFFT.mat
-cd(startDir)
+if ~exist('trialPOWER','var') || ~exist('trialPowerDB','var')    
+    setPathEnviro('LAB')
+    fprintf('Loading singleTrialFFT.mat...');
+    load singleTrialFFT.mat
+    fprintf('done.\n');
+    cd(startDir)
+else
+    disp('Single Trial FFT data already loaded');
+end
 
 %% common vars
 figSize = [ 10 50 1600 900];
 [nSubs, nSongs, nWins, nFreqs, nChans, nTrials] = size(trialPowerDB);
 
 %% chosen vars
-fInterestInd = 3;           %index of frequencies of interest 
+fInterestInd = 7;           %index of frequencies of interest 
 songsInterest = [2 4];      %songs of interest to plot
 C = length(songsInterest);  %number of classes
 subsInterest = 1:nSubs;     %subs of interest (averaged)
@@ -45,7 +52,9 @@ m = 1;                      %m: size of feature space
 %print selections
 fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
 if length(condTitles)==6; condTitles = condTitles(2:5); end
-disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' condTitles{songsInterest(2)}]);
+disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' ...
+                     condTitles{songsInterest(2)}]);
+nSubs = length(subsInterest);
 disp(['N = ' num2str(length(subsInterest)) ' subjects analyzed']);
 disp(['m = ' num2str(m)]);
 
@@ -62,12 +71,14 @@ reshapedPower = reshapedPower(:,songsInterest,:,:,:); %(sub,cond,win,chan,trial)
 % channels*windows
 Train = NaN(nSubs*C*nTrials , nChans*nWins);
 Group = NaN(nSubs*C*nTrials , 1);
+subNum = NaN(nSubs*C*nTrials , 1);
 for sub = 1:nSubs
     for class = 1:C
        for trial = 1:nTrials
            verticalIndex = (sub-1)*(C*nTrials)+(class-1)*nTrials + trial;
            % vertical vector of class labels corresponding to 'Train'
            Group(verticalIndex) = class-1;
+           subNum(verticalIndex) = sub;
            for window = 1:nWins
                horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
                % Training data 
@@ -81,6 +92,7 @@ end
 nanInds = max(isnan(Train),[],2);
 Train(nanInds,:) = [];
 Group(nanInds) = [];
+subNum(nanInds) = [];
 
 %% choosing analysis based on data size
 ida = size(Train,2)*10 < size(Train,1);
@@ -118,7 +130,8 @@ chanPower = squeeze(nanmean(reshapedPower,5));  %avg trials
 chanPower = squeeze(nanmean(chanPower,1));      %avg subs
 for class = 1:C
     for window = 1:nWins
-        classPower(class,window) = squeeze(chanPower(class,window,:))'*T(:,window);
+        classPower(class,window) = squeeze(chanPower(class,window,:))'*...
+            T(:,window);
     end
 end
 
@@ -144,7 +157,8 @@ xlabel('time(sec relative to target time)'); ylabel('Power (dB)')
 % feature space
 subplot(3,5,11:15)
 for class = 1:C   
-    ph = plot(FeatureTrain(Group==class-1,1),zeros(size(FeatureTrain(Group==class-1,1))),'o');      
+    ph = plot(FeatureTrain(Group==class-1,1),...
+        zeros(size(FeatureTrain(Group==class-1,1))),'o');      
     hold on
 end
 title([methodString ' feature space']);
@@ -154,38 +168,47 @@ legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
 testClassify = input('Would you like to classify? (type y or n): ','s');
 
 if strcmp(testClassify,'y') && cpca     
-    fprintf('Classifying ');
-    nReps = size(Train,1);
-    correct = zeros(1,nReps);
-    confidence = zeros(1,nReps);
-    for rep = 1:nReps 
-        if mod(rep,5)==0; fprintf('.'); end
-        
-        % leave one out index
-        leaveOut = rep;
+    fprintf('Classifying ');   
+    percCorrect = NaN(1,nSubs);
+    for sub = 1:nSubs
+        subTrain = Train(subNum == sub,:);
+        subGroup = Group(subNum == sub);
+        nReps = size(subTrain,1);
+        correct = zeros(1,nReps);        
+        for rep = 1:nReps 
+            if mod(rep,3)==0; fprintf('.'); end
 
-        % create training set for validation (leaves one out)
-        trainValid = Train; 
-        trainValid(leaveOut,:)=[];
-        trainValidGroup = Group;
-        trainValidGroup(leaveOut) = [];
-        % create validation set (the one left out)        
-        valid = Train(leaveOut,:);
-        validGroup = Group(leaveOut,:);
+            % leave one out index
+            leaveOut = rep;
 
-        % Use CPCA/IDA to create train the set
-        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,'empirical',{'mean'},'aida');
+            % create training set for validation (leaves one out)
+            trainValid = subTrain; 
+            trainValid(leaveOut,:)=[];
+            trainValidGroup = subGroup;
+            trainValidGroup(leaveOut) = [];
+            % create validation set (the one left out)        
+            valid = subTrain(leaveOut,:);
+            validGroup = subGroup(leaveOut,:);
 
-        % find feature space points
-        FeatureTrain = (trainValid * DRmatC{1});
-        FeatureValid = (valid * DRmatC{1});        
+            % Use CPCA/IDA to create train the set
+            DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,...
+                'empirical',{'mean'},'aida');
 
-        % classify our left out trial
-        classPredicted = classify(FeatureValid,FeatureTrain,trainValidGroup,'linear','empirical');               
+            % find feature space points
+            FeatureTrain = (trainValid * DRmatC{1});
+            FeatureValid = (valid * DRmatC{1});        
 
-        % count how many we got right        
-        correct(rep) = classPredicted == Group(rep);        
-    end
-    percCorrect = mean(correct)*100;
-    fprintf('\nClassifaction Accuracy: %i/%i = %3.2f%% \n',sum(correct),nReps,percCorrect);    
+            % classify our left out trial
+            classPredicted = classify(FeatureValid,FeatureTrain,....
+                trainValidGroup,'linear','empirical');               
+
+            % count how many we got right        
+            correct(rep) = classPredicted == subGroup(rep);        
+        end        
+        percCorrect(sub) = mean(correct)*100;
+        fprintf('\nSub %i classification accuracy: %i/%i = %3.2f%% \n',...
+                sub,sum(correct),nReps,percCorrect(sub));    
+    end   
+    fprintf(['-------------------------------------\n',...
+        'Overall Accuracy: %3.2f%% (50%% chance)\n'],mean(percCorrect));
 end
