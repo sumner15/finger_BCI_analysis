@@ -1,35 +1,39 @@
-function subData = fourierOscillate(subData)
+function data = fourierOscillate(data,saveBool,username,subname)
+
+disp('--- computing POWER ---');
 
 %% info regarding the experimental setup
-nExams = length(subData.segEEG);        % number of recordings
-sr = subData.sr;                        % sampling rate
-nChans = size(subData.segEEG{1},2);     % number of active channels
+nExams = length(data.segEEG);        % number of recordings
+sr = data.sr;                        % sampling rate
+nChans = size(data.segEEG{1},2);     % number of active channels
 
 %% Find Fourier coeff & power across frequency bands for each trial
 for exam = 1:nExams
+   fprintf('Exam Number %i / %i \n',examNo,nExams);  
    % initializing power arrays: {exam}(trial,chan,fcoeffs,epochs)
-   subData.power{exam}      = zeros(subData.nTrials,nChans,sr/2,subData.trialLength);
-   subData.breakPower{exam} = zeros(subData.nTrials,nChans,sr/2,subData.breakLength);
+   data.power{exam}      = zeros(data.nTrials,nChans,sr/2,data.trialLength);
+   data.breakPower{exam} = zeros(data.nTrials,nChans,sr/2,data.breakLength);
    
-   for trial = 1:subData.nTrials 
+   for trial = 1:data.nTrials 
+       fprintf('- %2i ',trialNo);
        for chan = 1:nChans
            
            % fourier coefficient vector for exam/trial/channel
            % fCoeffs (frequencies, epochs in a trial)
-           fCoeffs = zeros(sr,subData.trialLength); 
-           for second = 1:subData.trialLength
+           fCoeffs = zeros(sr,data.trialLength); 
+           for second = 1:data.trialLength
                 % fourier coefficient vector summed each second 
-                timeSpan = ((second-1)*subData.sr+1):(second*subData.sr); %1-sec in trial
-                fCoeffs(:,second) = fft(squeeze(subData.segEEG{exam}(trial,chan,timeSpan)));
+                timeSpan = ((second-1)*data.sr+1):(second*data.sr); %1-sec in trial
+                fCoeffs(:,second) = fft(squeeze(data.segEEG{exam}(trial,chan,timeSpan)));
            end           
            
            % computing fcoeff vector for breaks (resting data)
            % fCoeffs (frequencies, epochs in a trial)
-           fCoeffsBreak = zeros(sr,subData.breakLength);
-           for second = 1:subData.breakLength
+           fCoeffsBreak = zeros(sr,data.breakLength);
+           for second = 1:data.breakLength
                % fourier coefficient vector summed each second
-               timeSpan = ((second-1)*subData.sr+1):(second*subData.sr); %1-sec in trial
-               fCoeffsBreak(:,second) = fft(squeeze(subData.segEEGBreak{exam}(trial,chan,timeSpan)));
+               timeSpan = ((second-1)*data.sr+1):(second*data.sr); %1-sec in trial
+               fCoeffsBreak(:,second) = fft(squeeze(data.segEEGBreak{exam}(trial,chan,timeSpan)));
            end           
            
            % cutting off negative freq components, computing power, and
@@ -37,27 +41,42 @@ for exam = 1:nExams
            fCoeffs      =      fCoeffs(1:sr/2,:);
            fCoeffsBreak = fCoeffsBreak(1:sr/2,:);      
            for freq = 1:sr/2
-            subData.power{exam}(trial,chan,freq,:)      = abs(fCoeffs(freq,:));
-            subData.breakPower{exam}(trial,chan,freq,:) = abs(fCoeffsBreak(freq,:));
+            data.power{exam}(trial,chan,freq,:)      = abs(fCoeffs(freq,:));
+            data.breakPower{exam}(trial,chan,freq,:) = abs(fCoeffsBreak(freq,:));
            end % freq
        end % channel
    end % trial
+   fprintf('\n');
 end % exam
+data.params.fourier = true;
 
 %% if you want to average over exams, enable this area
-meanPower = subData.power{1};
-meanBreak = subData.breakPower{1};
+meanPower = data.power{1};
+meanBreak = data.breakPower{1};
 for exam = 2:nExams
-    meanPower = meanPower + subData.power{exam};
-    meanBreak = meanBreak + subData.breakPower{exam};
+    meanPower = meanPower + data.power{exam};
+    meanBreak = meanBreak + data.breakPower{exam};
 end
 meanPower = meanPower./nExams;
 meanBreak = meanBreak./nExams;
 
-clear subData.power subData.breakPower
-subData.power = cell(1,1);
-subData.breakPower = cell(1,1);
-subData.power{1} = meanPower;
-subData.breakPower{1} = meanBreak;
+clear data.power data.breakPower
+data.power = cell(1,1);
+data.breakPower = cell(1,1);
+data.power{1} = meanPower;
+data.breakPower{1} = meanBreak;
+
+%% saving data if requested
+if saveBool
+    clear data.eeg data.vid data.artifact
+    powerData = data; clear data
+    fprintf('Saving power data...');
+    setPathOscillate(username,subname);
+    save(strcat(subname,'_powerData'),'powerData','-v7.3');
+    fprintf('Done.\n');
+    data = powerData; clear powerData
+else
+    disp('warning: data not saved, must pass directly');
+end
         
     

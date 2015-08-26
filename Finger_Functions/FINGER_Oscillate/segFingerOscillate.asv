@@ -1,47 +1,62 @@
-function subData = segFingerOscillate(subData)
+function data = segFingerOscillate(data,saveBool)
 %
 % Segments FINGER oscillation study data into a 
 % {test number}(trial x chn x time) cell array of segmented data
 %
-% Input: subData as structure including .eeg{1 x nExams}(chan x sample)
+% Input: data as structure including .eeg{1 x nExams}(chan x sample)
 %                                       .sr as double 
 
-
-%% loading data 
-%Read in note/trial timing data when ready
-
 %% info regarding the experimental setup
-nExams = length(subData.eeg);           % number of recordings
-sr = subData.sr;                        % sampling rate
-nChans = size(subData.eeg{1},1);        % number of active channels
+nExams = length(data.eeg);           % number of recordings
+sr = data.sr;                        % sampling rate
 
-subData.trialLength = 20;                       % length of oscillation (sec)
-subData.breakLength = 8;                        % length of inter-trial break(sec)
-subData.introLength = 5;                        % length of introduction (sec)
-subData.nTrials = 6;                            % number of trials per exam
+data.trialLength = 20;               % length of oscillation (sec)
+data.breakLength = 8;                % length of inter-trial break(sec)
+data.introLength = 5;                % length of introduction (sec)
+data.nTrials = 6;                    % number of trials per exam
+data.epochLength = 1;                % length of epochs (sec)
+
+badChans = 15; %used for PASK (PO8 bad connection)
+
+%% zero-ing bad channels
+for examNo = 1:nExams
+   data.eeg{examNo}(badChans,:) = 0;   
+end
 
 %% Create marker spike train
-markerTimes = zeros(1,subData.nTrials); % beginning of trial in seconds
-for trial = 1:subData.nTrials
-    markerTimes(trial) = (trial-1)*(subData.trialLength+subData.breakLength)+subData.introLength;
+markerTimes = zeros(1,data.nTrials); % beginning of trial in seconds
+for trial = 1:data.nTrials
+    markerTimes(trial) = (trial-1)*(data.trialLength+data.breakLength)+data.introLength;
 end
-markerInds = markerTimes*sr;    % beginning of trial in samples 
-
-%% Initialize data structure components
-for examNo = 1:nExams  
-    %structure:    {exam}          (trial x chn x trial-time)
-    subData.segEEG{examNo} = zeros(subData.nTrials,nChans,sr*subData.trialLength);
-end
+markerInds = markerTimes*sr;            % beginning of trial in samples 
 
 %% Segment EEG data
 for examNo = 1:nExams
     fprintf('\n Exam Number %i / %i \n',examNo,nExams);    
-    for trialNo = 1:subData.nTrials
+    for trialNo = 1:data.nTrials
         fprintf('- %2i ',trialNo);
-        %time indices that the current trial spans
-        timeSpan = markerInds(trialNo):markerInds(trialNo)+sr*subData.trialLength-1;
+        
+        %time indices that the current trial and following break spans
+        timeSpan = markerInds(trialNo) : markerInds(trialNo)+sr*data.trialLength-1;
+        timeSpanBreak = timeSpan(end)+1 : timeSpan(end)+sr*data.breakLength;
+        
         %filling segment into segEEG
-        subData.segEEG{examNo}(trialNo,:,:) = subData.eeg{examNo}(:,timeSpan);
+        %structure:         {exam}  (epoch x chn x trial-time)
+             data.segEEG{examNo}(trialNo, :, :) = data.eeg{examNo}(:,timeSpan);
+        data.segEEGBreak{examNo}(trialNo, :, :) = data.eeg{examNo}(:,timeSpanBreak);        
     end
+    fprintf('\n');
 end
+
+%% saving data if requested
+if saveBool
+    concatData = data; 
+    fprintf('Saving segmented data...');
+    setPathOscillate(username,subname);
+    save(strcat(subname,'_concatData'),'concatData','-v7.3');
+    fprintf('Done.\n');
+else
+    disp('warning: data not saved, must pass directly');
 end
+
+end %function
