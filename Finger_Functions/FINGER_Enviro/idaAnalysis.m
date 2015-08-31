@@ -41,15 +41,12 @@ end
 %% common vars
 figSize = [ 10 50 1600 900];
 % trialPowerDB is (subject, song, window, freq, chan, trial)
-[nSubs, nSongs, nWins, ~, nChans, nTrials] = size(trialPowerDB);
+[nSubs, nSongs, ~, ~, nChans, nTrials] = size(trialPowerDB);
 
-%% looking at one time window at a time (this is a big loop!)
-accuracy = NaN(nWins,nSubs);
-for tInterestInd = 1:15
 %% chosen vars
-% tInterestInd = 4:7;         %index of time of interest [1,15]
+tInterestInd = 4:9;         %index of time of interest [1,15]
 fInterestInd = 2:9;         %index of frequencies of interest 
-songsInterest = [2 4];      %songs of interest to plot
+songsInterest = [1 4];      %songs of interest to plot
 C = length(songsInterest);  %number of classes
 subsInterest = 1:nSubs;     %subs of interest (averaged)
 m = 1;                      %m: size of feature space 
@@ -66,38 +63,38 @@ disp(['conditions: ' condTitles{songsInterest(1)} ' vs. ' ...
 nSubs = length(subsInterest);
 disp(['N = ' num2str(length(subsInterest)) ' subjects analyzed']);
 disp(['m = ' num2str(m)]);
+nWins = length(tInterestInd);
 disp(['t = ' num2str(t(tInterestInd(1))) ' to ' ...
              num2str(t(tInterestInd(end))) ' sec']);
 
 %% Averaging/Selecting across dimensions (reduction)
 % selecting subjects/freq/conditions of interest 
 %(sub,cond,win,freq,chan,trial)
-reshapedPower =trialPowerDB(subsInterest,songsInterest,:,fInterestInd,:,:);
-% flatten at time of interest
-%(sub,cond,freq,chan,trial)
-reshapedPower = squeeze(nanmean(reshapedPower(:,:,tInterestInd,:,:,:),3)); 
-if nSubs==1    
-    reshapedPower = reshape(reshapedPower,nSubs,C,nFreqs,nChans,nTrials);
-end
+reshapedPower =trialPowerDB(subsInterest,songsInterest,tInterestInd,fInterestInd,:,:);
 
 %% organize into correct size (nTrials*nClasses x nChans*nWins)
-% this is a tall matrix of flattened subs*class*trial of width
-% channels*windows
+% this is a tall matrix of flattened subs*class*trial*win of width
+% channels*freqs
+fprintf('Organizing training data set');
 Train = NaN(nSubs*C*nTrials , nChans*nFreqs);
 Group = NaN(nSubs*C*nTrials , 1);
 subNum = NaN(nSubs*C*nTrials , 1);
 for sub = 1:nSubs
+    fprintf('.');
     for class = 1:C
        for trial = 1:nTrials
-           verticalIndex = (sub-1)*(C*nTrials)+(class-1)*nTrials + trial;
-           % vertical vector of class labels corresponding to 'Train'
-           Group(verticalIndex) = class-1;
-           subNum(verticalIndex) = sub;
-           for freq = 1:nFreqs
-               horizontalIndex = (freq-1)*nChans+1:(freq-1)*nChans+nChans;
-               % Training data 
-               Train(verticalIndex,horizontalIndex) = ...
-                   squeeze(reshapedPower(sub,class,freq,:,trial));
+           for win = 1:nWins
+               verticalIndex = (sub-1)*(C*nTrials*nWins)+...
+                   (class-1)*(nTrials*nWins) + trial*(nWins)+ win;
+               % vertical vector of class labels corresponding to 'Train'
+               Group(verticalIndex) = class-1;
+               subNum(verticalIndex) = sub;
+               for freq = 1:nFreqs
+                   horizontalIndex = (freq-1)*nChans+1:(freq-1)*nChans+nChans;
+                   % Training data 
+                   Train(verticalIndex,horizontalIndex) = ...
+                       squeeze(reshapedPower(sub,class,win,freq,:,trial));
+               end
            end
        end
     end
@@ -107,6 +104,7 @@ nanInds = max(isnan(Train),[],2);
 Train(nanInds,:) = [];
 Group(nanInds) = [];
 subNum(nanInds) = [];
+fprintf('\n');
 
 %% choosing analysis based on data size
 ida = size(Train,2)*10 < size(Train,1);
@@ -141,7 +139,8 @@ end
 %% computing resulting freq spectra
 classPower = zeros(C,nFreqs);
 chanPower = squeeze(nanmean(reshapedPower,1));  %avg subs
-chanPower = squeeze(nanmean(chanPower,4));      %avg trials
+chanPower = squeeze(nanmean(chanPower,5));      %avg trials
+chanPower = squeeze(nanmean(chanPower,2));      %avg time
 for class = 1:C
     for freq = 1:nFreqs
         classPower(class,freq) = squeeze(chanPower(class,freq,:))'*...
@@ -181,8 +180,7 @@ title([methodString ' feature space']);
 legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
 
 %% commence classification testing
-% testClassify = input('Would you like to classify? (type y or n): ','s');
-testClassify = 'y';
+testClassify = input('Would you like to classify? (type y or n): ','s');
 
 if strcmp(testClassify,'y') && cpca     
     fprintf('Classifying ');   
@@ -229,22 +227,3 @@ if strcmp(testClassify,'y') && cpca
     fprintf(['-----------------------------------------------\n',...
         'Overall Accuracy: %3.2f%% (50%% chance)\n'],mean(percCorrect));
 end
-accuracy(tInterestInd,:) = percCorrect;
-end
-
-%% plot accuracy as a function of time for each subject
-set(figure,'Position',figSize*.5+150); 
-hold on
-
-hChance = plot(t,zeros(1,nWins)+50,'b','lineWidth',4);
-hSubs = plot(t,accuracy);
-hMean = plot(t,mean(accuracy,2),'-xr','lineWidth',2);
-
-xlabel('time (s)')
-ylabel('classification accuracy (%)')
-title([methodString ' :: ' condTitles{songsInterest(1)}...
-    ' vs. ' condTitles{songsInterest(2)} ', ' ...
-    num2str(fVec(1)) '-' num2str(fVec(end)) ' Hz, ' ...
-    num2str(length(subsInterest)) ' subject(s)']);
-legend([hChance hMean],{'chance level','mean classification accuracy'},...
-    'Location','best');
