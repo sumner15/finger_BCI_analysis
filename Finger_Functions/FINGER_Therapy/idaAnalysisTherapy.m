@@ -34,26 +34,36 @@ cd(startDir)
 
 %% common vars
 figSize = [ 10 50 1600 900];
-[nSubs, nSongs, nWins, nFreqs, nChans, nTrials] = size(trialPowerDB);
+% trialPowerDB is (subject, song, window, freq, chan, trial)
+[nSubs, ~, nWins, ~, nChans, nTrials] = size(trialPowerDB);
+ 
 C = 2;  %number of classes
 
 %% chosen vars
-fInterestInd = 3;           %index of frequencies of interest 
+% tInterestInd = 4:7;         %index of time of interest [1,15]
+fInterestInd = 2:9;         %index of frequencies of interest 
 songsInterest = [1 2];      %songs included in training set (NOT classified)
 m = 1;                      %m: size of feature space 
-outcome = 'FM';             %choose from MG,BB,FM
+outcome = 'MG';             %choose from MG,BB,FM
 plotBool = true;            %to plot or not to plot.. that is the ?
 
-fprintf('freq of interest: %iHz\n',fVec(fInterestInd));
-disp(['outcome of interest: ' outcome]);
+% print selections
+nFreqs = length(fInterestInd);
+if length(fVec)~=nFreqs; fVec = fVec(fInterestInd); end
+disp(['freq of interest: ' num2str(fVec)]);
+
+disp(['clinical outcome of interest: ' outcome]);
 nSongs = length(songsInterest); 
+
+disp(['N = ' num2str(nSubs) ' subjects analyzed']);
+disp(['m = ' num2str(m)]);
 
 %% creating high/low groups
 switch outcome
     case 'MG'
         dataHead{1} = 'PercHitSD[1]';
         dataHead{2} = 'PercHitSD[2]';  
-        cutoff = 0;
+        cutoff = 0;        
     case 'BB'
         dataHead{1} = 'B&B (Affected) Test [1]';
         dataHead{2} = 'B&B (Affected) Test [2]';
@@ -103,24 +113,40 @@ allSubClass(highSubs) = 1;
 % rearrange for NaN subjects
 nSubs = length(lowSubs)+length(highSubs); %update nSubs to exclude NaNs
 subClass = allSubClass(~isnan(allSubClass));  % throws out NaN subjects 
-trialPowerDB(isnan(allSubClass),:,:,:,:,:) = [];
+if size(trialPowerDB,1)~=nSubs
+    trialPowerDB(isnan(allSubClass),:,:,:,:,:) = [];
+end
 
+
+%% looking at one time window at a time (this is a big loop!)
+accuracy = NaN(1,nWins);
+for tInterestInd = 1:15
+nWins = length(tInterestInd);
+disp(['t = ' num2str(t(tInterestInd(1))) ' to ' ...
+             num2str(t(tInterestInd(end))) ' sec']);
+         
 %% Resisizing data for classification
 disp('resizing data for classification...')
 % take a subset of songs into account (combining them into many trials)
-reshapedPower = NaN([nSubs nWins nFreqs nChans nTrials]);
+nTrials = size(trialPowerDB,6);
+reshapedPower = squeeze(NaN([nSubs nWins nFreqs nChans nTrials*nSongs]));
 for song = songsInterest
     ind = (song-1)*nTrials+1:song*nTrials;
-    % (sub,win,freq,chan,trial*cond)
-    reshapedPower(:,:,:,:,ind) = squeeze(trialPowerDB(:,song,:,:,:,:));
+    % (sub,win,freq,chan,trial*cond)   
+    reshapedPower(:,:,:,ind) = ...
+        squeeze(trialPowerDB(:,song,tInterestInd,fInterestInd,:,:));
+                          % (sub,song,win,freq,chan,trial)
 end
 nTrials = nTrials*nSongs;
-% flatten at frequency of interest
-interSubPower = squeeze(nanmean(reshapedPower(:,:,fInterestInd,:,:),3)); %(sub,win,chan,trial)
+
+% average over windows (if there are multiple)
+if nWins~=1 
+    reshapedPower = squeeze(mean(reshapedPower,2)); % (sub,freq,chan,trial)
+end
 
 %% organize into correct size (nTrials*nClasses x nChans*nWins)
 % this is a tall matrix of flattened windows/trials/classes of width channels
-Train = NaN(nTrials*nSubs , nChans*nWins);  %training data set
+Train = NaN(nTrials*nSubs , nChans*nFreqs);  %training data set
 Group = NaN(nTrials*nSubs , 1);             %corresponding class vector
 subNum = NaN(nTrials*nSubs, 1);
 for subject = 1:nSubs  
@@ -129,11 +155,11 @@ for subject = 1:nSubs
        subNum(verticalIndex) = subject;
        % vertical vector of class labels corresponding to 'Train'
        Group(verticalIndex) = subClass(subject);
-       for window = 1:nWins
-           horizontalIndex = (window-1)*nChans+1:(window-1)*nChans+nChans;
+       for freq = 1:nFreqs
+           horizontalIndex = (freq-1)*nChans+1:(freq-1)*nChans+nChans;
            % Training data 
            Train(verticalIndex,horizontalIndex) = ...
-               squeeze(interSubPower(subject,window,:,trial));
+               squeeze(reshapedPower(subject,freq,:,trial));
        end
    end
 end
@@ -154,7 +180,7 @@ if cpca
     % find feature space
     FeatureTrain = Train*DRmatC{1};  %(C*nTrials x m)
     M = max([abs(DRmatC{1}); abs(DRmatC{2})]); %normalizes to +-1
-    T = reshape(DRmatC{1},nChans,nWins)/M;       
+    T = reshape(DRmatC{1},nChans,nFreqs)/M;       
 end
 
 %% running ida analysis
@@ -173,12 +199,12 @@ if ida
     FeatureTrain = Train*T';  %(C*nTrials x 1)
 end
 
-%% computing resulting time series
-classPower = zeros(C,nWins);
-chanPower = squeeze(nanmean(interSubPower,4)); %avg trials (cond,win,chan)
+%% computing resulting spectra
+classPower = zeros(C,nFreqs);
+chanPower = squeeze(nanmean(reshapedPower,4)); %avg trials (cond,freq,chan)
 for class = 1:C
-    for window = 1:nWins
-        classPower(class,window) = squeeze(chanPower(class,window,:))'*T(:,window);
+    for freq = 1:nFreqs
+        classPower(class,freq) = squeeze(chanPower(class,freq,:))'*T(:,freq);
     end
 end
 
@@ -186,24 +212,24 @@ end
 if plotBool
     set(figure, 'Position',figSize); 
     suptitle([methodString ' topography :: ' condTitles{1}...
-        ' vs. ' condTitles{2} ', ' num2str(fVec(fInterestInd))... 
-        ' Hz, ' num2str([length(lowSubs) length(highSubs)]) ' subject(s)']);
-    for window = 1:5
-        subplot(3,5,window)
-        fftWins = (window-1)*3+1:(window*3);
-        corttopo(mean(T(:,fftWins),2),hm,'drawElectrodes',0)
+        ' vs. ' condTitles{2} ', ' num2str(fVec(1))... 
+        num2str(fVec(end)) ' Hz, '...
+        num2str([length(lowSubs) length(highSubs)]) ' subjects']);
+    for freq = 1:nFreqs
+        subplot(3,nFreqs/2,freq)        
+        corttopo(mean(T(:,freq),2),hm,'drawElectrodes',0)
         caxis([-1 1]); 
     end
 
-    % class power
-    subplot(3,5,6:10)
-    plot(t,classPower','LineWidth',4)
-    legend(condTitles{1},condTitles{2});
-    title('time series representation by class')
-    xlabel('time(sec relative to target time)'); ylabel('Power (dB)')
+%     % class power
+%     subplot(3,5,6:10)
+%     plot(t,classPower','LineWidth',4)
+%     legend(condTitles{1},condTitles{2});
+%     title('time series representation by class')
+%     xlabel('time(sec relative to target time)'); ylabel('Power (dB)')
 
     % feature space
-    subplot(3,5,11:15)
+    subplot(3,nFreqs,nFreqs*2+1:nFreqs*3)
     for class = 1:C   
         ph = plot(FeatureTrain(Group==class-1,1),zeros(size(FeatureTrain(Group==class-1,1))),'o');      
         hold on
@@ -213,14 +239,15 @@ if plotBool
 end
 
 %% commence classification testing
-testClassify = input('Would you like to classify? (type y or n): ','s');
+% testClassify = input('Would you like to classify? (type y or n): ','s');
+testClassify = 'y';
 
 if strcmp(testClassify,'y') && cpca     
     fprintf('Classifying ');
     correct = zeros(1,nSubs);
     confidence = zeros(1,nSubs);
     for subject = 1:nSubs
-        fprintf('.');
+        fprintf(',');
         leaveOut = find(subNum==subject);
 
         % create training set for validation (leaves one out)
@@ -233,15 +260,16 @@ if strcmp(testClassify,'y') && cpca
         validGroup = Group(leaveOut,:);
 
         % Use CPCA/IDA to create train the set
-        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,'empirical',{'mean'},'aida');
+        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,...
+                                    'empirical',{'mean'},'aida');
 
         % find feature space points
         FeatureTrain = (trainValid * DRmatC{1});
         FeatureValid = (valid * DRmatC{1});        
 
         % classify our left out trial
-        classPredicted = classify(FeatureValid,FeatureTrain,trainValidGroup,'linear', ...
-                 'empirical');
+        classPredicted = classify(FeatureValid,FeatureTrain,...
+                                  trainValidGroup,'linear','empirical');
         subClassPredicted = mean(classPredicted);
         fprintf('%i',round(subClassPredicted))
 
@@ -254,3 +282,21 @@ if strcmp(testClassify,'y') && cpca
     percCorrect = mean(correct)*100;
     fprintf('\nClassifaction Accuracy: %i/%i = %3.2f%% \n',sum(correct),nSubs,percCorrect);    
 end
+accuracy(tInterestInd) = percCorrect;
+end
+
+%% plot accuracy as a function of time for each subject
+set(figure,'Position',figSize*.5+150); 
+hold on
+
+hChance = plot(t,zeros(1,15)+50,'b','lineWidth',4);
+hMean = plot(t,accuracy,'-xr','lineWidth',2);
+
+axis([-1.5 1.5 0 100])
+xlabel('time (s)')
+ylabel('classification accuracy (%)')
+title([methodString ' :: ' condTitles{1} ' vs. ' condTitles{2} ', ' ...
+       num2str(fVec(1)) '-' num2str(fVec(end)) ' Hz, ' ...
+       num2str(nSubs) ' subject(s)']);
+legend([hChance hMean],{'chance level','mean classification accuracy'},...
+    'Location','best');
