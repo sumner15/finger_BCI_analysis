@@ -44,9 +44,9 @@ figSize = [ 10 50 1600 900];
 [nSubs, nSongs, ~, ~, nChans, nTrials] = size(trialPowerDB);
 
 %% chosen vars
-tInterestInd = 4:9;         %index of time of interest [1,15]
+tInterestInd = [6 8 9];     %index of time of interest [1,15]
 fInterestInd = 2:9;         %index of frequencies of interest 
-songsInterest = [1 4];      %songs of interest to plot
+songsInterest = [2 4];      %songs of interest to plot
 C = length(songsInterest);  %number of classes
 subsInterest = 1:nSubs;     %subs of interest (averaged)
 m = 1;                      %m: size of feature space 
@@ -154,23 +154,24 @@ suptitle([methodString ' topography :: ' condTitles{songsInterest(1)}...
     ' vs. ' condTitles{songsInterest(2)} ', ' ...
     num2str(fVec(1)) '-' num2str(fVec(end)) ' Hz, ' ...
     num2str(length(subsInterest)) ' subject(s)'...
-    ', t = ' num2str(t(tInterestInd)) 'sec']);
+    ', t = ' num2str(round(t(tInterestInd(1)),2)) ' to ' ...
+    num2str(round(t(tInterestInd(end)),2)) 'sec']);
 for freq = 1:nFreqs
-    subplot(3,nFreqs,freq)    
+    subplot(3,nFreqs/2,freq)    
     corttopo(T(:,freq),hm,'drawElectrodes',0)
     caxis([-1 1]); 
     title([num2str(fVec(freq)) ' Hz']);
 end
 
-% class power spectra
-subplot(3,nFreqs,nFreqs+1:nFreqs*2)
-plot(fVec,classPower','LineWidth',4)
-legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
-title('power spectra representation by class')
-xlabel('freq (Hz)'); ylabel('Power (dB)')
+% % class power spectra
+% subplot(3,nFreqs,nFreqs+1:nFreqs*2)
+% plot(fVec,classPower','LineWidth',4)
+% legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
+% title('power spectra representation by class')
+% xlabel('freq (Hz)'); ylabel('Power (dB)')
 
 % feature space
-subplot(3,nFreqs,nFreqs*2+1:nFreqs*3)
+subplot(3,nFreqs/2,nFreqs+1:nFreqs/2*3)
 for class = 1:C   
     ph = plot(FeatureTrain(Group==class-1,1),...
         zeros(size(FeatureTrain(Group==class-1,1))),'o');      
