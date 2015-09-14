@@ -1,5 +1,6 @@
 subjects = {'BECC','TRUS','DIMC','GUIR','LURI','NAVA',...
-            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'};      
+            'NAZM','TRAT','TRAV','POTA','DIAJ','TRAD'}; 
+% subjects = {'DIAJ','NAVA','POTA','TRAT','TRAV'};
 nSubs = length(subjects);
 
 %scrsz = get(0,'ScreenSize'); 
@@ -53,7 +54,7 @@ for song = 1:6
 end
 
 %% averaging across electrodes/frequencies and re-storing as muPower
-freq = 8:13-4; % 8Hz - 13Hz 
+freq = (8:13)-4; % 8Hz - 13Hz 
 muPower = cell(1,6);
 for song = 1:6; muPower{song} = zeros(nSubs+1,length(time)); end
 
