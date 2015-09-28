@@ -44,7 +44,7 @@ figSize = [ 10 50 1600 900];
 [nSubs, nSongs, ~, ~, nChans, nTrials] = size(trialPowerDB);
 
 %% chosen vars
-tInterestInd = [6 8 9];     %index of time of interest [1,15]
+tInterestInd = 4:9;         %index of time of interest [1,15]
 fInterestInd = 2:9;         %index of frequencies of interest 
 songsInterest = [2 4];      %songs of interest to plot
 C = length(songsInterest);  %number of classes
@@ -183,19 +183,21 @@ legend(condTitles{songsInterest(1)},condTitles{songsInterest(2)});
 %% commence classification testing
 testClassify = input('Would you like to classify? (type y or n): ','s');
 
-if strcmp(testClassify,'y') && cpca     
+if strcmp(testClassify,'y') && cpca    
+    nLeaveOut = str2double(input('How many trials would you like to leave out? ','s'));
     fprintf('Classifying ');   
     percCorrect = NaN(1,nSubs);
     for sub = 1:nSubs
         subTrain = Train(subNum == sub,:);
         subGroup = Group(subNum == sub);
         nReps = size(subTrain,1);
-        correct = zeros(1,nReps);        
-        for rep = 1:nReps 
-            if mod(rep,3)==0; fprintf('.'); end
+        nTrialsSub = nReps/nWins;
+        correct = NaN(1,nTrialsSub);        
+        for trial = nLeaveOut:nTrialsSub
+            fprintf('.');
 
             % leave one out index
-            leaveOut = rep;
+            leaveOut = (trial-nLeaveOut)*nWins+1:trial*nWins;            
 
             % create training set for validation (leaves one out)
             trainValid = subTrain; 
@@ -218,12 +220,13 @@ if strcmp(testClassify,'y') && cpca
             classPredicted = classify(FeatureValid,FeatureTrain,....
                 trainValidGroup,'linear','empirical');               
 
-            % count how many we got right        
-            correct(rep) = classPredicted == subGroup(rep);        
-        end        
+            % count how many we got right              
+            correct(trial) = mode(classPredicted) == subGroup(trial*nWins);        
+        end   
+        correct(isnan(correct)) = []; %clearing NaNs (used for mult trials)
         percCorrect(sub) = mean(correct)*100;
         fprintf('\nSub %i classification accuracy: %i/%i = %3.2f%% \n',...
-                sub,sum(correct),nReps,percCorrect(sub));    
+                sub,sum(correct),nTrialsSub,percCorrect(sub));    
     end   
     fprintf(['-----------------------------------------------\n',...
         'Overall Accuracy: %3.2f%% (50%% chance)\n'],mean(percCorrect));
