@@ -27,11 +27,6 @@ end
 %% info regarding the experimental setup
 %sampling rate
 concatData.sr = samplingRate;   
-% % number of eeg channels in the headmodel
-% concatData.nchans = length(EGIHC256RED.ChansUsed); 
-% % load the EGI head model
-% load egihc256redhm
-% concatData.hm = EGIHC256RED;
 
 %% concatenate data
 eeg{1} = strcat(filename{1},'mff1');  eeg{5} = strcat(filename{2},'mff1');
@@ -58,11 +53,6 @@ for i = 2:length(eeg)
     concatData.eeg{i-1} = eval([eeg{i} ';']);
     concatData.vid{i-1} = eval([vid{i} ';']);
 end
-
-% %% filter the data
-% disp('Filtering the data...');
-% concatData.filteredEEG = ...
-%     filtereeg(concatData.eeg(EGIHC256RED.ChansUsed,:)',concatData.sr);
 
 %% save concatenated data
 if saveBool
