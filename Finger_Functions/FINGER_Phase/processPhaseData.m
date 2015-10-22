@@ -1,3 +1,16 @@
+
+% note: how to use datToMat
+setPathPhase(subname);
+dataOut = datToMat(subname,nTrialsExpected);
+setPathPhase();
+% dataOut.signal
+% dataOut.prameters
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%OLD$%%%%%%%%%
+error('WTF RU DOING');
+
 clc; clear concatData; 
 
 % SUBJECTS EXCLUDED (02/23/2014) -------------------------------------- %

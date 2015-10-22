@@ -1,19 +1,32 @@
-function dataOut = datToMat(subname)
+function dataOut = datToMat(subname,nTrialsExpected)
 % loads all subject data from .dat file produced by BCI2000 
 % note: uses the BCI2000 mex scripts; must have BCI2000 installed!
 %
+% varin:
 % subname as string (e.g. datToMat('NORS'));
+% -- optional --
+% nTrialsExpected: number of trials expected (error checking only)
+% 
+% varout:
+% dataOut structure of 
+% -signal cell array {trials},(samples x channels)
+% -parameters (struct of BCI2000 parameters, set by BCI2000 config)
 
 %% loading data 
 fprintf('Converting data to .mat...');
-setPathGRAM(subname);
-filename = celldir([subname '*.dat']);      %find filenames
+try
+    filename = celldir([subname '*.dat']);      %find filenames
+catch me
+    error('celldir failure: Are you sure the files are located here?');
+end
 nTrials = length(filename);
 
 %% check that the number of trials matches what is expected for the exp.
-% if nTrials~=nTrialsExpected; 
-%     error('data missing or in excess'); 
-% end;
+if nargin == 2
+    if nTrials~=nTrialsExpected; 
+        error('data missing or in excess'); 
+    end;
+end
 
 %% structure data into .signal & .parameters
 dataOut.signal = cell(1,nTrials);
