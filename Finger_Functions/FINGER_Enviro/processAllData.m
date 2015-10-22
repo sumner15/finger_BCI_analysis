@@ -137,5 +137,5 @@ end
 %% finish up
 timeElapsed = round(toc/60); 
 disp(['Elapsed time: ' num2str(timeElapsed) ' min']);
-sendEmail(successBool);
+% sendEmail(successBool);
 
