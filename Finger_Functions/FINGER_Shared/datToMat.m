@@ -29,10 +29,9 @@ if nargin == 2
 end
 
 %% structure data into .signal & .parameters
-dataOut.signal = cell(1,nTrials);
 for run = 1:nTrials
     %[signal, states, parameters, total_samples, file_samples] = load_bcidat( 'run.dat')
-    [dataOut.signal{run}, dataOut.state{run}, dataOut.parameters,~,~] = ...
+    [dataOut.eeg{run}, dataOut.state{run}, dataOut.bciPrm,~,~] = ...
         load_bcidat(filename{run});
 end
 fprintf('Done.\n');
