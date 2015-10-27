@@ -1,26 +1,6 @@
-
-% note: how to use datToMat
-setPathPhase(subname);
-dataOut = datToMat(subname,nTrialsExpected);
-setPathPhase();
-% dataOut.signal
-% dataOut.prameters
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%OLD$%%%%%%%%%
-error('WTF RU DOING');
-
 clc; clear concatData; 
-
-% SUBJECTS EXCLUDED (02/23/2014) -------------------------------------- %
-% EXCLUDED
-% {'MILS'} (corn-rows)
 % --------------------------------------------------------------------- %
-subjects = {'AGUJ','ARRS','BROR','CHIB','CORJ','CROD','ESCH','FLOA',...
-            'GONA','HAAN','JOHG','KILB','LAMK','LEUW','LOUW','MALJ',...
-            'MCCL','MILS','NGUT','POOJ','PRIJ','RITJ','SARS','VANT',...
-            'WHIL','WILJ','WRIJ','YAMK'};            
+subjects = {'SLN'}; 
 % --------------------------------------------------------------------- %        
 % define motor channels (used in wavelet) here! (in terms of 194Ch HM)
 %                       bilateral HNL channels 
@@ -28,19 +8,22 @@ chansInterest = [59 51 52 43 44 165 175 164 174 163 66 60 53 131 140 148];
 % --------------------------------------------------------------------- %
 
 
-
-
-
 %% processing options (prompting)
 if (~exist('username','var'))
    username = input('Username: ','s'); 
 end
 preProcessBool = input('Would you like to Concatenate & Pre-Process? Type y or n: ','s');
-cleanDataBool = input('Would you like to begin cleaning data? Type y or n: ','s');
-waveletBool = input('Would you like to process using wavelet? Type y or n: ','s');
-fftBool = input('Would you like to process using fft (topography)? Type y or n: ','s');
-subPlotBool = input('Would you like to view ALL single-subject result plots? Type y or n: ','s');
-plotBool = input('Would you like to view intersubject result plots? Type y or n: ','s');
+% cleanDataBool = input('Would you like to begin cleaning data? Type y or n: ','s');
+% waveletBool = input('Would you like to process using wavelet? Type y or n: ','s');
+% fftBool = input('Would you like to process using fft (topography)? Type y or n: ','s');
+% subPlotBool = input('Would you like to view ALL single-subject result plots? Type y or n: ','s');
+% plotBool = input('Would you like to view intersubject result plots? Type y or n: ','s');
+warning('Cleaning/Wavelet/FFT/Plotting not yet ready for this study');
+cleanDataBool = 'n'; 
+waveletBool = 'n';
+fftBool = 'n';
+subPlotBool = 'n';
+plotBool = 'n';
 tic; successBool = true;
 
 %% concatenate & pre-process data 
@@ -53,8 +36,8 @@ if preProcessBool == 'y'
         disp('-------------------------------------');
         
         try 
-            data = concatTherapy(username,subname,false);                  
-            data = preProcessTherapy(username,subname,true,data);  
+            data = concatPhase(username,subname,false);                  
+            data = preProcessPhase(username,subname,true,data);  
             %note: saves file (e.g. AAAA_concatData.mat)            
         catch me
             disp(['Preprocessing failed: ' subname]);
@@ -78,7 +61,7 @@ if cleanDataBool == 'y'
         disp('-------------------------------------');
         
         try
-            screenTherapy(username,subname)
+            screenPhase(username,subname)
             %note: overwrites file (e.g. AAAA_concatData.mat)
         catch me
             disp(['Screening failed: ' subname]);
@@ -101,10 +84,10 @@ if waveletBool == 'y'
         disp('-------------------------------------');
         
         try
-            freqData = waveletTherapy(username,subname,chansInterest);   
-            freqData = SegFingerTherapy(username,subname,true,freqData);
+            freqData = waveletPhase(username,subname,chansInterest);   
+            freqData = SegFingerPhase(username,subname,true,freqData);
             %note: saves file (e.g. AAAA_segWavData.mat)
-            intraSubjectTherapy(username,subname,true,freqData);                                  
+            intraSubjectPhase(username,subname,true,freqData);                                  
             %note: saves file (e.g. AAAA_trialPower.mat)
         catch me 
             disp(['Wavelet Processing failed: ' subname]);
@@ -117,7 +100,7 @@ end
 %% time -> freq domain (fft)
 if fftBool == 'y'
     try
-        fftInterSubTherapy()
+        fftInterSubPhase()
     catch me
         disp(me.message);
         successBool = false;
@@ -128,17 +111,17 @@ end
 if subPlotBool == 'y'
    for currentSub = 1:length(subjects)
        subname = subjects{currentSub};
-       plotSubTherapy(username,subname);
+       plotSubPhase(username,subname);
    end
 end
 
 %% intersubject plotting
 if plotBool == 'y'
     disp('Plotting inter-subject results');
-   plotInterSubTherapy 
+   plotInterSubPhase 
 end
 
 %% finish up
 timeElapsed = round(toc/60); 
 disp(['Elapsed time: ' num2str(timeElapsed) ' min']);
-sendEmail(successBool);
+% sendEmail(successBool);
