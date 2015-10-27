@@ -32,7 +32,8 @@ end
 dataOut.signal = cell(1,nTrials);
 for run = 1:nTrials
     %[signal, states, parameters, total_samples, file_samples] = load_bcidat( 'run.dat')
-    [dataOut.signal{run}, ~, dataOut.parameters,~,~] = load_bcidat(filename{run});
+    [dataOut.signal{run}, dataOut.state{run}, dataOut.parameters,~,~] = ...
+        load_bcidat(filename{run});
 end
 fprintf('Done.\n');
 end
