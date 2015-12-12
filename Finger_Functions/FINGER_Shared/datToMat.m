@@ -33,6 +33,8 @@ for run = 1:nTrials
     %[signal, states, parameters, total_samples, file_samples] = load_bcidat( 'run.dat')
     [dataOut.eeg{run}, dataOut.state{run}, dataOut.bciPrm,~,~] = ...
         load_bcidat(filename{run});
+    %transpose from sample-channel to channel-sample
+    dataOut.eeg{run} = dataOut.eeg{run}';
 end
 fprintf('Done.\n');
 end
