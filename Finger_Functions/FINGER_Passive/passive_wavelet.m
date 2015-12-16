@@ -97,7 +97,7 @@ clear data.eegInterest
 data.params.wavelet = true;
 if exist('saveBool','var') && saveBool
     disp('Saving wavelet frequency-domain data...')
-    setPathEnviro(username,subname);
+    passive_setPath();
     save(strcat(subname,'_wavData'),'data','-v7.3');
     disp('Done.');
 else
