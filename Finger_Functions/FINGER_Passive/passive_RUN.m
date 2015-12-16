@@ -71,7 +71,10 @@ if idaBool == 'y'
         disp('-------------------------------------');
                 
         try
-            passive_IDA(subname)
+            validate = true;
+            prepOrMove = 'prep';
+            condsInterest = [1 3];
+            passive_IDA(subname,validate,prepOrMove,condsInterest)
         catch me
             disp(['Discriminant Analysis failed: ' subname]);
             disp(me.message);
