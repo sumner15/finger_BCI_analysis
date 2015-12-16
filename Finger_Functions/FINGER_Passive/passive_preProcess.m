@@ -39,6 +39,7 @@ if isfield(data,'hm')
     error('head model found; this data has already been processed');
 else % apply the head model
     data = addhm(data,'fake16');
+    data.hm.Electrode.Scaling2D = 2.2;
     warning('This head model is temporary! Thou shalt not publish.');
     nChans = size(data.hm.Electrode.CoordOnSphere,1);    
 end

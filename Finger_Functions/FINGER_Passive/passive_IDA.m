@@ -18,7 +18,8 @@ function passive_IDA(subname,validate,prepOrMove,condsInterest)
 
 %% loading data
 passive_setPath();    
-load([subname '_preProcessed.mat'])
+tmp = load([subname '_preProcessed.mat']); 
+data = tmp.data;
 segData = passive_segment(data);
 
 %% setting IDA parameters
@@ -106,23 +107,6 @@ if ida
     FeatureTrain = Train*T';  %(C*repetitions x 1)
 end
 
-%% plotting channel weighting & feature space
-figSize = [ 10 50 1600 900];
-set(figure,'Position',figSize); 
-suptitle([subname ' :: ' methodString ' :: ' ...
-    data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-    data.runOrderLabels{condsInterest(2)}]);
-subplot(3,3,1:6)
-corttopo(T,data.hm)
-subplot(3,3,7:9)
-for class = 1:C   
-    ph = plot(FeatureTrain(Group==class-1,1),...
-        zeros(size(FeatureTrain(Group==class-1,1))),'o');      
-    hold on
-end
-legend(data.runOrderLabels{condsInterest(1)},...
-       data.runOrderLabels{condsInterest(2)});
-
    
 %% commence classification testing
 if ~exist('validate','var')
@@ -130,8 +114,7 @@ if ~exist('validate','var')
     validate = true;
 end
     
-if validate      
-    warning('Using CPCA to validate (not IDA as used above)')
+if validate          
     fprintf('Classifying ');       
           
     correct = NaN(1,nTrials);        
@@ -140,7 +123,6 @@ if validate
 
         % leave one out indices (for trial)        
         leaveOut = (trial-1)*trialLength+1 : trial*trialLength;           
-
         % create training set for validation (leaves one out)
         trainValid = Train; 
         trainValid(leaveOut,:)=[];
@@ -150,26 +132,61 @@ if validate
         valid = Train(leaveOut,:);
         validGroup = Group(leaveOut,:);
         
-        % Use CPCA/IDA to create train the set        
-        DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,...
-            'empirical',{'mean'},'aida');
+        
+        % Use CPCA/IDA to train the set        
+        if ida
+            [T, Mu] =  ida_feature_extraction_matrix(m,trainValid,...
+                trainValidGroup,Method,Tol,MaxIter,InitCond,Nruns);      
+            % find feature space      
+            FeatureTrain = trainValid*T';  %(C*repetitions x 1)
+            FeatureValid = valid*T';
+        else
+            DRmatC = dataproc_func_cpca(trainValid,trainValidGroup,m,...
+                'empirical',{'mean'},'aida');
+            % find feature space points
+            FeatureTrain = (trainValid * DRmatC{1});
+            FeatureValid = (valid * DRmatC{1});        
+        end
 
-        % find feature space points
-        FeatureTrain = (trainValid * DRmatC{1});
-        FeatureValid = (valid * DRmatC{1});        
-
+        
         % classify our left out trial
         classPredicted = classify(FeatureValid,FeatureTrain,....
             trainValidGroup,'linear','empirical');               
-
         % count how many we got right              
-        correct(trial) = mode(classPredicted) == validGroup(1);        
-        
-        correct(isnan(correct)) = []; %clearing NaNs (used for mult trials)        
+        correct(trial) = mode(classPredicted) == validGroup(1);                
+        correct(isnan(correct)) = []; %clearing NaNs if necessary
     end   
     percCorrect = mean(correct)*100;
-    fprintf('\nSub classification accuracy: %i/%i = %3.2f%% \n',...
-            sum(correct),nTrials,percCorrect);        
+    fprintf('\n\n ::: Classification accuracy: %i/%i = %3.2f%% :::\n\n',...
+            sum(correct),nTrials,percCorrect);  
+    displayFun(true)
+else
+    displayFun(false)
 end
 
+%% plotting channel weighting & feature space
+function displayFun(print_accuracy)
+    figSize = [ 10 50 1600 900];
+    set(figure,'Position',figSize); 
+    if print_accuracy
+        suptitle([subname ' :: ' methodString ' :: ' ...
+            data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+            data.runOrderLabels{condsInterest(2)} ...
+            'CLASSIFICATION ACCURACY: ' num2str(percCorrect) '%']);
+    else
+        suptitle([subname ' :: ' methodString ' :: ' ...
+            data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+            data.runOrderLabels{condsInterest(2)}]);
+    end
+    subplot(3,3,1:6)
+    corttopo(T,data.hm)
+    subplot(3,3,7:9)
+    for class = 1:C   
+        ph = plot(FeatureTrain(Group==class-1,1),...
+            zeros(size(FeatureTrain(Group==class-1,1))),'o');      
+        hold on
+    end
+    legend(data.runOrderLabels{condsInterest(1)},...
+           data.runOrderLabels{condsInterest(2)});
+end
 end
