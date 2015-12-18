@@ -18,8 +18,7 @@ function passive_IDA(subname,validate,prepOrMove,condsInterest)
 
 %% loading data
 passive_setPath();    
-tmp = load([subname '_preProcessed.mat']); 
-data = tmp.data;
+load([subname '_preProcessed.mat']); 
 segData = passive_segment(data);
 
 %% setting IDA parameters
@@ -104,7 +103,7 @@ if ida
               Method,Tol,MaxIter,InitCond,Nruns);   
     
     % find feature space      
-    FeatureTrain = Train*T';  %(C*repetitions x 1)
+    FeatureSpace = Train*T';  %(C*repetitions x 1)
 end
 
    
@@ -117,7 +116,9 @@ end
 if validate          
     fprintf('Classifying ');       
           
-    correct = NaN(1,nTrials);        
+    correct = NaN(1,nTrials);       % correct boolean of trial
+    trialFeature = NaN(1,nTrials);  % feature space representation of trial
+    trialGroup = NaN(1,nTrials);    % class/group of trial
     for trial = 1:nTrials
         fprintf('.');
 
@@ -134,7 +135,7 @@ if validate
         
         
         % Use CPCA/IDA to train the set        
-        if ida
+        if ~ida
             [T, Mu] =  ida_feature_extraction_matrix(m,trainValid,...
                 trainValidGroup,Method,Tol,MaxIter,InitCond,Nruns);      
             % find feature space      
@@ -147,46 +148,48 @@ if validate
             FeatureTrain = (trainValid * DRmatC{1});
             FeatureValid = (valid * DRmatC{1});        
         end
-
+        % this is saved for plotting the feature space later
+        trialFeature(trial) = mean(FeatureValid);
+        trialGroup(trial) = mode(validGroup);
         
         % classify our left out trial
         classPredicted = classify(FeatureValid,FeatureTrain,....
-            trainValidGroup,'linear','empirical');               
+            trainValidGroup,'linear');%,'empirical');               
         % count how many we got right              
-        correct(trial) = mode(classPredicted) == validGroup(1);                
+        correct(trial) = mode(classPredicted) == mode(validGroup);
         correct(isnan(correct)) = []; %clearing NaNs if necessary
     end   
     percCorrect = mean(correct)*100;
     fprintf('\n\n ::: Classification accuracy: %i/%i = %3.2f%% :::\n\n',...
-            sum(correct),nTrials,percCorrect);  
-    displayFun(true)
-else
-    displayFun(false)
+            sum(correct),nTrials,percCorrect);      
 end
 
 %% plotting channel weighting & feature space
-function displayFun(print_accuracy)
-    figSize = [ 10 50 1600 900];
-    set(figure,'Position',figSize); 
-    if print_accuracy
-        suptitle([subname ' :: ' methodString ' :: ' ...
-            data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-            data.runOrderLabels{condsInterest(2)} ...
-            'CLASSIFICATION ACCURACY: ' num2str(percCorrect) '%']);
-    else
-        suptitle([subname ' :: ' methodString ' :: ' ...
-            data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-            data.runOrderLabels{condsInterest(2)}]);
-    end
-    subplot(3,3,1:6)
-    corttopo(T,data.hm)
-    subplot(3,3,7:9)
-    for class = 1:C   
-        ph = plot(FeatureTrain(Group==class-1,1),...
-            zeros(size(FeatureTrain(Group==class-1,1))),'o');      
-        hold on
-    end
-    legend(data.runOrderLabels{condsInterest(1)},...
-           data.runOrderLabels{condsInterest(2)});
+% title printing
+figSize = [ 10 50 1600 900];
+set(figure,'Position',figSize); 
+if validate
+    suptitle([subname ' :: ' methodString ' :: ' ...
+        data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+        data.runOrderLabels{condsInterest(2)} ...
+        ' :: CLASSIFICATION ACCURACY: ' num2str(percCorrect) '%']);
+else
+    suptitle([subname ' :: ' methodString ' :: ' ...
+        data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+        data.runOrderLabels{condsInterest(2)}]);
 end
+% channel weighting
+subplot(3,3,1:6)    
+topoplot(T,data.hm);
+% feature space 
+subplot(3,3,7:9)
+for class = 1:C   
+    plot(trialFeature(trialGroup==class-1),...
+         zeros(size(trialFeature(trialGroup==class-1))),'o');      
+    hold on
+end
+nClass1 = length(trialFeature(trialGroup==0));
+nClass2 = length(trialFeature(trialGroup==1));
+legend([data.runOrderLabels{condsInterest(1)} ', n = ' num2str(nClass1)],...
+       [data.runOrderLabels{condsInterest(2)} ', n = ' num2str(nClass2)]);
 end

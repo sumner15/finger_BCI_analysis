@@ -38,10 +38,9 @@ if isfield(data,'hm')
      % checks if head model exists already
     error('head model found; this data has already been processed');
 else % apply the head model
-    data = addhm(data,'fake16');
-    data.hm.Electrode.Scaling2D = 2.2;
-    warning('This head model is temporary! Thou shalt not publish.');
-    nChans = size(data.hm.Electrode.CoordOnSphere,1);    
+    load ECI16locs
+    data.hm = ECI16locs; 
+    nChans = size(ECI16locs,1);
 end
 
 %% re-referencing
