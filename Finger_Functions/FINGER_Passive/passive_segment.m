@@ -29,7 +29,7 @@ for cond = 1:nConds
     segData.move{cond} = zeros(nChans,runLength,nTrials);
     
     for trial = 1:nTrials
-        prepInds = trialStartInds:(trialStartInds+preRunLength-1);
+        prepInds = trialStartInds(trial):(trialStartInds(trial)+preRunLength-1);
         moveInds = (prepInds(end)+1):(prepInds(end)+runLength);
         segData.prep{cond}(:,:,trial) = data.eeg{cond}(:,prepInds);
         segData.move{cond}(:,:,trial) = data.eeg{cond}(:,moveInds);

@@ -22,10 +22,10 @@ load([subname '_preProcessed.mat']);
 segData = passive_segment(data);
 
 %% setting IDA parameters
-if nargin == 1
-    % 1 = assisted, 2 = unassisted, 3 = passive
-    condsInterest = [1 3];  %conditions of interest    
+if nargin ~= 4     
+    error('Not enough input arguments.')    
 end
+
 C = length(condsInterest);  %number of classes
 m = 1;                      %m: size of feature space
 
@@ -35,44 +35,72 @@ disp(['conditions: ' data.runOrderLabels{condsInterest(1)} ' vs. ' ...
 disp(['m = ' num2str(m)]);
 
 %% resizing training sets
-% Right now, I am only interested in a channel weighting representation,
-% where both trials and time points are considered repetitions. 
-% training set is ( trial,time,condition X channel)
-nChans = data.bciPrm.SourceCh.NumericValue;
-nTrialsPrep = size(segData.prep{condsInterest(1)},3)+...
-              size(segData.prep{condsInterest(2)},3);
-condOne = segData.prep{condsInterest(1)};
-condTwo = segData.prep{condsInterest(2)};
-condOne = reshape(condOne,nChans,size(condOne,2)*size(condOne,3))';
-condTwo = reshape(condTwo,nChans,size(condTwo,2)*size(condTwo,3))';
-trainPrep = [condOne;condTwo];
-labelPrep = ones(size(trainPrep,1),1);
-labelPrep(1:size(condOne,1),1) = 0;
 
-nTrialsMove = size(segData.move{condsInterest(1)},3)+...
-              size(segData.move{condsInterest(2)},3);
-condOne = segData.move{condsInterest(1)};
-condTwo = segData.move{condsInterest(2)};
-condOne = reshape(condOne,nChans,size(condOne,2)*size(condOne,3))';
-condTwo = reshape(condTwo,nChans,size(condTwo,2)*size(condTwo,3))';
-trainMove = [condOne;condTwo];
-labelMove = ones(size(trainMove,1),1);
-labelMove(1:size(condOne,1),1) = 0;
+% training set is ( trial x condition, channel x time/sample)
+[nChans,nSamples,nTrials(1)] = size(segData.prep{condsInterest(1)});
+nTrials(2) = size(segData.prep{condsInterest(2)},3);
 
-if ~exist('prepOrMove','var')
-   warning('Selecting ''move'' condition by default')
-   prepOrMove = 'move';
+condOne = NaN(nTrials(1),nSamples*nChans);
+condTwo = NaN(nTrials(2),nSamples*nChans);
+for trial = 1:nTrials(1)
+    for chan = 1:nChans     
+        colInds = (chan-1)*nSamples+1:chan*nSamples;
+        condOne(trial,colInds) = ...
+            segData.prep{condsInterest(1)}(chan,:,trial);
+    end
 end
+for trial = 1:nTrials(2)
+    for chan = 1:nChans
+        colInds = (chan-1)*nSamples+1:chan*nSamples;
+        condTwo(trial,colInds) = ...
+            segData.prep{condsInterest(2)}(chan,:,trial);
+    end
+end
+trainPrep = [condOne; condTwo];
+labelPrep = ones(size(trainPrep,1),1);
+labelPrep(1:nTrials(1)) = 0;
+nTrialsPrep = sum(nTrials);
+nSamplesPrep = nSamples;
+
+% training set for movement phase
+nSamples = size(segData.move{condsInterest(1)},2);
+
+condOne = NaN(nTrials(1),nSamples*nChans);
+condTwo = NaN(nTrials(2),nSamples*nChans);
+for trial = 1:nTrials(1)
+    for chan = 1:nChans     
+        colInds = (chan-1)*nSamples+1:chan*nSamples;
+        condOne(trial,colInds) = ...
+            segData.move{condsInterest(1)}(chan,:,trial);
+    end
+end
+for trial = 1:nTrials(2)
+    for chan = 1:nChans
+        colInds = (chan-1)*nSamples+1:chan*nSamples;
+        condTwo(trial,colInds) = ...
+            segData.move{condsInterest(2)}(chan,:,trial);
+    end
+end
+trainMove = [condOne; condTwo];
+labelMove = ones(size(trainMove,1),1);
+labelMove(1:nTrials(1)) = 0;
+nTrialsMove = sum(nTrials);
+nSamplesMove = nSamples;
+
+
+%% selecting preparation or movement phase
 if strcmp(prepOrMove,'prep')
    Train = trainPrep;
    Group = labelPrep;
    nTrials = nTrialsPrep;
-   trialLength = size(segData.prep{condsInterest(1)},2);   
+   trialLength = size(segData.prep{condsInterest(1)},2); 
+   nSamples = nSamplesPrep;
 else
    Train = trainMove;
    Group = labelMove;   
    nTrials = nTrialsMove;
    trialLength = size(segData.move{condsInterest(1)},2);
+   nSamples = nSamplesMove;
 end
 
 %% choosing analysis based on data size
@@ -84,10 +112,8 @@ if cpca
     methodString = 'CPCA & AIDA';
     DRmatC = dataproc_func_cpca(Train,Group,m,'empirical',{'mean'},'aida');
     % find feature space
-    FeatureTrain = Train*DRmatC{1};  %(C*nTrials x m)
-    M = max([abs(DRmatC{1}); abs(DRmatC{2})]); %normalizes to +-1
-    warning('T is probably calculated incorrectly here. Check function.')
-    T = reshape(DRmatC{1},nChans)/M; % This is probably wrong! 
+    FeatureSpace = Train*DRmatC{1};  %(C*nTrials x m)
+    M = max([abs(DRmatC{1}); abs(DRmatC{2})]); %normalizes to +-1        
 end
 
 %% running ida analysis
@@ -106,7 +132,13 @@ if ida
     FeatureSpace = Train*T';  %(C*repetitions x 1)
 end
 
-   
+%% reshaping T 
+T = NaN(16,256);
+for chan = 1:nChans
+    vertInds = (chan-1)*nSamples+1 : chan*nSamples;
+    T(chan,:) = DRmatC{1}(vertInds,1);
+end
+
 %% commence classification testing
 if ~exist('validate','var')
     warning('setting validate to true by default (no input received)')
@@ -180,16 +212,33 @@ else
 end
 % channel weighting
 subplot(3,3,1:6)    
-topoplot(T,data.hm);
+topoplot(mean(T,2),data.hm);
 % feature space 
-subplot(3,3,7:9)
-for class = 1:C   
-    plot(trialFeature(trialGroup==class-1),...
-         zeros(size(trialFeature(trialGroup==class-1))),'o');      
-    hold on
+if validate
+    subplot(3,3,7:9)
+    for class = 1:C   
+        plot(trialFeature(trialGroup==class-1),...
+             zeros(size(trialFeature(trialGroup==class-1))),'o');      
+        hold on
+    end
+    nClass1 = length(trialFeature(trialGroup==0));
+    nClass2 = length(trialFeature(trialGroup==1));
+    legend([data.runOrderLabels{condsInterest(1)} ', n = ' num2str(nClass1)],...
+           [data.runOrderLabels{condsInterest(2)} ', n = ' num2str(nClass2)]);
 end
-nClass1 = length(trialFeature(trialGroup==0));
-nClass2 = length(trialFeature(trialGroup==1));
-legend([data.runOrderLabels{condsInterest(1)} ', n = ' num2str(nClass1)],...
-       [data.runOrderLabels{condsInterest(2)} ', n = ' num2str(nClass2)]);
+   
+%% plotting channel weighting over time
+figSize = [ 10 50 1600 900];
+set(figure,'Position',figSize); 
+
+suptitle([subname ' :: ' methodString ' :: ' ...
+data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+data.runOrderLabels{condsInterest(2)}]);
+
+for i = 0:14
+    subplot(3,5,i+1)
+    topoData = mean(T(:,i*17+1:(i+1)*17),2); % average across a time window
+    topoplot(topoData,data.hm)
+%     title(['t=[' num2str() '-' num2str() ]);
+
 end
