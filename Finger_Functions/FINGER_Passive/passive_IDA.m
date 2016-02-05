@@ -132,11 +132,11 @@ if ida
     FeatureSpace = Train*T';  %(C*repetitions x 1)
 end
 
-%% reshaping T 
-T = NaN(16,256);
+%% reshaping T for plotting
+Tplot = NaN(nChans,nSamples);
 for chan = 1:nChans
     vertInds = (chan-1)*nSamples+1 : chan*nSamples;
-    T(chan,:) = DRmatC{1}(vertInds,1);
+    Tplot(chan,:) = DRmatC{1}(vertInds,1);
 end
 
 %% commence classification testing
@@ -155,7 +155,7 @@ if validate
         fprintf('.');
 
         % leave one out indices (for trial)        
-        leaveOut = (trial-1)*trialLength+1 : trial*trialLength;           
+        leaveOut = trial;    
         % create training set for validation (leaves one out)
         trainValid = Train; 
         trainValid(leaveOut,:)=[];
@@ -167,7 +167,7 @@ if validate
         
         
         % Use CPCA/IDA to train the set        
-        if ~ida
+        if ida
             [T, Mu] =  ida_feature_extraction_matrix(m,trainValid,...
                 trainValidGroup,Method,Tol,MaxIter,InitCond,Nruns);      
             % find feature space      
@@ -204,15 +204,17 @@ if validate
     suptitle([subname ' :: ' methodString ' :: ' ...
         data.runOrderLabels{condsInterest(1)} ' vs. ' ...
         data.runOrderLabels{condsInterest(2)} ...
-        ' :: CLASSIFICATION ACCURACY: ' num2str(percCorrect) '%']);
+        ' :: CLASSIFICATION ACCURACY: ' num2str(percCorrect) '% :: ' ...
+        prepOrMove ' period']);
 else
     suptitle([subname ' :: ' methodString ' :: ' ...
         data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-        data.runOrderLabels{condsInterest(2)}]);
+        data.runOrderLabels{condsInterest(2)} ' :: ' ...
+        prepOrMove ' period']);
 end
 % channel weighting
 subplot(3,3,1:6)    
-topoplot(mean(T,2),data.hm);
+topoplot(mean(Tplot,2),data.hm);
 % feature space 
 if validate
     subplot(3,3,7:9)
@@ -233,12 +235,16 @@ set(figure,'Position',figSize);
 
 suptitle([subname ' :: ' methodString ' :: ' ...
 data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-data.runOrderLabels{condsInterest(2)}]);
+data.runOrderLabels{condsInterest(2)} ' :: ' ...
+prepOrMove ' period']);
 
-for i = 0:14
-    subplot(3,5,i+1)
-    topoData = mean(T(:,i*17+1:(i+1)*17),2); % average across a time window
-    topoplot(topoData,data.hm)
-%     title(['t=[' num2str() '-' num2str() ]);
+for i = 1:15
+    subplot(3,5,i)
+    tWin = (i-1)*17+1 : i*17;
+    tSec = round(tWin*1000/data.sr);
+    topoData = mean(Tplot(:,tWin),2); % average across a time window
+    topoplot(topoData,data.hm);
+    title(['t=' num2str(tSec(1)) '-' num2str(tSec(end)) ' ms']);
+end
 
 end
