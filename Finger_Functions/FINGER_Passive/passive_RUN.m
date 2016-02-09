@@ -67,14 +67,19 @@ if idaBool == 'y'
         subname = subjects{currentSub};
         
         disp('-------------------------------------');
-        disp(['Beginning wavelet processing for ' subname]);
+        disp(['Beginning IDA analysis for ' subname]);
         disp('-------------------------------------');
                 
         try
             validate = true;
-            prepOrMove = 'prep';
-            condsInterest = [1 3];
-            passive_IDA(subname,validate,prepOrMove,condsInterest)
+            prepOrMove = {'prep','move'};
+            condsInterest = {[1 2],[1 3],[2 3]};
+            for i = 1:2
+                for j = 1:3
+                    passive_IDA(subname, validate, prepOrMove{i}, condsInterest{j});
+                end
+            end
+%             passive_IDA(subname,validate,prepOrMove,condsInterest)
         catch me
             disp(['Discriminant Analysis failed: ' subname]);
             disp(me.message);
