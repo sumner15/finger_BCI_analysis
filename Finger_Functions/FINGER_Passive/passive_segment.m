@@ -22,6 +22,7 @@ segData.move = cell(1,nConds);
 for cond = 1:nConds
     % finds the index of every change in target 
     trialStartInds = find(diff(data.target{cond})~=0);
+    trialStartInds(end) = [];
     % number of trials for this condition (different for each)
     nTrials = length(trialStartInds);
     % initializing segData

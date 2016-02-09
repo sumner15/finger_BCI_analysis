@@ -20,6 +20,8 @@ data.sr = data.bciPrm.SamplingRate.NumericValue;
 % SET these parameters (options) here: 
 data.params.reReference   = true;
 data.params.filtered      = true;
+data.params.passband      = [9 12];    %[1 50];
+data.params.stopband      = [8 13];     %[.25 60];
 data.params.laPlacian     = false;
 data.params.reOrdered     = true;
 
@@ -64,7 +66,8 @@ if data.params.filtered
         fprintf('%i...',run);
         dataIn.eeg = data.eeg{run}';
         dataIn.sr = data.sr;
-        dataOut = filtereeg(dataIn);
+        dataOut = filtereeg(dataIn,data.sr,...
+                            data.params.passband,data.params.stopband);
         data.eeg{run} = dataOut.eeg';
         clear dataIn dataOut
     end; fprintf('\n');     

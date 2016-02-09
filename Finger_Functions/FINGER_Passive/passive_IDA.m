@@ -197,37 +197,36 @@ if validate
 end
 
 %% plotting channel weighting & feature space
-% title printing
-figSize = [ 10 50 1600 900];
-set(figure,'Position',figSize); 
-if validate
-    suptitle([subname ' :: ' methodString ' :: ' ...
-        data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-        data.runOrderLabels{condsInterest(2)} ...
-        ' :: CLASSIFICATION ACCURACY: ' num2str(percCorrect) '% :: ' ...
-        prepOrMove ' period']);
-else
-    suptitle([subname ' :: ' methodString ' :: ' ...
-        data.runOrderLabels{condsInterest(1)} ' vs. ' ...
-        data.runOrderLabels{condsInterest(2)} ' :: ' ...
-        prepOrMove ' period']);
-end
-% channel weighting
-subplot(3,3,1:6)    
-topoplot(mean(Tplot,2),data.hm);
-% feature space 
-if validate
-    subplot(3,3,7:9)
-    for class = 1:C   
-        plot(trialFeature(trialGroup==class-1),...
-             zeros(size(trialFeature(trialGroup==class-1))),'o');      
-        hold on
-    end
-    nClass1 = length(trialFeature(trialGroup==0));
-    nClass2 = length(trialFeature(trialGroup==1));
-    legend([data.runOrderLabels{condsInterest(1)} ', n = ' num2str(nClass1)],...
-           [data.runOrderLabels{condsInterest(2)} ', n = ' num2str(nClass2)]);
-end
+% figSize = [ 10 50 1600 900];
+% set(figure,'Position',figSize); 
+% if validate
+%     suptitle([subname ' :: ' methodString ' :: ' ...
+%         data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+%         data.runOrderLabels{condsInterest(2)} ...
+%         ' :: CLASSIFICATION ACCURACY: ' num2str(percCorrect) '% :: ' ...
+%         prepOrMove ' period']);
+% else
+%     suptitle([subname ' :: ' methodString ' :: ' ...
+%         data.runOrderLabels{condsInterest(1)} ' vs. ' ...
+%         data.runOrderLabels{condsInterest(2)} ' :: ' ...
+%         prepOrMove ' period']);
+% end
+% % channel weighting
+% subplot(3,3,1:6)    
+% topoplot(mean(Tplot,2),data.hm);
+% % feature space 
+% if validate
+%     subplot(3,3,7:9)
+%     for class = 1:C   
+%         plot(trialFeature(trialGroup==class-1),...
+%              zeros(size(trialFeature(trialGroup==class-1))),'o');      
+%         hold on
+%     end
+%     nClass1 = length(trialFeature(trialGroup==0));
+%     nClass2 = length(trialFeature(trialGroup==1));
+%     legend([data.runOrderLabels{condsInterest(1)} ', n = ' num2str(nClass1)],...
+%            [data.runOrderLabels{condsInterest(2)} ', n = ' num2str(nClass2)]);
+% end
    
 %% plotting channel weighting over time
 figSize = [ 10 50 1600 900];
@@ -236,15 +235,27 @@ set(figure,'Position',figSize);
 suptitle([subname ' :: ' methodString ' :: ' ...
 data.runOrderLabels{condsInterest(1)} ' vs. ' ...
 data.runOrderLabels{condsInterest(2)} ' :: ' ...
-prepOrMove ' period']);
+prepOrMove ' period' ...
+' :: CLASSIFICATION ACCURACY: ' num2str(round(percCorrect)) '% :: ']);
 
 for i = 1:15
     subplot(3,5,i)
     tWin = (i-1)*17+1 : i*17;
     tSec = round(tWin*1000/data.sr);
     topoData = mean(Tplot(:,tWin),2); % average across a time window
-    topoplot(topoData,data.hm);
+    minLim = mean(Tplot(:))-2*std(Tplot(:)); 
+    maxLim = mean(Tplot(:))+2*std(Tplot(:));
+    topoplot(topoData,data.hm,'maplimits',[minLim maxLim]);
+    colorbar
     title(['t=' num2str(tSec(1)) '-' num2str(tSec(end)) ' ms']);
 end
+
+% save figure
+fileName = [subname '_' num2str(condsInterest) '_' ...
+            num2str(round(percCorrect))];
+cd('C:\Users\Sumner\Desktop');        
+set(gcf,'PaperPositionMode','auto')
+print(fileName,'-dpng','-r0');
+
 
 end
