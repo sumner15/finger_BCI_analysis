@@ -1,0 +1,1 @@
+These processing scripts handle data collected on camilo and krissta in an attempt to view the effects of oscillating/imposed proprioceptive input from the ringer robot using spetrographic effects in the EEG. 

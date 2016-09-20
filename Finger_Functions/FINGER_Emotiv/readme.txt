@@ -1,0 +1,1 @@
+These scripts handle the data processing and visualization from the environmental finger study performed with the low-cost emotiv headset that lead to a conference publication that compared the emotiv epoch headset to the clinical egi headset.
