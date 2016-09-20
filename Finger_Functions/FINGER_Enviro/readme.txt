@@ -1,0 +1,1 @@
+These scripts handle the data processing and visualization from the environmental finger study that lead to the publication "Movement Anticipation and EEG: Implications for BCI-Contingenet Robot Therapy" that identified pre-movement components of SMR during passive movements. 

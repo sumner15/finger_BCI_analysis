@@ -1,0 +1,1 @@
+This processing handles the data from the 12 unimpaired subjects in an attempt to use Zoran's IDA classifier to separate passive and active movements. 

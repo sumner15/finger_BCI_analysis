@@ -1,0 +1,1 @@
+these scripts contain the music glove data organization tools for use in the analysis of the finger therapy study data.

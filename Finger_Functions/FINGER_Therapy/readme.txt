@@ -1,0 +1,1 @@
+These scripts contain the data analysis and visualization for the EEG data collected during the FINGER therapy study using the music glove at baseline and post sessions. 

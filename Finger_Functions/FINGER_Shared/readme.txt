@@ -1,0 +1,1 @@
+These are generalized functions that can be shared across the different EEG studies.
