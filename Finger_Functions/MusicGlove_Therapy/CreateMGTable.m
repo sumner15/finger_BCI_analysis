@@ -53,11 +53,11 @@ for sub = 1:nSubs
         bhr(sub) = allHitsBase/allHitsPossibleBase*100;  
         phr(sub) = allHitsPost/allHitsPossiblePost*100;       
         
-        bir(sub) = sum(data(baseInds,2))/sum(data(baseInds,7));
-        pir(sub) = sum(data(postInds,2))/sum(data(postInds,7));
+        bir(sub) = sum(data(baseInds,2))/sum(data(baseInds,7))*100;
+        pir(sub) = sum(data(postInds,2))/sum(data(postInds,7))*100;
         
-        bmr(sub) = sum(data(baseInds,3))/sum(data(baseInds,8));
-        pmr(sub) = sum(data(postInds,3))/sum(data(postInds,8));
+        bmr(sub) = sum(data(baseInds,3))/sum(data(baseInds,8))*100;
+        pmr(sub) = sum(data(postInds,3))/sum(data(postInds,8))*100;
         
         bLat(sub) = mean(data(baseInds,11));
         pLat(sub) = mean(data(postInds,11));
@@ -96,12 +96,12 @@ for sub = 1:nSubs
 end
 
 %% organize table and save
-T = table(bhr,phr,chr,bir,pir,cir,bmr,pmr,cmr,...
+MGData = table(bhr,phr,chr,bir,pir,cir,bmr,pmr,cmr,...
     bLat,pLat,cLat,bStd,pStd,cStd,...
     'RowNames',subjects);
 TCSV = table(subjects',...
     bhr,phr,chr,bir,pir,cir,bmr,pmr,cmr,bLat,pLat,cLat,bStd,pStd,cStd);
 
 cd ..
-save('MusicGloveDataSummary','T')
+save('MusicGloveDataSummary','MGData')
 writetable(TCSV,'MusicGloveDataSummary.csv')
