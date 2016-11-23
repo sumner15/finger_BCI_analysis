@@ -2,3 +2,8 @@ syntax: glob
 Finger_Functions/FINGER_Passive/passive_IDA.asv
 addFingerFunctions.m.orig
 NSF-M Sumner Norman.docx
+*.mat
+*.asv
+*.ini
+.dropbox*
+*.attr
