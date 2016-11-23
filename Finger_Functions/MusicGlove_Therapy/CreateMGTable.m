@@ -36,6 +36,7 @@ for sub = 1:nSubs
         importfile(filename{1})  
     catch me 
         warning([subname ': No data found for this subject']);
+        clear data textdata
     end    
     % filling data 
     try
@@ -96,6 +97,10 @@ for sub = 1:nSubs
 end
 
 %% organize table and save
+if strcmp(subjects{13},'AGUJ')    
+    subjects{13} = 'ARUJ';
+end
+
 MGData = table(bhr,phr,chr,bir,pir,cir,bmr,pmr,cmr,...
     bLat,pLat,cLat,bStd,pStd,cStd,...
     'RowNames',subjects);
