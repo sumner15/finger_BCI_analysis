@@ -23,7 +23,7 @@ nTrials = length(filename);
 
 %% check that the number of trials matches what is expected for the exp.
 if nargin == 2
-    if nTrials~=nTrialsExpected; 
+    if nTrials~=nTrialsExpected
         error('data missing or in excess'); 
     end;
 end
