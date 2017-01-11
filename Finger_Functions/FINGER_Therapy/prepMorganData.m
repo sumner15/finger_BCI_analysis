@@ -53,42 +53,64 @@ while (currentSub <= nSubs)
 end
 
 %% creating table
-colLabels = {'ERD_max_dB','ERD_latency_ms',...
-             'ERS_max_dB','ERS_latency_ms',...
-             'SMR_center_frequency'};
+colLabels = {'base_ERD_max_dB','base_ERD_latency_ms',...
+             'base_ERS_max_dB','base_ERS_latency_ms',...
+             'base_SMR_center_frequency',...
+             'post_ERD_max_dB','post_ERD_latency_ms',...
+             'post_ERS_max_dB','post_ERS_latency_ms',...
+             'post_SMR_center_frequency'};
 dataTableVals = NaN(nSubs,length(colLabels));         
        
 for currentSub = 1:nSubs
     %select subjects data only
     subname = subjects{currentSub};
     data = eval(subname);    
-    disp([  'min: ' num2str(min(data.trialPowerDB{1}(:))) ...
-          '  max: ' num2str(max(data.trialPowerDB{1}(:)))])
+    disp([subname  ' min: ' num2str(min(data.trialPowerDB{1}(:))) ...
+                   '  max: ' num2str(max(data.trialPowerDB{1}(:)))])
     %average data across freqs of interest
     freqInds = freqs-4;
     [songPower{1},peakFreq1] = max(data.trialPowerDB{1}(freqInds,:));
     [songPower{2},peakFreq2] = max(data.trialPowerDB{2}(freqInds,:));
     [songPower{3},peakFreq3] = min(data.trialPowerDB{1}(freqInds,:));
-    [songPower{4},peakFreq4] = min(data.trialPowerDB{2}(freqInds,:));    
+    [songPower{4},peakFreq4] = min(data.trialPowerDB{2}(freqInds,:)); 
+    [postPower{1},peakFreq5] = max(data.trialPowerDB{3}(freqInds,:));
+    [postPower{2},peakFreq6] = max(data.trialPowerDB{4}(freqInds,:));
+    [postPower{3},peakFreq7] = min(data.trialPowerDB{3}(freqInds,:));
+    [postPower{4},peakFreq8] = min(data.trialPowerDB{4}(freqInds,:));
     powerMax = 2*mean([songPower{1};songPower{2}],1);
     powerMin = 2*mean([songPower{3};songPower{4}],1);    
+    pPowMax = 2*mean([postPower{1};postPower{2}],1);
+    pPowMin = 2*mean([postPower{3};postPower{4}],1);
     %find erd max and index        
     [erdMax,erdMaxInd] = min(powerMin(erdWindow));
     erdLatency = erdMaxInd-(1500-erdWindow(1));    
     [ersMax,ersMaxInd] = max(powerMax(ersWindow));
     ersLatency = ersMaxInd-(1500-ersWindow(1));
+    %erd max and index for post measures
+    [pErdMax,pErdMaxInd] = min(pPowMin(erdWindow));
+    pErdLatency = pErdMaxInd-(1500-erdWindow(1));
+    [pErsMax,pErsMaxInd] = max(pPowMax(ersWindow));
+    pErsLatency = pErsMaxInd-(1500-ersWindow(1));
     %find frequency responsible for erd/ers peaks
     peakFreq = mean([peakFreq1;peakFreq2;peakFreq3;peakFreq4],1);
     peakFreq = mode(peakFreq)+freqs(1)-1;
+    pPeakFreq = mean([peakFreq5;peakFreq6;peakFreq7;peakFreq8],1);
+    pPeakFreq = mode(pPeakFreq)+freqs(1)-1;
     %make data row for subject
-    dataTableVals(currentSub,:) = [erdMax, erdLatency, ersMax, ...
-                                   ersLatency, peakFreq];
+    dataTableVals(currentSub,:) = [erdMax, erdLatency,...
+                                   ersMax, ersLatency,...
+                                   peakFreq,...
+                                   pErdMax, pErdLatency,...
+                                   pErsMax, pErsLatency,...
+                                   pPeakFreq];
 end
 
 %fill into table variable
 eegData = table(dataTableVals(:,1),dataTableVals(:,2),...
                 dataTableVals(:,3),dataTableVals(:,4),...
-                dataTableVals(:,5),...
+                dataTableVals(:,5),dataTableVals(:,6),...
+                dataTableVals(:,7),dataTableVals(:,8),...
+                dataTableVals(:,9),dataTableVals(:,10),...
                 'RowNames',subjects','VariableNames',colLabels')
 %save data (if wanted)
 saveBool = input('Would you like to save (y/n): ','s');
