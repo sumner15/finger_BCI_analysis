@@ -2,8 +2,8 @@
 clear
 
 subname = 'BRAA';
-session = 'BRAA003';
-runNames = {'1','2','3','4','5','6','7','8'};
+session = 'BRAA002';
+runNames = {'1','2','3','4','5','6','7','8','9','10','11','12'};
 runs = length(runNames);
 
 try 
@@ -27,11 +27,16 @@ for run = 1:runs
                             data.state{1,run}.FRobotPos2]);
     data.force{run} = double([data.state{1,run}.FRobotForceF1 ...                                                            
                               data.state{1,run}.FRobotForceF2]);                                     
-                             
+    
+    % deleting initialization data
+    data.pos{run} = data.pos{run}(512:end,:);
+    data.force{run} = data.force{run}(512:end,:);
+                          
     %normalizing data for easier plotting
     data.pos{run}(data.pos{run}>2000) = 0;    
     data.posNorm{run} = data.pos{run}/max(data.pos{run}(:));
     data.forceNorm{run} = data.force{run}/max(data.force{run}(:));    
+        
 end
 
 %% plot force traces and correlation coeffs for all runs
