@@ -61,22 +61,5 @@ tableOut.Properties.RowNames = sessionNum;
 tableOut.Properties.VariableDescriptions = ...
     tableOut.Properties.VariableNames;
 
-%% function to change directory according to computer 
-    function dataDirectory(hostname)
-        if nargin==0
-            [~,hostname]= system('hostname');
-        end    
-        
-        if ispc         
-            if strcmp(hostname(1:5), 'DARTH')
-                cd 'D:\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\data'
-            else
-                error('missing path for Lab PC')
-            end
-        else
-            cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/Data/'        
-        end            
-%         cd(subID)            
-    end
 end
 

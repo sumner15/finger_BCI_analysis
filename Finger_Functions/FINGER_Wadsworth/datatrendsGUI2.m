@@ -59,8 +59,8 @@ VNames = T.Properties.VariableNames;
 
 set(handles.listbox1,'String',VNames)
 set(handles.listbox2,'String',VNames)
-set(handles.listbox1,'Value',2)
-set(handles.listbox2,'Value',3)
+set(handles.listbox1,'Value',7)
+set(handles.listbox2,'Value',8)
 
 plotdata(handles)
 

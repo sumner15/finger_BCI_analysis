@@ -17,6 +17,7 @@ end
 
 %% load data into mat format
 startDir = dataDirectory();
+cd(session);
 data = datToMat(subID);
 cd(startDir);
 
@@ -28,25 +29,25 @@ maxF = getMaxF(data);
 tableOut = table(ERD,hitRate,maxF);
 
 %% function to change directory according to computer 
-    function startDir = dataDirectory(hostname)
-        if nargin==0
-            [~,hostname]= system('hostname');
-        end
-        try 
-            if ispc         
-                if hostname(1)=='D'
-                    cd 'D:\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\data'
-                else
-                    error('missing path for Lab PC')
-                end
-            else
-                cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/Data/'        
-            end
-            startDir = pwd;
-            cd(session)                                    
-        catch me
-            error('Could not find data set or could not load')
-        end
-    end
+%     function startDir = dataDirectory(hostname)
+%         if nargin==0
+%             [~,hostname]= system('hostname');
+%         end
+%         try 
+%             if ispc         
+%                 if hostname(1)=='D'
+%                     cd 'D:\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\data'
+%                 else
+%                     error('missing path for Lab PC')
+%                 end
+%             else
+%                 cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/Data/'        
+%             end
+%             startDir = pwd;
+%             cd(session)                                    
+%         catch me
+%             error('Could not find data set or could not load')
+%         end
+%     end
 end
 
