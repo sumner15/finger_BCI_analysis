@@ -1,12 +1,19 @@
-clear
+clear; clc;
 fprintf('Subject List: MCCL VANT MAUA HATA PHIC CHEA RAZT TRUL\n')
 
 while ~exist('T','var')
-    try   
-        subID = input('Which subject would you like to view? ','s');        
-        T = createSubjectTable(subID);
-    catch me
-        warning('Could not find data set or could not load')
+    choice = input('across-subject analysis (1) or within (2)?  ','s');
+    if choice=='2'
+        try     
+            subID = input('Which subject would you like to view? ','s');        
+            T = createSubjectTable(subID);
+        catch me
+            warning('Could not find data set or could not load')
+        end
+    else        
+        T = load('ClinicalDataSimple.mat');        
+        T = T.clinicalDataSimple;
+        warning('have you updated the table to include numeric values only?')
     end
 end
 
