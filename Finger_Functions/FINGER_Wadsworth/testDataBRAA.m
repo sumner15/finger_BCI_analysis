@@ -10,16 +10,16 @@ startDir = pwd;
 % runNames = {'No Movement', 'Kp=0'};
 % subname = 'moveOnlyS002';
 % runNames = {'move only (no force)','index only','middle only'};
-subname = 'moveThenForce';
-runNames = {'move only','force only'};
+subname = 'test';
+runNames = {'test 01'};
 runs = length(runNames);
 
 try 
 %     cd 'C:\Users\Sumner\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\Data'
     if ispc
-        cd 'C:\Users\Sumner\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\DenniShare\force_transducer_test_data\'
+        cd 'C:\Users\Sumner\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\DenniShare\'
     else
-        cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/DenniShare/force_transducer_test_data/'
+        cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/DenniShare/'
     end
     data = datToMat(subname,runs);
     cd(startDir)
