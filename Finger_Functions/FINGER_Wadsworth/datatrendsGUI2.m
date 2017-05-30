@@ -1,35 +1,35 @@
-function varargout = datatrendsGUI(varargin)
-% DATATRENDSGUI MATLAB code for datatrendsGUI.fig
-%      DATATRENDSGUI, by itself, creates a new DATATRENDSGUI or raises the existing
+function varargout = datatrendsGUI2(varargin)
+% DATATRENDSGUI2 MATLAB code for datatrendsGUI2.fig
+%      DATATRENDSGUI2, by itself, creates a new DATATRENDSGUI2 or raises the existing
 %      singleton*.
 %
-%      H = DATATRENDSGUI returns the handle to a new DATATRENDSGUI or the handle to
+%      H = DATATRENDSGUI2 returns the handle to a new DATATRENDSGUI2 or the handle to
 %      the existing singleton*.
 %
-%      DATATRENDSGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in DATATRENDSGUI.M with the given input arguments.
+%      DATATRENDSGUI2('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in DATATRENDSGUI2.M with the given input arguments.
 %
-%      DATATRENDSGUI('Property','Value',...) creates a new DATATRENDSGUI or raises the
+%      DATATRENDSGUI2('Property','Value',...) creates a new DATATRENDSGUI2 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before datatrendsGUI_OpeningFcn gets called.  An
+%      applied to the GUI before datatrendsGUI2_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to datatrendsGUI_OpeningFcn via varargin.
+%      stop.  All inputs are passed to datatrendsGUI2_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help datatrendsGUI
+% Edit the above text to modify the response to help datatrendsGUI2
 
-% Last Modified by GUIDE v2.5 14-Oct-2016 11:11:08
+% Last Modified by GUIDE v2.5 29-May-2017 18:48:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @datatrendsGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @datatrendsGUI_OutputFcn, ...
+                   'gui_OpeningFcn', @datatrendsGUI2_OpeningFcn, ...
+                   'gui_OutputFcn',  @datatrendsGUI2_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,13 +44,13 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before datatrendsGUI is made visible.
-function datatrendsGUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before datatrendsGUI2 is made visible.
+function datatrendsGUI2_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to datatrendsGUI (see VARARGIN)
+% varargin   command line arguments to datatrendsGUI2 (see VARARGIN)
 
 
 T = varargin{1};
@@ -60,23 +60,23 @@ VNames = T.Properties.VariableNames;
 set(handles.listbox1,'String',VNames)
 set(handles.listbox2,'String',VNames)
 set(handles.listbox1,'Value',2)
-set(handles.listbox2,'Value',14)
+set(handles.listbox2,'Value',3)
 
 plotdata(handles)
 
 
-% Choose default command line output for datatrendsGUI
+% Choose default command line output for datatrendsGUI2
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes datatrendsGUI wait for user response (see UIRESUME)
+% UIWAIT makes datatrendsGUI2 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = datatrendsGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = datatrendsGUI2_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB

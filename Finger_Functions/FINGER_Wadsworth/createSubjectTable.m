@@ -23,7 +23,7 @@ NIHSSString = 'NIHSSTotalScore';
 MOCAString = 'MoCATotal';
 
 % set the session numbers and phase teypes
-sessionNumTable = table([1:12]','VariableNames',{'Session'});  %#ok<NBRAK>
+sessionNum = {'S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11','S12'};
 vickySession = [1 1 2 2 2 2 2 2 2 3 3 4];
 phaseTable = table([1 1 1 2 2 2 2 2 2 3 3 3]','VariableNames',{'phase'});
 
@@ -47,14 +47,19 @@ for session = 1:12
         num2str(vickySession(session)) '(subRow)']);
 end
 
-%%update table w clinical scores
+%% update table w clinical scores and finalize
 BBTTable = table(BBT,'VariableNames',{'BBT'});
 FMTable = table(FM,'VariableNames',{'FM'});
 NIHSSTable = table(NIHSS,'VariableNames',{'NIHSS'});
 MOCATable = table(MOCA,'VariableNames',{'MOCA'});
 
-tableOut = [sessionNumTable phaseTable tableOut ...
+tableOut = [phaseTable tableOut ...
     BBTTable FMTable NIHSSTable MOCATable];
+tableOut.Properties.RowNames = sessionNum;
+
+% this property is necessary for the plotting GUI to function
+tableOut.Properties.VariableDescriptions = ...
+    tableOut.Properties.VariableNames;
 
 %% function to change directory according to computer 
     function dataDirectory(hostname)
