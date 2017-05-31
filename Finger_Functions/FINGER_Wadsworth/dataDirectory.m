@@ -8,8 +8,8 @@ originalPath = pwd;
     if ispc         
         if strcmp(hostname(1:5), 'DARTH')
             cd 'D:\Dropbox\UCI RESEARCH\FINGER\FINGER_wadsworth\data'
-        else
-            error('missing path for Lab PC')
+        elseif strcmp(hostname(1:5), 'LABPC')
+            cd 'D:\FINGER_Wadsworth\DATA'
         end
     else
         cd '/Users/Sum/Dropbox/UCI RESEARCH/FINGER/FINGER_wadsworth/Data/'        
