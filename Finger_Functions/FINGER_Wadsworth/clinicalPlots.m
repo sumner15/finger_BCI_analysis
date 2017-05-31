@@ -92,3 +92,18 @@ for sub = 1:nSubs
 end
 TdFM = table(dFM,'VariableNames',{'changeFMAMA'});
 TdBBT = table(dBBT,'VariableNames',{'changeBBT'});   
+
+[BBTscreenI, BBT1I, BBT2I, BBT3I, BBT4I] = deal(NaN(nSubs,1));
+for sub = 1:nSubs
+    iSide = clinicalDataSimple.ImpairedSide{subjects{sub}};
+    BBTscreenI(sub) = ...
+        eval(['clinicalDataSimple.BBT' iSide 'screen(subjects{sub})']);
+    BBT1I(sub) = eval(['clinicalDataSimple.BBT' iSide '1(subjects{sub})']);
+    BBT2I(sub) = eval(['clinicalDataSimple.BBT' iSide '2(subjects{sub})']);
+    BBT3I(sub) = eval(['clinicalDataSimple.BBT' iSide '3(subjects{sub})']);
+    BBT4I(sub) = eval(['clinicalDataSimple.BBT' iSide '4(subjects{sub})']);
+end
+BBTT = table(BBTscreenI,BBT1I,BBT2I,BBT3I,BBT4I,'VariableNames',...
+    {'BBTscreenI', 'BBT1I', 'BBT2I', 'BBT3I', 'BBT4I'});
+
+

@@ -11,9 +11,8 @@ while ~exist('T','var')
             warning('Could not find data set or could not load')
         end
     else        
-        T = load('ClinicalDataSimple.mat');        
-        T = T.clinicalDataSimple;
-        warning('have you updated the table to include numeric values only?')
+        T = load('ClinicalDataContinuous.mat');        
+        T = T.clinicalDataContinuous;        
     end
 end
 
