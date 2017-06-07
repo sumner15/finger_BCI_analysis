@@ -31,79 +31,33 @@ for sub = 1:nSubs
     end
 end
 
-%% plot clinical data over time
-set(0,'defaultlinelinewidth',2.5)
-sessions = [0 1 3 10 12];
-
-% plot measures separately 
-set(figure,'Position',[150 20 1400 900]);
-subplot(221)
-hold on
-for sub = 1:nSubs
-    plot(sessions,BBT{sub},'-o')        
-end
-title('Box & Blocks Assessment')
-ylabel('BBT')
-
-subplot(222)
-hold on
-for sub = 1:nSubs
-    plot(sessions,FM{sub},'-o')
-end
-title('Fugl-Meyer Assessment')
-ylabel('FMA')
-
-subplot(223)
-hold on
-for sub = 1:nSubs
-    plot(sessions,BBT{sub}-BBT{sub}(1),'-o')
-end
-title('Change in Box & Blocks')
-ylabel('\delta BBT')
-
-subplot(224)
-hold on
-for sub = 1:nSubs
-    plot(sessions,FM{sub}-FM{sub}(1),'-o')
-end
-title('Change in Fugl Meyer')
-ylabel('\delta FMA')
-
-% set type and legend
-set(findall(gcf,'-property','FontSize'),'FontSize',14)
-sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
-    'Phase 3','','end'};
-for sub = 1:4  
-    subplot(2,2,sub)  
-    xlim([-1 13])
-    xticks(0:12)
-    xticklabels(sessionTitles)                   
-    xlabel('session')    
-    xtickangle(45)    
-end
-leg1 = legend(subjects,'location','best');
-    set(leg1,'FontSize',10)
+%% plot results
+plotOverSession(FM, 'FM', subjects)
+plotOverSession(BBT, 'BBT', subjects)
     
-%% temporary conversion code to get change in clinical scores
-[dFM, dBBT] = deal(zeros(nSubs,1));
-for sub = 1:nSubs
-   dFM(sub) = mean(FM{sub}(4:5))-mean(FM{sub}(1:3));
-   dBBT(sub) = mean(BBT{sub}(4:5))-mean(BBT{sub}(1:3));
-end
-TdFM = table(dFM,'VariableNames',{'changeFMAMA'});
-TdBBT = table(dBBT,'VariableNames',{'changeBBT'});   
-
-[BBTscreenI, BBT1I, BBT2I, BBT3I, BBT4I] = deal(NaN(nSubs,1));
-for sub = 1:nSubs
-    iSide = clinicalDataSimple.ImpairedSide{subjects{sub}};
-    BBTscreenI(sub) = ...
-        eval(['clinicalDataSimple.BBT' iSide 'screen(subjects{sub})']);
-    BBT1I(sub) = eval(['clinicalDataSimple.BBT' iSide '1(subjects{sub})']);
-    BBT2I(sub) = eval(['clinicalDataSimple.BBT' iSide '2(subjects{sub})']);
-    BBT3I(sub) = eval(['clinicalDataSimple.BBT' iSide '3(subjects{sub})']);
-    BBT4I(sub) = eval(['clinicalDataSimple.BBT' iSide '4(subjects{sub})']);
-end
-BBTT = table(BBTscreenI,BBT1I,BBT2I,BBT3I,BBT4I,'VariableNames',...
-    {'BBTscreenI', 'BBT1I', 'BBT2I', 'BBT3I', 'BBT4I'});
+%% temporary conversion code to get change in clinical scores 
+% note: Only use this to create the new change values for the subject
+% tables. This code should not have to be ran more than once
+% 
+% [dFM, dBBT] = deal(zeros(nSubs,1));
+% for sub = 1:nSubs
+%    dFM(sub) = mean(FM{sub}(4:5))-mean(FM{sub}(1:3));
+%    dBBT(sub) = mean(BBT{sub}(4:5))-mean(BBT{sub}(1:3));
+% end
+% TdFM = table(dFM,'VariableNames',{'changeFMAMA'});
+% TdBBT = table(dBBT,'VariableNames',{'changeBBT'});   
+% 
+% [BBTscreenI, BBT1I, BBT2I, BBT3I, BBT4I] = deal(NaN(nSubs,1));
+% for sub = 1:nSubs
+%     iSide = clinicalDataSimple.ImpairedSide{subjects{sub}};
+%     BBTscreenI(sub) = ...
+%         eval(['clinicalDataSimple.BBT' iSide 'screen(subjects{sub})']);
+%     BBT1I(sub) = eval(['clinicalDataSimple.BBT' iSide '1(subjects{sub})']);
+%     BBT2I(sub) = eval(['clinicalDataSimple.BBT' iSide '2(subjects{sub})']);
+%     BBT3I(sub) = eval(['clinicalDataSimple.BBT' iSide '3(subjects{sub})']);
+%     BBT4I(sub) = eval(['clinicalDataSimple.BBT' iSide '4(subjects{sub})']);
+% end
+% BBTT = table(BBTscreenI,BBT1I,BBT2I,BBT3I,BBT4I,'VariableNames',...
+%     {'BBTscreenI', 'BBT1I', 'BBT2I', 'BBT3I', 'BBT4I'});
 
 
