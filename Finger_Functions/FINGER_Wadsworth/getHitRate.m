@@ -2,7 +2,7 @@
 %ERD on each trial and returns as a vector
 function ERD = getHitRate(dataIn)
 
-ERD = rand(100,1)*100;
+ERD = zeros(100,1);
 warning('getHitRate()is passing dummy data')
 
 end

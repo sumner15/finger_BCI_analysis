@@ -1,3 +1,4 @@
+%Useful for calculating within-subject measures of performance!
 %calls datToMat to parse data from BCI2000 Wadsworth BCI study and stores
 %the results in a table 
 %
@@ -8,7 +9,7 @@
 % getERD(), getHitRate(), getMaxF()
 
 function tableOut = createSubjectTable(subID)
-%% load data into mat format
+%% load clinical data into mat format
 dataDirectory();
 clinicalData = load('ClinicalDataSummary.mat');
 clinicalData = clinicalData.clinicalData;
@@ -47,13 +48,20 @@ for session = 1:12
         num2str(vickySession(session)) '(subRow)']);
 end
 
-%% update table w clinical scores and finalize
+% create clinical sub-tables 
 BBTTable = table(BBT,'VariableNames',{'BBT'});
 FMTable = table(FM,'VariableNames',{'FM'});
 NIHSSTable = table(NIHSS,'VariableNames',{'NIHSS'});
 MOCATable = table(MOCA,'VariableNames',{'MOCA'});
 
-tableOut = [phaseTable tableOut ...
+%% load ERD p values
+dataDirectory(true);
+load('ERDp.mat');
+ERDp = eval(['ERDp.' subID]);
+ERDpTable = table(ERDp,'VariableNames',{'ERDp'});
+
+%% update table w clinical scores and finalize
+tableOut = [phaseTable tableOut ERDpTable ...
     BBTTable FMTable NIHSSTable MOCATable];
 tableOut.Properties.RowNames = sessionNum;
 

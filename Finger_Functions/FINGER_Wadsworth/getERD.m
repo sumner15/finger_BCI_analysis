@@ -2,7 +2,7 @@
 %ERD on each trial and returns as a vector
 function ERD = getERD(dataIn)
 
-ERD = rand(100,1)+1;
+ERD = zeros(100,1);
 warning('getERD()is passing dummy data')
 
 end
