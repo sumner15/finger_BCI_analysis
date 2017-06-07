@@ -2,11 +2,9 @@ clear; clc; close all
 subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
 nSubs = length(subjects);
 
-%% load clinical data
-clinicalDataSimple = load('ClinicalDataSimple.mat');
-clinicalDataSimple = clinicalDataSimple.clinicalDataSimple;
+%% load clinical data & rearrange data by subject
+load('ClinicalDataSimple.mat');
 
-%% rearrange data by subject
 [FM, BBT, NIHSS] = deal(cell(nSubs,1));
 for sub = 1:nSubs    
         % set variables of interest (clinical scores of interest)
@@ -31,9 +29,20 @@ for sub = 1:nSubs
     end
 end
 
+%% load ERD p-value results  & arrange into cell array
+dataDirectory(true)
+load('ERDp.mat');
+
+ERDpCell = cell(nSubs,1);
+for sub = 1:nSubs
+    ERDpCell{sub} = eval(['ERDp.' subjects{sub} '''']);
+    ERDpCell{sub}(ERDpCell{sub}==1) = NaN;
+end
+
 %% plot results
 plotOverSession(FM, 'FM', subjects)
 plotOverSession(BBT, 'BBT', subjects)
+plotOverSession(ERDpCell, 'ERD p-val', subjects)
     
 %% temporary conversion code to get change in clinical scores 
 % note: Only use this to create the new change values for the subject
