@@ -30,7 +30,7 @@ for sub = 1:nSubs
 end
 
 %% load ERD p-value results  & arrange into cell array
-dataDirectory(true)
+dataDirectory(true);
 load('ERDp.mat');
 load('ERDR2.mat');
 
