@@ -5,8 +5,14 @@ while ~exist('T','var')
     choice = input('across-subject analysis (1) or within (2)?  ','s');
     if choice=='2'
         try     
-            subID = input('Which subject would you like to view? ','s');        
-            T = createSubjectTable(subID);
+            subID = input('Which subject would you like to view? ','s');    
+            try 
+                dataDirectory();
+                load(subID)
+                T = subData;
+            catch me
+                T = createSubjectTable(subID);
+            end
         catch me
             warning('Could not find data set or could not load')
         end
