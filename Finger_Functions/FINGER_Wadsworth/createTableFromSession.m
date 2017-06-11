@@ -10,23 +10,22 @@
 function tableOut = createTableFromSession(subID, session)
 %% create session and run strings
 if session <= 09
-    session = [subID '00' num2str(session)];
+    sessionString = [subID '00' num2str(session)];
 else
-    session = [subID '0' num2str(session)];
+    sessionString = [subID '0' num2str(session)];
 end
 
 %% load data into mat format
 startDir = dataDirectory();
-cd(session);
+cd(sessionString);
 data = datToMat(subID);
 cd(startDir);
 
 %% convert data into usable measures of performance
 ERD = getERD(data);
-hitRate = getHitRate(data);
 maxF = getMaxF(data);
 
-tableOut = table(ERD,hitRate,maxF);
+tableOut = table(ERD,maxF);
 
 end
 

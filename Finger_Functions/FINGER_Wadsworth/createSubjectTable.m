@@ -10,6 +10,7 @@
 
 function tableOut = createSubjectTable(subID)
 %% load clinical data into mat format
+
 dataDirectory();
 clinicalData = load('ClinicalDataSummary.mat');
 clinicalData = clinicalData.clinicalData;
@@ -54,15 +55,25 @@ FMTable = table(FM,'VariableNames',{'FM'});
 NIHSSTable = table(NIHSS,'VariableNames',{'NIHSS'});
 MOCATable = table(MOCA,'VariableNames',{'MOCA'});
 
-%% load ERD p values
+%% load hit rate values
+hitRate = NaN(12,1);
+for session = 1:12
+    hitRate(session) = getHitRate(subID,session);
+end
+hitRateTable = table(hitRate,'VariableNames',{'hitRate'});
+
+%% load ERD values
 dataDirectory(true);
 load('ERDp.mat');
+load('ERDR2.mat');
 ERDp = eval(['ERDp.' subID]);
+ERDR2 = eval(['ERDR2.' subID]);
 ERDpTable = table(ERDp,'VariableNames',{'ERDp'});
+ERDR2Table = table(ERDR2,'VariableNames',{'ERDR2'});
 
-%% update table w clinical scores and finalize
-tableOut = [phaseTable tableOut ERDpTable ...
-    BBTTable FMTable NIHSSTable MOCATable];
+%% update table w new scores and finalize
+tableOut = [phaseTable tableOut ERDpTable ERDR2Table ...
+    BBTTable FMTable NIHSSTable MOCATable hitRateTable];
 tableOut.Properties.RowNames = sessionNum;
 
 % this property is necessary for the plotting GUI to function
