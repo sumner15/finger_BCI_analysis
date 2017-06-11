@@ -12,9 +12,9 @@ function plotOverSession(data,label,subjects)
 % subject identifier, e.g. 'NORS'
 
     %% set up            
-    if size(data{1},2)==5 %if this is clinical data
+    if length(data{1})==5 %if this is clinical data
         sessions = [0 1 3 10 12];
-    elseif size(data{1},2)==12 %if this is another measure
+    elseif length(data{1})==12 %if this is another measure
         sessions = 1:12;
     end
     

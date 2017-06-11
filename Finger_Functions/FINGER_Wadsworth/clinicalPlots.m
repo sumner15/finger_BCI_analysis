@@ -28,25 +28,6 @@ for sub = 1:nSubs
         NIHSS{sub}(visit) = eval(['clinicalDataSimple.' NIHSSVars{visit} '(subjects{sub})']);
     end
 end
-
-%% load ERD p-value results  & arrange into cell array
-dataDirectory(true);
-load('ERDp.mat');
-load('ERDR2.mat');
-
-[ERDpCell, ERDR2Cell] = deal(cell(nSubs,1));
-for sub = 1:nSubs
-    ERDpCell{sub} = eval(['ERDp.' subjects{sub} '''']);
-    ERDR2Cell{sub} = eval(['ERDR2.' subjects{sub} '''']);
-    ERDpCell{sub}(ERDpCell{sub}==1) = NaN;
-    ERDR2Cell{sub}(ERDR2Cell{sub}==0) = NaN;
-end
-
-%% plot results
-plotOverSession(FM, 'FM', subjects)
-plotOverSession(BBT, 'BBT', subjects)
-plotOverSession(ERDpCell, 'ERD p-val', subjects)
-plotOverSession(ERDR2Cell, 'ERD (R^2)', subjects)
     
 %% temporary conversion code to get change in clinical scores 
 % note: Only use this to create the new change values for the subject
