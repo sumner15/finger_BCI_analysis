@@ -7,7 +7,15 @@ nSubs = length(subjects);
 startDir = pwd;
 
 for sub = 1:nSubs
+    disp(['Processing data for ' subjects{sub}])
     subData = createSubjectTable(subjects{sub});      
-    dataDirectory()
+    dataDirectory();
     save(subjects{sub},'subData')
+    disp(['Saved as ' subjects{sub} '.mat'])
 end
+
+savePath = pwd;
+disp('=============== COMPLETE ===============')
+disp(['data saved at ' savePath])
+
+performancePlots()
