@@ -22,10 +22,11 @@ data = datToMat(subID);
 cd(startDir);
 
 %% convert data into usable measures of performance
-ERD = getERD(data);
-maxF = getMaxF(data);
+% ERD = getERD(data);
+% maxF = getMaxF(data);
+latency = getLatency(data,session);
 
-tableOut = table(ERD,maxF);
+tableOut = table(latency);
 
 end
 

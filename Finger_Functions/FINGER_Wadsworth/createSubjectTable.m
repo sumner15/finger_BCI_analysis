@@ -29,13 +29,16 @@ sessionNum = {'S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11','S12'};
 vickySession = [1 1 2 2 2 2 2 2 2 3 3 4];
 phaseTable = table([1 1 1 2 2 2 2 2 2 3 3 3]','VariableNames',{'phase'});
 
-for session = 1:12
-    % calculate the means for each session and build the table
+for session = 1:12        
+    % get the table for the session (includes all trials)
     sessionTable = createTableFromSession(subID, session);
+    % initialize the table out for later manipulation (arbitrary table ok)
     if session == 1
         tableOut = sessionTable(1,:);
     end
-    sessionMeans = mean(sessionTable{:,:},1);
+    sessionMeans = nanmean(sessionTable{:,:},1);
+    
+    % calculate the means for each session and build the table
     tableOut{session,:} = sessionMeans;    
     
     % arrange the clinical scores        
@@ -55,12 +58,15 @@ FMTable = table(FM,'VariableNames',{'FM'});
 NIHSSTable = table(NIHSS,'VariableNames',{'NIHSS'});
 MOCATable = table(MOCA,'VariableNames',{'MOCA'});
 
-%% load hit rate values
-hitRate = NaN(12,1);
+%% load hit rate values 
+[hitRateRobot, hitRateEEG] = deal(NaN(12,1));
 for session = 1:12
-    hitRate(session) = getHitRate(subID,session);
+    hitRateRobot(session) = getHitRateRobot(subID,session);
+    hitRateEEG(session) = getHitRateEEG(subID,session);    
 end
-hitRateTable = table(hitRate,'VariableNames',{'hitRate'});
+hitRateRobotTable = table(hitRateRobot,'VariableNames',{'hitRateRobot'});
+hitRateEEGTable = table(hitRateEEG,'VariableNames',{'hitRateEEG'});
+
 
 %% load ERD values
 dataDirectory(true);
@@ -73,7 +79,9 @@ ERDR2Table = table(ERDR2,'VariableNames',{'ERDR2'});
 
 %% update table w new scores and finalize
 tableOut = [phaseTable tableOut ERDpTable ERDR2Table ...
-    BBTTable FMTable NIHSSTable MOCATable hitRateTable];
+    BBTTable FMTable NIHSSTable MOCATable ...
+    hitRateRobotTable hitRateEEGTable];
+
 tableOut.Properties.RowNames = sessionNum;
 
 % this property is necessary for the plotting GUI to function
