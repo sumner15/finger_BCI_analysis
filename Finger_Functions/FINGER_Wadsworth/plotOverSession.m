@@ -1,4 +1,4 @@
-function plotOverSession(data,label,subjects)
+function plotOverSession(data,label,subjects,plotChange)
 % This function plots a single measure across all sessions for individual
 % components. A second plot shows the change in this measure compared to
 % baseline (useful for clinical data and basic performance measures)
@@ -10,6 +10,8 @@ function plotOverSession(data,label,subjects)
 %
 % subjects is a {1 x nSubs} cell array where each cell contains a string
 % subject identifier, e.g. 'NORS'
+%
+% plotChange is a bool to plot the change from baseline
 
     %% set up colors
     co = [  0.0000    0.4470    0.7410;...
@@ -32,34 +34,39 @@ function plotOverSession(data,label,subjects)
     nSubs = length(subjects);
 
     %% plot measure 
-    set(figure,'Position',[150 20 1400 500]);
-    subplot(121)
+    set(figure,'Position',[150 20 700 500]);    
     hold on
     set(0,'defaultlinelinewidth',2.5)
     for sub = 1:nSubs
         plot(sessions,data{sub},'-o')        
     end    
     ylabel(label)
+    setType(subjects)
 
-    subplot(122)
-    hold on
-    for sub = 1:nSubs
-        plot(sessions,data{sub}-data{sub}(1),'-o')
-    end    
-    ylabel(['\delta ' label])    
+    %% plot change in measure
+    if nargin >= 4
+        if plotChange
+            set(figure,'Position',[150 20 700 500]);    
+            hold on
+            for sub = 1:nSubs
+                plot(sessions,data{sub}-data{sub}(1),'-o')
+            end    
+            ylabel(['\delta ' label])    
+            setType(subjects)
+        end
+    end
 
     %% set type and legend    
-    set(findall(gcf,'-property','FontSize'),'FontSize',14)
-    sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
-        'Phase 3','','end'};
-    for sub = 1:2
-        subplot(1,2,sub)  
+    function setType(subjects)
+        set(findall(gcf,'-property','FontSize'),'FontSize',14)
+        sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
+            'Phase 3','','end'};            
         xlim([-1 13])
         xticks(0:12)
         xticklabels(sessionTitles)                   
         xlabel('session')    
-        xtickangle(45)    
+        xtickangle(45)        
+        leg1 = legend(subjects,'location','best');
+            set(leg1,'FontSize',10)    
     end
-    leg1 = legend(subjects,'location','best');
-        set(leg1,'FontSize',10)    
 end
