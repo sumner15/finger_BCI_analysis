@@ -32,6 +32,7 @@ phaseTable = table([1 1 1 2 2 2 2 2 2 3 3 3]','VariableNames',{'phase'});
 for session = 1:12        
     % get the table for the session (includes all trials)
     sessionTable = createTableFromSession(subID, session);
+    
     % initialize the table out for later manipulation (arbitrary table ok)
     if session == 1
         tableOut = sessionTable(1,:);

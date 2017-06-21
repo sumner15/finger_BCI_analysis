@@ -67,6 +67,6 @@ function plotOverSession(data,label,subjects,plotChange)
         xlabel('session')    
         xtickangle(45)        
         leg1 = legend(subjects,'location','best');
-            set(leg1,'FontSize',10)    
+        set(leg1,'FontSize',10)    
     end
 end
