@@ -66,7 +66,7 @@ saveBool = input('Would you like to save the results? (y/n): ','s');
 if strcmp(saveBool,'y')
     dataDirectory();
     disp('Saving to traces.mat')
-    save('traces','tracesYellow1','tracesBlue1','tracesYellow2, tracesBlue2',...
+    save('traces','tracesYellow1','tracesBlue1','tracesYellow2', 'tracesBlue2',...
         'tausYellow1','tausBlue1','tausYellow2','tausBlue2','subjects','nSubs');
     cd(startDir)
 end
