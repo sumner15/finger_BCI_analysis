@@ -1,10 +1,12 @@
-%Uses the result of 'datToMat', a data structure, to calculate the latency
-%on each trial. 
+% Uses the result of 'datToMat', a data structure, to calculate the
+% force traces for every trial in phase 3.
+% 
 % takes in dataIn, the raw data from the datToMat function, the session
 % number (e.g. 07), and the target (e.g. 1-yellow or 2-blue)
-% returns latency, a vector of latency values, one for each trial during
-% the session.
-function traces = getForceTrace(dataIn, session, target, finger)
+%
+% takes in 
+function [traces, otherFinger] = ...
+    getForceTrace(dataIn, session, target, finger)
 
 % phase 2 has no latency results
 if session >= 4 && session <=9
@@ -77,7 +79,7 @@ nTrials = length(goInds)-1;
 
 %% get movement traces
 samplesInTrace = 400;
-traces = NaN(nTrials,samplesInTrace);
+[traces, otherFinger] = NaN(nTrials,samplesInTrace);
 
 for trial = 1:nTrials   
     % find sample 0 and final sample indices & extract movement data
@@ -111,11 +113,13 @@ for trial = 1:nTrials
     if successful ~= 0 && targetWanted && fingerWanted                
         switch finger
             case 1
-                traces(trial,:) = tauDiff1';     
+                traces(trial,:) = tauDiff1';   
+                otherFinger(trial,:) = tauDiff2';
             case 2 
                 traces(trial,:) = tauDiff2'; 
+                otherFinger(trial,:) = tauDiff1';
             case 3
-                traces(trial,:) = mean([tauDiff1 tauDiff2],2)';
+                traces(trial,:) = mean([tauDiff1 tauDiff2],2)';                
         end                             
     end
 end

@@ -10,11 +10,13 @@ function plotYvsB()
     end
     
     %% call plotting functions
-    plotAway(data.tracesYellow, data.tracesBlue, data)
-    plotAway(data.tausYellow, data.tausBlue, data)
+    plotAway(data.tracesYellow1, data.tracesBlue1,...
+             data.tracesYellow2, data.tracesBlue2, data)
+    plotAway(data.tausYellow1, data.tausBlue1, ...
+             data.tausYellow2, data.tausBlue2, data)
 
 %% plot data
-function plotAway(yellowData, blueData, data)
+function plotAway(yellowData, blueData, orangeData, purpleData, data)
     disp('         ||||||||||||||||||||||||')
     set(figure,'Position',[100 20 2000 1100]);            
     for finger = 1:3        
@@ -31,6 +33,10 @@ function plotAway(yellowData, blueData, data)
                 yellowData{sub,finger}./max(yellowData{sub,finger}(:));
             blueData{sub,finger} = ...
                 blueData{sub,finger}./max(blueData{sub,finger}(:));
+            orangeData{sub,finger} = ...
+                orangeData{sub,finger}./max(orangeData{sub,finger}(:));
+            purpleData{sub,finger} = ...
+                orangeData{sub,finger}./max(purpleData{sub,finger}(:));
             
             for i = 1:size(yellowData{sub,finger},1)
                 % plot all yellow traces
@@ -38,16 +44,19 @@ function plotAway(yellowData, blueData, data)
                     'color', [1 0.85 0], 'linewidth', 1.5);
                 hY.Color(:,4) = 0.3;
                 hold on            
-                % plot mean of yellow traces
-                plot(t,mean(yellowData{sub,finger},1),...
-                    'color', [1 0.85 0], 'linewidth', 2);
+                % plot all orange traces (secondary finger)
+                hO = plot(t,orangeData{sub,finger}(i,:)',...
+                    'color', [0.85 0.3 1], 'lineWidth', 1.5);
+                hO.Color(:,4) = 0.3;
                 % plot all blue traces
                 hB = plot(t,blueData{sub,finger}(i,:)',...
                     'color', [0 0.4 0.65], 'linewidth', 1.5);
                 hB.Color(:,4) = 0.3;
-                % plot mean of blue traces
-                plot(t,mean(blueData{sub,finger},1),...
-                    'color', [0 0.4 0.65], 'linewidth', 2);
+                % plot all purple traces (secondary finger)
+                hP = plot(t,purpleData{sub,finger}(i,:)',...
+                    'color', [0.5 0.2 0.6], 'lineWidth', 1.5);
+                hP.Color(:,4) = 0.3;
+                
             end
             
             setType(t,sub,data.subjects,finger)
