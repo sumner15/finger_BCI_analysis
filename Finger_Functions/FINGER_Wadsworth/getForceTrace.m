@@ -79,7 +79,7 @@ nTrials = length(goInds)-1;
 
 %% get movement traces
 samplesInTrace = 400;
-[traces, otherFinger] = NaN(nTrials,samplesInTrace);
+[traces, otherFinger] = deal(NaN(nTrials,samplesInTrace));
 
 for trial = 1:nTrials   
     % find sample 0 and final sample indices & extract movement data
@@ -119,7 +119,8 @@ for trial = 1:nTrials
                 traces(trial,:) = tauDiff2'; 
                 otherFinger(trial,:) = tauDiff1';
             case 3
-                traces(trial,:) = mean([tauDiff1 tauDiff2],2)';                
+                traces(trial,:) = tauDiff1';
+                otherFinger(trial,:) = tauDiff2';
         end                             
     end
 end

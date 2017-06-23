@@ -97,6 +97,10 @@ for trial = 1:nTrials
     if max(posDiff1(1:100))>50 || max(posDiff2(1:100))>50
         successful = 0;
     end
+    % did we get an errant value?     
+    if max(posDiff1)>1000 || max(posDiff1)>1000
+        successful = 0;
+    end
     
     if successful ~= 0 && targetWanted && fingerWanted                
         switch finger
@@ -107,7 +111,8 @@ for trial = 1:nTrials
                 traces(trial,:) = posDiff2'; 
                 otherFinger(trial,:) = posDiff1';
             case 3
-                traces(trial,:) = mean([posDiff1 posDiff2],2)';                
+                traces(trial,:) = posDiff1';
+                otherFinger(trial,:) = posDiff2';
         end                             
     end
 end

@@ -1,7 +1,7 @@
 function plotYvsB()
     %% load data
     disp('plotting all phase 3 movement data')    
-    fprintf('progress ')
+    fprintf('progress ||||||||||||||||||||||||\n')
     
     if nargin==0
         startDir = dataDirectory();
@@ -17,7 +17,7 @@ function plotYvsB()
 
 %% plot data
 function plotAway(yellowData, blueData, orangeData, purpleData, data)
-    disp('         ||||||||||||||||||||||||')
+    fprintf('         ')
     set(figure,'Position',[100 20 2000 1100]);            
     for finger = 1:3        
         for sub = 1:data.nSubs
@@ -29,44 +29,52 @@ function plotAway(yellowData, blueData, orangeData, purpleData, data)
             fprintf('|')
             
             % normalize data to max of 1
-            yellowData{sub,finger} = ...
-                yellowData{sub,finger}./max(yellowData{sub,finger}(:));
-            blueData{sub,finger} = ...
-                blueData{sub,finger}./max(blueData{sub,finger}(:));
-            orangeData{sub,finger} = ...
-                orangeData{sub,finger}./max(orangeData{sub,finger}(:));
-            purpleData{sub,finger} = ...
-                orangeData{sub,finger}./max(purpleData{sub,finger}(:));
+            maxY = max(abs(yellowData{sub,finger}(:)));
+            maxB = max(abs(blueData{sub,finger}(:)));
+            maxO = max(abs(orangeData{sub,finger}(:)));
+            maxP = max(abs(purpleData{sub,finger}(:)));
+            maxVal = max([maxY maxB maxO maxP]);
+            yellowData{sub,finger} = yellowData{sub,finger}./maxVal;
+            blueData{sub,finger} = blueData{sub,finger}./maxVal;
+            orangeData{sub,finger} = orangeData{sub,finger}./maxVal;
+            purpleData{sub,finger} = purpleData{sub,finger}./maxVal;
             
             for i = 1:size(yellowData{sub,finger},1)
                 % plot all yellow traces
                 hY = plot(t,yellowData{sub,finger}(i,:)',...
-                    'color', [1 0.85 0], 'linewidth', 1.5);
+                    'color', [1 0.85 0], 'linewidth', 1.5); 
                 hY.Color(:,4) = 0.3;
                 hold on            
-                % plot all orange traces (secondary finger)
+               % plot all orange traces (secondary finger)
                 hO = plot(t,orangeData{sub,finger}(i,:)',...
-                    'color', [0.85 0.3 1], 'lineWidth', 1.5);
+                    'color', [1 0.4 0.4], 'lineWidth', 1.5);                
                 hO.Color(:,4) = 0.3;
-                % plot all blue traces
+               % plot all blue traces
                 hB = plot(t,blueData{sub,finger}(i,:)',...
                     'color', [0 0.4 0.65], 'linewidth', 1.5);
                 hB.Color(:,4) = 0.3;
                 % plot all purple traces (secondary finger)
                 hP = plot(t,purpleData{sub,finger}(i,:)',...
                     'color', [0.5 0.2 0.6], 'lineWidth', 1.5);
-                hP.Color(:,4) = 0.3;
-                
+                hP.Color(:,4) = 0.3;                
             end
             
-            setType(t,sub,data.subjects,finger)
+            % set axis limits based on data 
+            if min(yellowData{sub,finger}(:))<0
+                axisLims = [0 t(end) -1 1];
+            else
+                axisLims = [0 t(end) 0 1];
+            end
+            
+            % set axes type
+            setType(sub,data.subjects,finger,axisLims)
         end
     end    
     fprintf('\n')
 end
 
 %% function to set type
-function setType(t,sub,subjects,finger)
+function setType(sub,subjects,finger,axisLims)
     set(findall(gcf,'-property','FontSize'),'FontSize',14)
     fingerStrings = {'index','middle','both'};
     title(subjects{sub})          
@@ -74,11 +82,11 @@ function setType(t,sub,subjects,finger)
         ylabel(fingerStrings(finger))
     end
     
-    xlim([0 t(end)])
+    axis(axisLims)
     xticks([0 0.5 1.0 1.5])
     xticklabels({'0','0.5','1.0','1.5'})
-    yticks([-0.95 0.00 0.95])
-    yticklabels({'flexed','','extended'})
+    yticks(axisLims(3:4))
+    yticklabels({'flexed','extended'})
 end
 
 end
