@@ -15,8 +15,8 @@ function loadAndPlot(subjects)
     dataDirectory();
     nSubs = length(subjects);
 
-    [ERDp, ERDR2, hitRateEEG, hitRateRobot, latency1, latency2] = ...
-        deal(cell(nSubs,1));
+    [ERDp, ERDR2, hitRateEEG, hitRateRobot, latencyYI, latencyBI, ...
+        latencyYM, latencyBM] = deal(cell(nSubs,1));
     
     for sub = 1:nSubs
        load(subjects{sub}) 
@@ -25,8 +25,10 @@ function loadAndPlot(subjects)
        ERDR2{sub} = subData.ERDR2;
        hitRateEEG{sub} = subData.hitRateEEG;
        hitRateRobot{sub} = subData.hitRateRobot;
-       latency1{sub} = subData.latency1;      
-       latency2{sub} = subData.latency2;      
+       latencyYI{sub} = subData.latencyYI;      
+       latencyBI{sub} = subData.latencyBI;  
+       latencyYM{sub} = subData.latencyYM;
+       latencyBM{sub} = subData.latencyBM;
     end
 
     %% plot results over session
@@ -34,8 +36,13 @@ function loadAndPlot(subjects)
 %     plotOverSession(ERDR2, 'ERD (R^2)', subjects)
 %     plotOverSession(hitRateEEG, 'hit rate EEG (%)', subjects)
 %     plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)
-%     plotOverSession(latency1, 'latency on ERD trials (ms)', subjects)    
+    plotOverSession(latencyYI, 'index latency w/ ERD (ms)', subjects) 
+    plotOverSession(latencyYM, 'middle latency w/ ERD (ms)', subjects)
+    plotOverSession(latencyBI, 'index latency w/ ERS (ms)', subjects)
+    plotOverSession(latencyBM, 'middle latency w/ ERS (ms)', subjects)
+    
     
     %% plot phase 3 results
-    plotPhase3(latency1, latency2, 'latency (ms)', subjects)
+    plotPhase3(latencyYI, latencyBI, 'index latency (ms)', subjects)
+    plotPhase3(latencyYM, latencyBM, 'middle latency (ms)', subjects)
 end
