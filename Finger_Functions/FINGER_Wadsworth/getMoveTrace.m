@@ -4,13 +4,12 @@
 % number (e.g. 07), and the target (e.g. 1-yellow or 2-blue)
 % returns latency, a vector of latency values, one for each trial during
 % the session.
-function [traces, otherFinger] = ...
+function [traces, otherFinger, individuation] = ...
     getMoveTrace(dataIn, session, target, finger)
 
 % phase 2 has no latency results
 if session >= 4 && session <=9
-    traces = NaN;
-    otherFinger = NaN;
+    [traces, otherFinger, individuation] = deal(NaN);    
     warning(['session ' num2str(session) ' is not a movement session'])
     return
 end
@@ -73,7 +72,7 @@ nTrials = length(goInds)-1;
 
 %% get movement traces
 samplesInTrace = 400;
-[traces, otherFinger] = deal(NaN(nTrials,samplesInTrace));
+[traces, otherFinger, individuation] = deal(NaN(nTrials,samplesInTrace));
 
 for trial = 1:nTrials   
     % find sample 0 and final sample indices & extract movement data
@@ -107,12 +106,21 @@ for trial = 1:nTrials
             case 1
                 traces(trial,:) = posDiff1'; 
                 otherFinger(trial,:) = posDiff2';
+                individuation(trial,:) = ...
+                    transpose(posDiff1-posDiff2);
+%                     transpose((posDiff1-posDiff2)./(posDiff1+posDiff2));
             case 2 
                 traces(trial,:) = posDiff2'; 
                 otherFinger(trial,:) = posDiff1';
+                individuation(trial,:) = ...
+                    transpose(posDiff2-posDiff2);
+%                     transpose((posDiff2-posDiff1)./(posDiff1+posDiff2));
             case 3
                 traces(trial,:) = posDiff1';
                 otherFinger(trial,:) = posDiff2';
+                individuation(trial,:) = ...
+                    transpose(posDiff1-posDiff2);
+%                     transpose((posDiff1-posDiff2)./(posDiff1+posDiff2));
         end                             
     end
 end

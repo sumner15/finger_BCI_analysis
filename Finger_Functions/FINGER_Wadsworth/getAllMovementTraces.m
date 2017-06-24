@@ -15,7 +15,8 @@ startDir = pwd;
 yellow = 1; blue = 2;
 index = 1; middle = 2; both = 3;
 [tracesYellow1, tracesBlue1, tracesYellow2, tracesBlue2, ...
-    tausYellow1, tausBlue1, tausYellow2, tausBlue2] = ...
+    tausYellow1, tausBlue1, tausYellow2, tausBlue2, ...
+    posIndYellow, posIndBlue, tauIndYellow, tauIndBlue] = ...
     deal(cell(nSubs,3));
 
 %% for each subject 
@@ -26,7 +27,8 @@ for sub = 1:nSubs
     
     for finger = index:both
         [tracesY1, tracesB1, tracesY2, tracesB2, ... 
-            tausY1, tausB1, tausY2, tausB2] =...
+            tausY1, tausB1, tausY2, tausB2, ...
+            posIndY, posIndB, tauIndY, tauIndB] =...
             deal(cell(1,3)); 
         
         for session = 10:12            
@@ -37,14 +39,14 @@ for sub = 1:nSubs
             data = datToMat(subID);    
 
             %% extract movement data            
-            [tracesY1{session-9}, tracesY2{session-9}] = ...
+            [tracesY1{session-9}, tracesY2{session-9}, posIndY{session-9}] = ...
                 getMoveTrace(data, session, yellow, finger);   
-            [tracesB1{session-9}, tracesB2{session-9}] = ...
+            [tracesB1{session-9}, tracesB2{session-9}, posIndB{session-9}] = ...
                 getMoveTrace(data, session, blue, finger);   
             
-            [tausY1{session-9}, tausY2{session-9}] = ...
+            [tausY1{session-9}, tausY2{session-9}, tauIndY{session-9}] = ...
                 getForceTrace(data, session, yellow, finger);
-            [tausB1{session-9}, tausB2{session-9}] = ...
+            [tausB1{session-9}, tausB2{session-9}, tauIndB{session-9}] = ...
                 getForceTrace(data, session, blue, finger);                                   
         end
         tracesYellow1{sub,finger} = [tracesY1{1}; tracesY1{2}; tracesY1{3}];
@@ -55,7 +57,13 @@ for sub = 1:nSubs
         tausYellow1{sub, finger} = [tausY1{1}; tausY1{2}; tausY1{3}];
         tausBlue1{sub, finger} = [tausB1{1}; tausB1{2}; tausB1{3}];        
         tausYellow2{sub, finger} = [tausY2{1}; tausY2{2}; tausY2{3}];
-        tausBlue2{sub, finger} = [tausB2{1}; tausB2{2}; tausB2{3}];        
+        tausBlue2{sub, finger} = [tausB2{1}; tausB2{2}; tausB2{3}];       
+        
+        posIndYellow{sub, finger} = [posIndY{1}; posIndY{2}; posIndY{3}];
+        posIndBlue{sub, finger} = [posIndB{1}; posIndB{2}; posIndB{3}];
+        
+        tauIndYellow{sub, finger} = [tauIndY{1}; tauIndY{2}; tauIndY{3}];
+        tauIndBlue{sub, finger} = [tauIndB{1}; tauIndB{2}; tauIndB{3}];
     end
 end
 
@@ -67,7 +75,9 @@ if strcmp(saveBool,'y')
     dataDirectory();
     disp('Saving to traces.mat')
     save('traces','tracesYellow1','tracesBlue1','tracesYellow2', 'tracesBlue2',...
-        'tausYellow1','tausBlue1','tausYellow2','tausBlue2','subjects','nSubs');
+        'tausYellow1','tausBlue1','tausYellow2','tausBlue2',...
+        'posIndYellow','posIndBlue','tauIndYellow','tauIndBlue',...
+        'subjects','nSubs');
     cd(startDir)
 end
 
