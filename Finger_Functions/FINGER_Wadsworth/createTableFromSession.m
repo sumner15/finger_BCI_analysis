@@ -24,10 +24,16 @@ cd(startDir);
 %% convert data into usable measures of performance
 % ERD = getERD(data);
 % maxF = getMaxF(data);
-latency1 = getLatency(data, session, 1);
-latency2 = getLatency(data, session, 2);
+yellow = 1; blue = 2; index = 1; middle = 2; both = 3;
+latencyYI = getLatency(data, session, yellow, index);
+latencyYM = getLatency(data, session, yellow, middle);
+latencyYB = getLatency(data, session, yellow, both);
+latencyBI = getLatency(data, session, blue, index);
+latencyBM = getLatency(data, session, blue, middle);
+latencyBB = getLatency(data, session, blue, both);
 
-tableOut = table(latency1,latency2);
+tableOut = table(latencyYI, latencyYM, latencyYB, ...
+                 latencyBI, latencyBM, latencyBB);
 
 end
 

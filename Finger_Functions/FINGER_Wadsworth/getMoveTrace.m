@@ -26,49 +26,16 @@ if ~exist('finger','var')
     warning('assuming you wanted the index finger results')
 end
 
-%% put needed data in continuous format
-nRuns = length(dataIn.state);
-[pos1, pos2, moveTarget, EEGTarget, taskState, t, result] = deal([]);
-
-for run = 1:nRuns
-    % note:
-    % move target (cursorColors)  0-none 1-index 2-middle 3-both
-    % EEG target (targetCode) 0-none 1-yellowSquare 2-blueSquare
-    % taskState 0-none 1-EEGSquare 2-preMovement 3-moveCircles 4-feedback
-    pos1 = [pos1 ; double(dataIn.state{1,run}.FRobotPos1)];
-    pos2 = [pos2 ; double(dataIn.state{1,run}.FRobotPos2)];
-    moveTarget = [moveTarget ; double(dataIn.state{1,run}.CursorColors)];
-    EEGTarget = [EEGTarget ; double(dataIn.state{1,run}.TargetCode)];
-    taskState = [taskState ; double(dataIn.state{1,run}.TaskState3)];
-    t = [t ; double(dataIn.state{1,run}.SourceTime)];    
-    result = [result ; double(dataIn.state{1,run}.CursorResult)];
-end
+%% get data into continuous format
+[~, ~, ~, ~, pos1, pos2, ...
+ moveTarget, EEGTarget, ~, ~, result, nTrials, goInds] = ...
+    getContinuousData(dataIn);
 
 % we will assume the target was always the one we wanted  during phase 1 
 % in order to include all of the movement trials
 if session<= 3
     EEGTarget = target*ones(size(EEGTarget));
 end
-
-%% fix time vector to be monotonically increasing
-for i = 2:length(t)
-    if t(i) < t(i-1)
-        t(i:end) = t(i:end)+t(i-1)-t(i);
-    end
-end
-t = t-t(1);
-
-%% find movement cue (task state -> 3)
-goCue = zeros(size(taskState));
-for sample = 2:length(taskState)
-    % if, at this sample, we gave 'go' cue 
-    if taskState(sample)==3 && taskState(sample-1)~=3 
-        goCue(sample) = 1;
-    end
-end
-goInds = find(goCue==1);
-goInds = [goInds ; length(t)];
-nTrials = length(goInds)-1;
 
 %% get movement traces
 samplesInTrace = 400;
@@ -108,19 +75,16 @@ for trial = 1:nTrials
                 otherFinger(trial,:) = posDiff2';
                 individuation(trial,:) = ...
                     transpose(posDiff1-posDiff2);
-%                     transpose((posDiff1-posDiff2)./(posDiff1+posDiff2));
             case 2 
                 traces(trial,:) = posDiff2'; 
                 otherFinger(trial,:) = posDiff1';
                 individuation(trial,:) = ...
                     transpose(posDiff2-posDiff2);
-%                     transpose((posDiff2-posDiff1)./(posDiff1+posDiff2));
             case 3
                 traces(trial,:) = posDiff1';
                 otherFinger(trial,:) = posDiff2';
                 individuation(trial,:) = ...
                     transpose(posDiff1-posDiff2);
-%                     transpose((posDiff1-posDiff2)./(posDiff1+posDiff2));
         end                             
     end
 end

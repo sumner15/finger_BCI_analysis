@@ -4,7 +4,7 @@
 % number (e.g. 07), and the target (e.g. 1-yellow or 2-blue)
 % returns latency, a vector of latency values, one for each trial during
 % the session.
-function latency = getLatency(dataIn,session, target)
+function latency = getLatency(dataIn, session, target, finger)
 
 % phase 2 has no latency results
 if session >= 4 && session <=9
@@ -15,83 +15,74 @@ end
 % default to yellow target
 if ~exist('target','var')
     target = 1;
-    warning('assuming you wanted yellow square results')
+    warning('assuming you wanted yellow square results')    
 end
 
-%% put needed data in continuous format
-nRuns = length(dataIn.state);
-[pos1, pos2, moveTarget, EEGTarget, taskState, t, result] = deal([]);
-
-for run = 1:nRuns
-    % note:
-    % move target (cursorColors)  0-none 1-index 2-middle 3-both
-    % EEG target (targetCode) 0-none 1-yellowSquare 2-blueSquare
-    % taskState 0-none 1-EEGSquare 2-preMovement 3-moveCircles 4-feedback
-    pos1 = [pos1 ; double(dataIn.state{1,run}.FRobotPos1)];
-    pos2 = [pos2 ; double(dataIn.state{1,run}.FRobotPos2)];
-    moveTarget = [moveTarget ; double(dataIn.state{1,run}.CursorColors)];
-    EEGTarget = [EEGTarget ; double(dataIn.state{1,run}.TargetCode)];
-    taskState = [taskState ; double(dataIn.state{1,run}.TaskState3)];
-    t = [t ; double(dataIn.state{1,run}.SourceTime)];    
-    result = [result ; double(dataIn.state{1,run}.CursorResult)];
+% default to index finger
+if ~exist('finger','var')
+    finger = 1;
+    warning('assuming you wanted the index finger results')
 end
 
-% we will assume the target was always yellow during phase 1 in order to
-% include all of the movement trials
+%% get data into continuous format
+[~, ~, ~, ~, pos1, pos2, moveTarget, EEGTarget,...
+    ~, t, result, nTrials, goInds] = getContinuousData(dataIn);
+
+% we will assume the target was always the one we wanted  during phase 1 
+% in order to include all of the movement trials
 if session<= 3
     EEGTarget = target*ones(size(EEGTarget));
 end
 
-%% fix time vector to be monotonically increasing
-for i = 2:length(t)
-    if t(i) < t(i-1)
-        t(i:end) = t(i:end)+t(i-1)-t(i);
-    end
-end
-t = t-t(1);
-
-%% find movement cue (task state -> 3)
-goCue = zeros(size(taskState));
-for sample = 2:length(taskState)
-    % if, at this sample, we gave 'go' cue 
-    if taskState(sample)==3 && taskState(sample-1)~=3 
-        goCue(sample) = 1;
-    end
-end
-goInds = find(goCue==1);
-goInds = [goInds ; length(t)];
-nTrials = length(goInds)-1;
-
 %% compute latency 
+samplesInTrace = 400;
 latency = NaN(nTrials,1);
 
 for trial = 1:nTrials   
-    % if the trial was a success and EEG target was what we want
+    % find sample 0 and final sample indices & extract movement data
     sample0 = goInds(trial);
-    sampleF = min(sample0+256,goInds(trial+1)); %limits responses > 1 sec
-    targetWanted = (EEGTarget(goInds(trial))==target);
-    successful = max(result(sample0:sampleF));    
+    sampleF = min(sample0+samplesInTrace-1,goInds(trial+1)); 
     
-    if successful ~= 0 && targetWanted
-        % extract movement for this trial
-        posStart1 = pos1(sample0);
-        posStart2 = pos2(sample0);   
-        
-        posDiff1 = abs(pos1(sample0:sampleF)-posStart1);
-        posDiff2 = abs(pos2(sample0:sampleF)-posStart2);
-        
+    posStart1 = pos1(sample0);
+    posStart2 = pos2(sample0);   
+
+    posDiff1 = smooth(abs(pos1(sample0:sampleF)-posStart1));
+    posDiff2 = smooth(abs(pos2(sample0:sampleF)-posStart2));
+    
+    % was this the EEG target we wanted? The Finger target we wanted?
+    targetWanted = (EEGTarget(goInds(trial))==target);
+    fingerWanted = (moveTarget(goInds(trial))==finger);
+    % did the person succeed in moving? 
+    successful = max(result(sample0:sampleF));    
+    % don't look at last movement if the trial ended early (fringe case)
+    successful = successful * (sample0+samplesInTrace-1 < length(result));   
+    % don't look at falsely triggered movements
+    if max(posDiff1(1:100))>50 || max(posDiff2(1:100))>50
+        successful = 0;
+    end
+    % did we get an errant value?     
+    if max(posDiff1)>1000 || max(posDiff1)>1000
+        successful = 0;
+    end 
+    
+    if successful ~= 0 && targetWanted && fingerWanted
         % count samples until movement occurred 
         samplesElapsed = 1;
         moved = false;
         while moved == false
             samplesElapsed = samplesElapsed+1;
             % if movement passed a threshold 
-            if posDiff1(samplesElapsed) > 20 || posDiff2(samplesElapsed) > 20
-                moved = true;
+            if (finger==1 && posDiff1(samplesElapsed) > 50) || ...
+               (finger==2 && posDiff2(samplesElapsed) > 50) || ...
+               (finger==3 && posDiff1(samplesElapsed) > 50) || ...
+               (finger==3 && posDiff2(samplesElapsed) > 50)
+                                
                 % calculate difference in time
                 tMove = t(sample0+samplesElapsed);
                 t0 = t(goInds(trial));    
                 latency(trial) = tMove-t0;
+                % set exit flag
+                moved = true;
             end
         end                        
     end
