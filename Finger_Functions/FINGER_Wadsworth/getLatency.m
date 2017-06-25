@@ -4,12 +4,13 @@
 % number (e.g. 07), and the target (e.g. 1-yellow or 2-blue)
 % returns latency, a vector of latency values, one for each trial during
 % the session.
-function [latency, maxP, latMaxP, maxV, latMaxV] = ...
+function [latency, maxP, latMaxP, maxV, latMaxV, maxT, minT, latMaxT] = ...
                                 getLatency(dataIn, session, target, finger)
 
 % phase 2 has no latency results
 if session >= 4 && session <=9
-    [latency, maxP, latMaxP, maxV, latMaxV] = deal(NaN);
+    [latency, maxP, latMaxP, maxV, latMaxV, maxT, minT, latMaxT] = ...
+        deal(NaN);
     return
 end
 
@@ -26,7 +27,7 @@ if ~exist('finger','var')
 end
 
 %% get data into continuous format
-[~, ~, ~, ~, pos1, pos2, moveTarget, EEGTarget,...
+[f1a, f1b, f2a, f2b, pos1, pos2, moveTarget, EEGTarget,...
     ~, t, result, nTrials, goInds] = getContinuousData(dataIn);
 
 % we will assume the target was always the one we wanted  during phase 1 
@@ -35,14 +36,24 @@ if session<= 3
     EEGTarget = target*ones(size(EEGTarget));
 end
 
+tau1 = -1.55*f1a - 2.82*f1b + 7.87;
+tau2 = -1.55*f2a - 2.82*f2b + 7.87;
+
 %% compute latency 
 samplesInTrace = 400;
-[latency, maxP, latMaxP, maxV, latMaxV] = deal(NaN(nTrials,1));
+[latency, maxP, latMaxP, maxV, latMaxV, maxT, minT, latMaxT] = ...
+    deal(NaN(nTrials,1));
 
 for trial = 1:nTrials   
     % find sample 0 and final sample indices & extract movement data
     sample0 = goInds(trial);
     sampleF = min(sample0+samplesInTrace-1,goInds(trial+1)); 
+    
+    tauStart1 = tau1(sample0);
+    tauStart2 = tau2(sample0);   
+
+    tauDiff1 = smooth(tau1(sample0:sampleF)-tauStart1);
+    tauDiff2 = smooth(tau2(sample0:sampleF)-tauStart2);    
     
     posStart1 = pos1(sample0);
     posStart2 = pos2(sample0);   
@@ -50,10 +61,10 @@ for trial = 1:nTrials
     posDiff1 = smooth(abs(pos1(sample0:sampleF)-posStart1));
     posDiff2 = smooth(abs(pos2(sample0:sampleF)-posStart2));
     
-    v1 = [0; posDiff1(2:end)-posDiff1(1:end-1)];
-    v2 = [0; posDiff2(2:end)-posDiff2(1:end-1)];
+    v1 = [0; posDiff1(2:end)-posDiff1(1:end-1)]/256;
+    v2 = [0; posDiff2(2:end)-posDiff2(1:end-1)]/256;
     
-    % was this the EEG target we wanted? The Finger target we wanted?
+    %% was this the EEG target we wanted? The Finger target we wanted?
     targetWanted = (EEGTarget(goInds(trial))==target);
     fingerWanted = (moveTarget(goInds(trial))==finger);
     % did the person succeed in moving? 
@@ -69,15 +80,20 @@ for trial = 1:nTrials
         successful = 0;
     end 
     
-    if successful ~= 0 && targetWanted && fingerWanted
-        % record the maximum change in position for this trial
+    %% if this is a trial worth saving (successful, target, finger correct)
+    %  then record all movement parameters 
+    if successful ~= 0 && targetWanted && fingerWanted        
         switch finger
             case 1
                 [maxP(trial), latMaxP(trial)] = max(abs(posDiff1));
                 [maxV(trial), latMaxV(trial)] = max(abs(v1));
+                [maxT(trial), latMaxT(trial)] = max(tauDiff1);
+                [minT(trial), ~] = min(tauDiff1);
             case 2
                 [maxP(trial), latMaxP(trial)] = max(abs(posDiff2));
                 [maxV(trial), latMaxV(trial)] = max(abs(v2));
+                [maxT(trial), latMaxT(trial)] = max(tauDiff2);
+                [minT(trial), ~] = min(tauDiff2);
             case 3
                 [maxP(trial), latMaxP(trial)] = ...
                     max([max(abs(posDiff1)) max(abs(posDiff2))]);
@@ -85,9 +101,14 @@ for trial = 1:nTrials
                 [maxV2, latMaxV1(2)] = max(abs(v2));
                 [maxV(trial), fingerMaxed] = max([maxV1 maxV2]);
                 latMaxV(trial) = latMaxV1(fingerMaxed);
+                [maxT1, latMaxT1(1)] = max(tauDiff1);
+                [maxT2, latMaxT1(2)] = max(tauDiff2);
+                [maxT(trial), fingerMaxed] = max([maxT1, maxT2]);
+                latMaxT(trial) = latMaxT1(fingerMaxed);
+                minT(trial) = min([min(tauDiff1) min(tauDiff2)]);
         end
         
-        % count samples until movement occurred 
+        %% latency: count samples until movement occurred to get 
         samplesElapsed = 1;
         moved = false;
         while moved == false

@@ -47,7 +47,7 @@ function plotPhase3(measure1, measure2, label, subjects, showLegend)
         plot(sessions,measure1{sub}(sessions)-measure2{sub}(sessions),...
             '-o','color',co(sub,:))        
     end    
-    ylabel([label ': yellow - blue'])    
+    ylabel([label ' (yel-blu)'])    
     if exist('showLegend','var')
         if showLegend
             leg2 = legend(subjects,'location','best');
