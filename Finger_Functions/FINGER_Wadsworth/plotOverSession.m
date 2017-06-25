@@ -33,27 +33,27 @@ function plotOverSession(data,label,subjects,plotChange)
     
     nSubs = length(subjects);
 
-    %% plot measure 
-    set(figure,'Position',[150 20 700 500]);    
-    hold on
-    set(0,'defaultlinelinewidth',2.5)
-    for sub = 1:nSubs
-        plot(sessions,data{sub},'-o')        
-    end    
-    ylabel(label)
-    setType(subjects)
+    %% plot measure or change in measure
+    if nargin <= 3
+        hold on
+        set(0,'defaultlinelinewidth',2.5)
+        for sub = 1:nSubs
+            plot(sessions,data{sub},'-o')        
+        end    
+        ylabel(label)
+        setType(subjects)
+    end
 
     %% plot change in measure
     if nargin >= 4
-        if plotChange
-            set(figure,'Position',[150 20 700 500]);    
+        if plotChange               
             hold on
             for sub = 1:nSubs
                 plot(sessions,data{sub}-data{sub}(1),'-o')
             end    
             ylabel(['\delta ' label])    
             setType(subjects)
-        end
+        end    
     end
 
     %% set type and legend    

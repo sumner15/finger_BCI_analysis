@@ -1,4 +1,4 @@
-function plotPhase3(measure1, measure2, label, subjects)
+function plotPhase3(measure1, measure2, label, subjects, showLegend)
 % This function plots a single measure across phase 3 sessions only, but
 % plots the measure in different colors for the ERD trials vs the ERS
 % trials (although this is decided elsewhere). i.e. it plots measure1 and
@@ -28,30 +28,36 @@ function plotPhase3(measure1, measure2, label, subjects)
             0.2000    0.2000    1.0000];
     set(groot,'defaultAxesColorOrder',co)
 
-    %% plot measure 
-    set(figure,'Position',[150 20 700 500]);    
-    hold on
-    set(0,'defaultlinelinewidth',2.5)
-    for sub = 1:nSubs
-        plot(sessions,measure1{sub}(sessions),'-o','color',co(sub,:))
-        plot(sessions,measure2{sub}(sessions),'--x','color',co(sub,:))
-    end    
-    ylabel(label)
-    leg1 = legend('yellow squares (ERD)','blue squares (ERS)',...
-        'location','best');  
-    setType(leg1)
+%     %% plot measure      
+%     hold on
+%     set(0,'defaultlinelinewidth',2.5)
+%     for sub = 1:nSubs
+%         plot(sessions,measure1{sub}(sessions),'-o','color',co(sub,:))
+%         plot(sessions,measure2{sub}(sessions),'--x','color',co(sub,:))
+%     end    
+%     ylabel(label)
+%     leg1 = legend('yellow squares (ERD)','blue squares (ERS)',...
+%         'location','best');  
+%     setType(leg1)
     
-    %% plot difference in measures 
-    set(figure,'Position',[150 20 700 500]);    
+    %% plot difference in measures     
     hold on
     set(0,'defaultlinelinewidth',2.5)
     for sub = 1:nSubs
         plot(sessions,measure1{sub}(sessions)-measure2{sub}(sessions),...
             '-o','color',co(sub,:))        
     end    
-    ylabel([label ': yellow - blue'])
-    leg2 = legend(subjects,'location','best');
-    setType(leg2)
+    ylabel([label ': yellow - blue'])    
+    if exist('showLegend','var')
+        if showLegend
+            leg2 = legend(subjects,'location','best');
+            setType(leg2)
+        else
+            setType()
+        end
+    else
+        setType()
+    end
 
     %% set type and legend    
     function setType(leg)
@@ -61,7 +67,9 @@ function plotPhase3(measure1, measure2, label, subjects)
         xticks(10:12)
         xticklabels(sessionTitles)                   
         xlabel('session')    
-        xtickangle(45)                    
-        set(leg,'FontSize',10)   
+        xtickangle(45)      
+        if exist('leg','var')
+            set(leg,'FontSize',10)   
+        end
     end
 end
