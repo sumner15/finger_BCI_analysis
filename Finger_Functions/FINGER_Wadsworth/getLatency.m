@@ -4,11 +4,12 @@
 % number (e.g. 07), and the target (e.g. 1-yellow or 2-blue)
 % returns latency, a vector of latency values, one for each trial during
 % the session.
-function latency = getLatency(dataIn, session, target, finger)
+function [latency, maxP, latMaxP, maxV, latMaxV] = ...
+                                getLatency(dataIn, session, target, finger)
 
 % phase 2 has no latency results
 if session >= 4 && session <=9
-    latency = NaN;
+    [latency, maxP, latMaxP, maxV, latMaxV] = deal(NaN);
     return
 end
 
@@ -36,7 +37,7 @@ end
 
 %% compute latency 
 samplesInTrace = 400;
-latency = NaN(nTrials,1);
+[latency, maxP, latMaxP, maxV, latMaxV] = deal(NaN(nTrials,1));
 
 for trial = 1:nTrials   
     % find sample 0 and final sample indices & extract movement data
@@ -48,6 +49,9 @@ for trial = 1:nTrials
 
     posDiff1 = smooth(abs(pos1(sample0:sampleF)-posStart1));
     posDiff2 = smooth(abs(pos2(sample0:sampleF)-posStart2));
+    
+    v1 = [0; posDiff1(2:end)-posDiff1(1:end-1)];
+    v2 = [0; posDiff2(2:end)-posDiff2(1:end-1)];
     
     % was this the EEG target we wanted? The Finger target we wanted?
     targetWanted = (EEGTarget(goInds(trial))==target);
@@ -66,6 +70,23 @@ for trial = 1:nTrials
     end 
     
     if successful ~= 0 && targetWanted && fingerWanted
+        % record the maximum change in position for this trial
+        switch finger
+            case 1
+                [maxP(trial), latMaxP(trial)] = max(abs(posDiff1));
+                [maxV(trial), latMaxV(trial)] = max(abs(v1));
+            case 2
+                [maxP(trial), latMaxP(trial)] = max(abs(posDiff2));
+                [maxV(trial), latMaxV(trial)] = max(abs(v2));
+            case 3
+                [maxP(trial), latMaxP(trial)] = ...
+                    max([max(abs(posDiff1)) max(abs(posDiff2))]);
+                [maxV1, latMaxV1(1)] = max(abs(v1));
+                [maxV2, latMaxV1(2)] = max(abs(v2));
+                [maxV(trial), fingerMaxed] = max([maxV1 maxV2]);
+                latMaxV(trial) = latMaxV1(fingerMaxed);
+        end
+        
         % count samples until movement occurred 
         samplesElapsed = 1;
         moved = false;
