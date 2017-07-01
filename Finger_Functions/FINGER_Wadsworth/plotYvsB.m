@@ -11,22 +11,32 @@ function plotYvsB()
     
     %% call plotting functions
     % plot movement traces & torque traces for both fingers
-    plotAway(data, data.tracesYellow1, data.tracesBlue1,...
-                   data.tracesYellow2, data.tracesBlue2)
+    subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1,...
+                   data.tracesYellow2, data.tracesBlue2);
     plotAway(data, data.tausYellow1, data.tausBlue1, ...
-                   data.tausYellow2, data.tausBlue2)
+                   data.tausYellow2, data.tausBlue2);
     % plot movement traces & torque traces for the target finger only
-    plotAway(data, data.tracesYellow1, data.tracesBlue1)
-    plotAway(data, data.tausYellow1, data.tausBlue1)
+    plotAway(data, data.tracesYellow1, data.tracesBlue1);
+    plotAway(data, data.tausYellow1, data.tausBlue1);
+    
     % plot individuation traces 
-    plotAway(data, data.posIndYellow, data.posIndBlue)
-    plotAway(data, data.tauIndYellow, data.tauIndBlue)
+    plotAway(data, data.posIndYellow, data.posIndBlue);
+    plotAway(data, data.tauIndYellow, data.tauIndBlue);
+    
+    % print the number of trials     
+    disp(['number of yellow trials: ' num2str(subTrials(1,:))])
+    disp(['mean number of yellow trials: ' num2str(mean(subTrials(1,:)))])
+    disp(['number of blue trials: ' num2str(subTrials(2,:))])
+    disp(['mean number of blue trials: ' num2str(mean(subTrials(2,:)))])
 
 %% plot data
-function plotAway(data, yellowData, blueData, orangeData, purpleData)
+function subTrials = plotAway(data, yellowData, blueData, orangeData, purpleData)
     fprintf('         ')
     set(figure,'Position',[100 20 2000 1100]);            
-    for finger = 1:3        
+    for finger = 1:3      
+        % store the number of trials for each person (Y and B)
+        subTrials = zeros(2,data.nSubs);
+        
         for sub = 1:data.nSubs
             % create time vector
             t = (1:size(yellowData{sub,finger},2))/256;
@@ -46,30 +56,37 @@ function plotAway(data, yellowData, blueData, orangeData, purpleData)
             yellowData{sub,finger} = yellowData{sub,finger}./maxVal;
             blueData{sub,finger} = blueData{sub,finger}./maxVal;   
          
+            % store the number of trials
+            subTrials(1,sub) = size(yellowData{sub,finger},1);   
+            subTrials(2,sub) = size(blueData{sub,finger},1);
             
             % HERE COMES THE PLOTTING
-            for i = 1:size(yellowData{sub,finger},1)
+            for i = 1:subTrials(1,sub)
                 % plot all yellow traces
                 hY = plot(t,yellowData{sub,finger}(i,:)',...
                     'color', [1 0.85 0], 'linewidth', 1.5); 
                 hY.Color(:,4) = 0.3;
-                hold on            
+                hold on   
+                if exist('orangeData','var') && exist('purpleData','var')
+                    % plot all orange traces (secondary finger)
+                    hO = plot(t,orangeData{sub,finger}(i,:)',...
+                        'color', [1 0.4 0.4], 'lineWidth', 1.5);                
+                    hO.Color(:,4) = 0.3;
+                end
+            end
+            for i = 1:subTrials(2,sub)
                 % plot all blue traces
                 hB = plot(t,blueData{sub,finger}(i,:)',...
                     'color', [0 0.4 0.65], 'linewidth', 1.5);
                 hB.Color(:,4) = 0.3;
                 
                 if exist('orangeData','var') && exist('purpleData','var')
-                    % plot all orange traces (secondary finger)
-                    hO = plot(t,orangeData{sub,finger}(i,:)',...
-                        'color', [1 0.4 0.4], 'lineWidth', 1.5);                
-                    hO.Color(:,4) = 0.3;
                     % plot all purple traces (secondary finger)
                     hP = plot(t,purpleData{sub,finger}(i,:)',...
                         'color', [0.5 0.2 0.6], 'lineWidth', 1.5);
                     hP.Color(:,4) = 0.3;                
                 end
-            end
+            end                        
             
             % set axis limits based on data 
             if min(yellowData{sub,finger}(:))<0
@@ -80,7 +97,7 @@ function plotAway(data, yellowData, blueData, orangeData, purpleData)
             % set axes type
             setType(sub,data.subjects,finger,axisLims)
         end
-    end    
+    end   
     fprintf('\n')
 end
 

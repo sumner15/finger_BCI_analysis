@@ -83,7 +83,7 @@ function loadAndPlot(subjects)
 %     plotOverSession(ERDp, 'ERD p-val', subjects)
 %     plotOverSession(ERDR2, 'ERD (R^2)', subjects)
 %     plotOverSession(hitRateEEG, 'hit rate EEG (%)', subjects)
-%     plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)
+    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)
     
     set(figure,'Position',[100 20 2000 1100]);  
     fingers = 3; 

@@ -35,7 +35,7 @@ if session<= 3
 end
 
 %% get movement traces
-
+samplesInTrace = 400;
 [traces, otherFinger, individuation] = deal(NaN(nTrials,samplesInTrace));
 
 for trial = 1:nTrials   
