@@ -27,6 +27,8 @@ for sub = 1:nSubs
                 mean(phase3Table.latency(relevantInds));
             maxT{sub}(finger,target) = ...
                 mean(phase3Table.maxT(relevantInds));
+            latMaxT{sub}(finger,target) = ...
+                mean(phase3Table.latMaxT(relevantInds));
         end
         relevantInds = fingerInds{finger};
         latencyP{sub}(finger) = ...
@@ -35,17 +37,23 @@ for sub = 1:nSubs
         maxTP{sub}(finger) = ...
             anova1(phase3Table.maxT(relevantInds),...
             phase3Table.target(relevantInds),'off');
+        latMaxTP{sub}(finger) = ...
+            anova1(phase3Table.latMaxT(relevantInds),...
+            phase3Table.target(relevantInds),'off');
     end            
 end
 cd(startDir);
 
 
 %% plot results
-subsToPlot = [3 6 8];
+% subsToPlot = [3 6 8];
+subsToPlot = 1:8;
+nSubsPlot = length(subsToPlot);
 set(figure,'Position',[100 20 800 1100]);  
 set(0,'defaultAxesFontSize',20)
-for sub = 1:length(subsToPlot)
-    subplot(3,2,2*(sub-1)+1)
+for sub = 1:nSubsPlot
+    % plot latency
+    subplot(nSubsPlot,3,3*(sub-1)+1)
     for finger = index:both
         bar(finger-0.2,latency{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
         hold on
@@ -57,8 +65,8 @@ for sub = 1:length(subsToPlot)
     setType()
     ylabel('latency (ms)')
     ylim([0 1500])
-    
-    subplot(3,2,2*(sub-1)+2)
+    % plot max T
+    subplot(nSubsPlot,3,3*(sub-1)+2)
     for finger = index:both
         bar(finger-0.2,maxT{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
         hold on
@@ -70,6 +78,19 @@ for sub = 1:length(subsToPlot)
     setType()    
     ylabel('MCP torque')
     ylim([0 300])
+    % plot latency to Max T
+    subplot(nSubsPlot,3,3*(sub-1)+3)
+    for finger = index:both
+        bar(finger-0.2,latMaxT{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
+        hold on
+        bar(finger+0.2,latMaxT{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
+        if latMaxTP{subsToPlot(sub)}(finger) < 0.05
+            text(finger,1300,'*','FontSize',40)
+        end
+    end
+    setType()    
+    ylabel('\deltat max\tau (ms)')
+    ylim([0 1500])
 end
 
 function setType()
