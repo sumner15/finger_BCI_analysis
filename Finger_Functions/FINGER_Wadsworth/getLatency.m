@@ -105,7 +105,7 @@ for trial = 1:nTrials
                 [maxT2, latMaxT1(2)] = max(tauDiff2);
                 [maxT(trial), fingerMaxed] = max([maxT1, maxT2]);
                 latMaxT(trial) = latMaxT1(fingerMaxed);
-                minT(trial) = min([min(tauDiff1) min(tauDiff2)]);
+                minT(trial) = min([min(tauDiff1) min(tauDiff2)]);                
         end
         
         %% latency: count samples until movement occurred to get 
@@ -129,3 +129,7 @@ for trial = 1:nTrials
         end                        
     end
 end
+
+latMaxP = latMaxP/256*1000;
+latMaxV = latMaxV/256*1000;
+latMaxT = latMaxT/256*1000;
