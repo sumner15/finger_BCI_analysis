@@ -27,13 +27,14 @@ for sub = 1:nSubs
                 mean(phase3Table.latency(relevantInds));
             maxT{sub}(finger,target) = ...
                 mean(phase3Table.maxT(relevantInds));
-            latencyP{sub}(finger) = ...
-                anova1(phase3Table.latency(relevantInds),...
-                phase3Table.target(relevantInds),'off');
-            maxTP{sub}(finger) = ...
-                anova1(phase3Table.maxT(relevantInds),...
-                phase3Table.target(relevantInds),'off');
         end
+        relevantInds = fingerInds{finger};
+        latencyP{sub}(finger) = ...
+            anova1(phase3Table.latency(relevantInds),...
+            phase3Table.target(relevantInds),'off');
+        maxTP{sub}(finger) = ...
+            anova1(phase3Table.maxT(relevantInds),...
+            phase3Table.target(relevantInds),'off');
     end            
 end
 cd(startDir);
@@ -49,18 +50,26 @@ for sub = 1:length(subsToPlot)
         bar(finger-0.2,latency{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
         hold on
         bar(finger+0.2,latency{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
+        if latencyP{subsToPlot(sub)}(finger) < 0.05
+            text(finger,1300,'*','FontSize',40)
+        end
     end
     setType()
     ylabel('latency (ms)')
+    ylim([0 1500])
     
     subplot(3,2,2*(sub-1)+2)
     for finger = index:both
         bar(finger-0.2,maxT{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
         hold on
         bar(finger+0.2,maxT{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
+        if maxTP{subsToPlot(sub)}(finger) < 0.05
+            text(finger,250,'*','FontSize',40)
+        end
     end
     setType()    
     ylabel('MCP torque')
+    ylim([0 300])
 end
 
 function setType()
