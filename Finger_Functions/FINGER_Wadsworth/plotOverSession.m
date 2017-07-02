@@ -29,10 +29,10 @@ end
 %             0.2000    0.2000    1.0000];
 %     set(groot,'defaultAxesColorOrder',co)
     co = [  0 0 0 ; ...
-            0 0 0 ; ...
+            0 0 1 ; ...
             1 0 0 ; ... 
             1 0 0 ; ...
-            0 0 0 ; ...
+            0 0 1 ; ...
             0 0 0 ; ...
             0 0 0 ; ... 
             0 0 0 ];
@@ -61,7 +61,7 @@ end
         if plotChange               
             hold on
             for sub = 1:nSubs
-                plot(sessions,data{sub}-data{sub}(1),'-o')
+                plot(sessions,data{sub}-data{sub}(2),'-o')
             end    
             ylabel(['\delta ' label])    
             setType(subjectsDeIdentify)
@@ -76,7 +76,7 @@ end
         xlim([-1 13])
         xticks(0:12)
         xticklabels(sessionTitles)                   
-        xlabel('session')    
+%         xlabel('session')    
         xtickangle(45)        
         leg1 = legend(subjects,'location','best');
         set(leg1,'FontSize',14)    

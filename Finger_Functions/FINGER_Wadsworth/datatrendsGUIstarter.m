@@ -24,7 +24,7 @@ end
 
 datatrendsGUI2(T)
 
-plotGoodResults()
+plotGoodResults(T)
 
 function plotGoodResults(T)    
 %% plot useful results

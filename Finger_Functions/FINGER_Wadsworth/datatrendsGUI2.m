@@ -139,25 +139,39 @@ end
 
 
 function plotdata(handles)
-T = handles.T;
-VNames = T.Properties.VariableNames;
-VDesc = T.Properties.VariableDescriptions;
-v1 = get(handles.listbox1,'Value');
-v2 = get(handles.listbox2,'Value');
-x = T{:,VNames(v1)};
-y = T{:,VNames(v2)};
-axes(handles.axes1)
-cla; hold on; grid on
-plot(x,y,'bo','LineWidth',2,'MarkerSize',6); 
-lm = fitlm(x,y,'linear')
-plot([min(x) max(x)],[lm.Coefficients{2,1}*(min(x))+lm.Coefficients{1,1} lm.Coefficients{2,1}*(max(x))+lm.Coefficients{1,1}],'r-','Linewidth',2,'LineWidth',2)
-%         if lm.Coefficients.pValue(2)<=0.05
-%             xlabel(['Trend (R^2=',num2str(lm.Rsquared.Ordinary,3),', p = ',num2str(lm.Coefficients.pValue(2),3),')'],'BackgroundColor','y')
-%         else
-%             xlabel(['Trend (R^2=',num2str(lm.Rsquared.Ordinary,3),', p = ',num2str(lm.Coefficients.pValue(2),3),')'])
-%         end
-set(handles.text1,'String',['          p = ' num2str(lm.Coefficients.pValue(2),3)])
-set(handles.text2,'String',['      R^2 = ' num2str(lm.Rsquared.Ordinary,3)])
-set(handles.text3,'String',['R^2 Adj = ' num2str(lm.Rsquared.Adjusted,3)])
-xlabel(VDesc(v1))
-ylabel(VDesc(v2))
+    T = handles.T;
+    VNames = T.Properties.VariableNames;
+    VDesc = T.Properties.VariableDescriptions;
+    v1 = get(handles.listbox1,'Value');
+    v2 = get(handles.listbox2,'Value');
+
+    axes(handles.axes1)
+    cla; hold on; grid on
+
+    goodSubs = {'CHEA','RAZT','TRUL','VANT'};
+    noControl = {'MCCL','MAUA'};
+    emgControl = {'HATA','PHIC'};
+    
+    xGood = T{goodSubs,VNames(v1)};
+    yGood = T{goodSubs,VNames(v2)};
+    xNoControl = T{noControl,VNames(v1)};
+    yNoControl = T{noControl,VNames(v2)};
+    xEmgControl = T{emgControl,VNames(v1)};
+    yEmgControl = T{emgControl,VNames(v2)};
+
+    lm = fitlm(xGood,yGood,'linear');
+    plot([min(xGood) max(xGood)],...
+        [lm.Coefficients{2,1}*(min(xGood))+lm.Coefficients{1,1} ...
+         lm.Coefficients{2,1}*(max(xGood))+lm.Coefficients{1,1}],...
+         'color',[0 0.447 0.741],'Linewidth',2)
+    hold on
+    
+    plot(xGood,yGood,'ok')    
+    plot(xNoControl,yNoControl,'or')        
+    plot(xEmgControl,yEmgControl,'ob')
+
+    set(handles.text1,'String',['          p = ' num2str(lm.Coefficients.pValue(2),3)])
+    set(handles.text2,'String',['      R^2 = ' num2str(lm.Rsquared.Ordinary,3)])
+    set(handles.text3,'String',['R^2 Adj = ' num2str(lm.Rsquared.Adjusted,3)])
+    xlabel(VDesc(v1))
+    ylabel(VDesc(v2))
