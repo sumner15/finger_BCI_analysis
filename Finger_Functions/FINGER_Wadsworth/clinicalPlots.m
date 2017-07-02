@@ -30,6 +30,9 @@ for sub = 1:nSubs
     end
 end
 
+figure(1)
+plotOverSession(BBT,'Box & Blocks',subjects,false)
+figure(2)
 plotOverSession(BBT,'Box & Blocks',subjects,true)
     
 %% temporary conversion code to get change in clinical scores 
@@ -38,8 +41,10 @@ plotOverSession(BBT,'Box & Blocks',subjects,true)
 % 
 % [dFM, dBBT] = deal(zeros(nSubs,1));
 % for sub = 1:nSubs
-%    dFM(sub) = mean(FM{sub}(4:5))-mean(FM{sub}(1:3));
-%    dBBT(sub) = mean(BBT{sub}(4:5))-mean(BBT{sub}(1:3));
+% %    dFM(sub) = mean(FM{sub}(4:5))-mean(FM{sub}(1:3));
+% %    dBBT(sub) = mean(BBT{sub}(4:5))-mean(BBT{sub}(1:3));
+%    dFM(sub) = mean(FM{sub}(5))-mean(FM{sub}(1:2));
+%    dBBT(sub) = mean(BBT{sub}(5))-mean(BBT{sub}(1:2));
 % end
 % TdFM = table(dFM,'VariableNames',{'changeFMAMA'});
 % TdBBT = table(dBBT,'VariableNames',{'changeBBT'});   
