@@ -1,12 +1,13 @@
 clear; clc; close all
 
 %% plot results for all subjects
-subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+% subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+subjects = {'CHEA','HATA','MAUA','MCCL','PHIC','RAZT','TRUL','VANT'};
 loadAndPlot(subjects)
 
 %% plot results for performers
-subjects = {'MCCL','VANT','CHEA','RAZT','TRUL'};
-loadAndPlot(subjects)
+% subjects = {'MCCL','VANT','CHEA','RAZT','TRUL'};
+% loadAndPlot(subjects)
 
 % % debugging 
 % subjects = {'CHEA'};
@@ -82,8 +83,8 @@ function loadAndPlot(subjects)
     %% plot results over session
 %     plotOverSession(ERDp, 'ERD p-val', subjects)
 %     plotOverSession(ERDR2, 'ERD (R^2)', subjects)
-%     plotOverSession(hitRateEEG, 'hit rate EEG (%)', subjects)
-    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)
+    plotOverSession(hitRateEEG, 'SMR hit rate (%)', subjects)    
+%     plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)
     
     set(figure,'Position',[100 20 2000 1100]);  
     fingers = 3; 

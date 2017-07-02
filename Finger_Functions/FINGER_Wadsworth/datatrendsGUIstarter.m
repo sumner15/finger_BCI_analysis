@@ -23,3 +23,30 @@ while ~exist('T','var')
 end
 
 datatrendsGUI2(T)
+
+plotGoodResults()
+
+function plotGoodResults(T)    
+%% plot useful results
+    set(figure,'Position',[100 20 600 500])
+    set(0,'defaultlinelinewidth',4)
+    
+    lm = fitlm(T.BBTscreenI,T.changeBBT,'linear');
+    plot([min(T.BBTscreenI) max(T.BBTscreenI)],...
+        [lm.Coefficients{2,1}*(min(T.BBTscreenI))+lm.Coefficients{1,1} ...
+         lm.Coefficients{2,1}*(max(T.BBTscreenI))+lm.Coefficients{1,1}],...
+         'color',[0 0.447 0.741],'Linewidth',2)
+    hold on
+    
+    plot(T.BBTscreenI,T.changeBBT,'ok')    
+    plot(T.BBTscreenI('MCCL'),T.changeBBT('MCCL'),'or')
+    plot(T.BBTscreenI('MAUA'),T.changeBBT('MAUA'),'or')
+
+    xlabel('Box & Blocks at Screening')
+    ylabel('Box & Blocks change')
+    grid on
+    
+    legend(['R^2 = ' num2str(lm.Rsquared.Ordinary) ...
+        ',  p = ' num2str(lm.Coefficients.pValue(2))],...
+        'location','best')
+end

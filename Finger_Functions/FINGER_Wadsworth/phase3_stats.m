@@ -1,6 +1,6 @@
 clear; clc; close all
 
-subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+subjects = {'CHEA','HATA','MAUA','MCCL','PHIC','RAZT','TRUL','VANT'};
 set(0,'defaultlinelinewidth',2.5)
 nSubs = length(subjects);
 startDir = dataDirectory();
