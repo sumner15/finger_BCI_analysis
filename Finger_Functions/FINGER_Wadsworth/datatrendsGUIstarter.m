@@ -31,7 +31,11 @@ function plotGoodResults(T)
     set(figure,'Position',[100 20 600 500])
     set(0,'defaultlinelinewidth',4)
     
-    lm = fitlm(T.BBTscreenI,T.changeBBT,'linear');
+    goodSubs = {'CHEA','RAZT','TRUL','VANT'};
+    noControl = {'MCCL','MAUA'};
+    emgControl = {'HATA','PHIC'};
+    
+    lm = fitlm(T.BBTscreenI(goodSubs),T.changeBBT(goodSubs),'linear');
     plot([min(T.BBTscreenI) max(T.BBTscreenI)],...
         [lm.Coefficients{2,1}*(min(T.BBTscreenI))+lm.Coefficients{1,1} ...
          lm.Coefficients{2,1}*(max(T.BBTscreenI))+lm.Coefficients{1,1}],...
@@ -39,14 +43,15 @@ function plotGoodResults(T)
     hold on
     
     plot(T.BBTscreenI,T.changeBBT,'ok')    
-    plot(T.BBTscreenI('MCCL'),T.changeBBT('MCCL'),'or')
-    plot(T.BBTscreenI('MAUA'),T.changeBBT('MAUA'),'or')
+    plot(T.BBTscreenI(noControl),T.changeBBT(noControl),'or')        
+    plot(T.BBTscreenI(emgControl),T.changeBBT(emgControl),'ob')
 
     xlabel('Box & Blocks at Screening')
     ylabel('Box & Blocks change')
     grid on
+    ylim([0 10])
     
-    legend(['R^2 = ' num2str(lm.Rsquared.Ordinary) ...
-        ',  p = ' num2str(lm.Coefficients.pValue(2))],...
+    legend(['R^2 = ' num2str(round(lm.Rsquared.Ordinary,3)) ...
+        ',  p = ' num2str(round(lm.Coefficients.pValue(2),3))],...
         'location','best')
 end
