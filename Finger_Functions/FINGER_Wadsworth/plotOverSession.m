@@ -58,14 +58,21 @@ end
 
     %% plot change in measure
     if nargin >= 4
-        if plotChange               
-            hold on
+        hold on
+        set(0,'defaultlinelinewidth',2.5)
+        if plotChange                           
             for sub = 1:nSubs
                 plot(sessions,data{sub}-data{sub}(2),'-o')
             end    
             ylabel(['\delta ' label])    
             setType(subjectsDeIdentify)
-        end    
+        else
+            for sub = 1:nSubs
+                plot(sessions,data{sub},'-o')        
+            end    
+            ylabel(label)
+            setType(subjectsDeIdentify)
+        end
     end
 
     %% set type and legend    
