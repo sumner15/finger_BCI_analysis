@@ -1,5 +1,6 @@
 clear; clc; close all
-subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+% subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+subjects = {'CHEA','HATA','MAUA','MCCL','PHIC','RAZT','TRUL','VANT'};
 nSubs = length(subjects);
 
 %% load clinical data & rearrange data by subject
@@ -28,6 +29,8 @@ for sub = 1:nSubs
         NIHSS{sub}(visit) = eval(['clinicalDataSimple.' NIHSSVars{visit} '(subjects{sub})']);
     end
 end
+
+plotOverSession(BBT,'Box & Blocks',subjects,true)
     
 %% temporary conversion code to get change in clinical scores 
 % note: Only use this to create the new change values for the subject
