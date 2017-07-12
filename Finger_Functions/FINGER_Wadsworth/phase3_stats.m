@@ -90,7 +90,7 @@ for sub = 1:nSubsPlot
             maxTSTD{subsToPlot(sub)}(finger,blue),0.05,'FaceColor', [0 0 0]);
         bar(finger+0.2,maxT{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
         if maxTP{subsToPlot(sub)}(finger) < 0.05
-            text(finger,350,'*','FontSize',40)
+            text(finger,320,'*','FontSize',40)
         end
     end
     setType()    
