@@ -37,6 +37,8 @@ end
             0 0 0 ; ... 
             0 0 0 ];
     set(groot,'defaultAxesColorOrder',co)
+    
+    code = {'-o','-o','-o','-x','-x','-x','-*','-+'};
 
     %% set up 
     if length(data{1})==5 %if this is clinical data
@@ -48,9 +50,9 @@ end
     %% plot measure or change in measure
     if nargin <= 3
         hold on
-        set(0,'defaultlinelinewidth',2.5)
+        set(0,'defaultlinelinewidth',1.5)
         for sub = 1:nSubs
-            plot(sessions,data{sub},'-o')        
+            plot(sessions,data{sub},code{sub})
         end    
         ylabel(label)
         setType(subjectsDeIdentify)
@@ -59,16 +61,16 @@ end
     %% plot change in measure
     if nargin >= 4
         hold on
-        set(0,'defaultlinelinewidth',2.5)
+        set(0,'defaultlinelinewidth',1.5)
         if plotChange                           
             for sub = 1:nSubs
-                plot(sessions,data{sub}-data{sub}(2),'-o')
+                plot(sessions,data{sub}-data{sub}(2),code{sub})
             end    
             ylabel(['\delta ' label])    
             setType(subjectsDeIdentify)
         else
             for sub = 1:nSubs
-                plot(sessions,data{sub},'-o')        
+                plot(sessions,data{sub},code{sub})        
             end    
             ylabel(label)
             setType(subjectsDeIdentify)
