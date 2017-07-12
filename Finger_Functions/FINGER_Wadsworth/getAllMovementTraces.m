@@ -6,8 +6,8 @@
 
 
 clear; clc; close all 
-subjects = {'CHEA','VANT','TRUL','RAZT','MCCL','PHIC','HATA','MAUA'};
-subjects = {'CHEA'};   
+% subjects = {'CHEA','VANT','TRUL','RAZT','MCCL','PHIC','HATA','MAUA'};
+subjects = {'CHEA','RAZT','TRUL','VANT'};
 nSubs = length(subjects);
 startDir = pwd;
 
