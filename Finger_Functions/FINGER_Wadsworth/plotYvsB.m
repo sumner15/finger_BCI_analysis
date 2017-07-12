@@ -11,17 +11,17 @@ function plotYvsB()
     
     %% call plotting functions
     % plot movement traces & torque traces for both fingers
-    subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1,...
-                   data.tracesYellow2, data.tracesBlue2);
-    plotAway(data, data.tausYellow1, data.tausBlue1, ...
-                   data.tausYellow2, data.tausBlue2);
+%     subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1,...
+%                    data.tracesYellow2, data.tracesBlue2);
+%     plotAway(data, data.tausYellow1, data.tausBlue1, ...
+%                    data.tausYellow2, data.tausBlue2);
     % plot movement traces & torque traces for the target finger only
-    plotAway(data, data.tracesYellow1, data.tracesBlue1);
+    subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1);
     plotAway(data, data.tausYellow1, data.tausBlue1);
     
     % plot individuation traces 
-    plotAway(data, data.posIndYellow, data.posIndBlue);
-    plotAway(data, data.tauIndYellow, data.tauIndBlue);
+%     plotAway(data, data.posIndYellow, data.posIndBlue);
+%     plotAway(data, data.tauIndYellow, data.tauIndBlue);
     
     % print the number of trials     
     disp(['number of yellow trials: ' num2str(subTrials(1,:))])
@@ -32,7 +32,7 @@ function plotYvsB()
 %% plot data
 function subTrials = plotAway(data, yellowData, blueData, orangeData, purpleData)
     fprintf('         ')
-    set(figure,'Position',[100 20 2000 1100]);            
+    set(figure,'Position',[100 20 900 1200]);            
     for finger = 1:3      
         % store the number of trials for each person (Y and B)
         subTrials = zeros(2,data.nSubs);
@@ -42,7 +42,7 @@ function subTrials = plotAway(data, yellowData, blueData, orangeData, purpleData
             t = (1:size(yellowData{sub,finger},2))/256;
             
             % set subplot
-            subplot(3,data.nSubs,data.nSubs*(finger-1)+sub)
+            subplot(data.nSubs,3,3*(sub-1)+finger)
             fprintf('|')
             
             % normalize data to max of 1            
@@ -61,8 +61,8 @@ function subTrials = plotAway(data, yellowData, blueData, orangeData, purpleData
             subTrials(2,sub) = size(blueData{sub,finger},1);
             
             % HERE COMES THE PLOTTING
-            for i = 1:subTrials(1,sub)
-                % plot all yellow traces
+            % plot all yellow traces
+            for i = 1:subTrials(1,sub)                
                 hY = plot(t,yellowData{sub,finger}(i,:)',...
                     'color', [1 0.85 0], 'linewidth', 1.5); 
                 hY.Color(:,4) = 0.3;
@@ -74,8 +74,8 @@ function subTrials = plotAway(data, yellowData, blueData, orangeData, purpleData
                     hO.Color(:,4) = 0.3;
                 end
             end
-            for i = 1:subTrials(2,sub)
-                % plot all blue traces
+            % plot all blue traces
+            for i = 1:subTrials(2,sub)                
                 hB = plot(t,blueData{sub,finger}(i,:)',...
                     'color', [0 0.4 0.65], 'linewidth', 1.5);
                 hB.Color(:,4) = 0.3;
@@ -105,16 +105,18 @@ end
 function setType(sub,subjects,finger,axisLims)
     set(findall(gcf,'-property','FontSize'),'FontSize',14)
     fingerStrings = {'index','middle','both'};
-    title(subjects{sub})          
+%     if finger==1
+%         ylabel(subjects{sub})          
+%     end
     if sub==1
-        ylabel(fingerStrings(finger))
+       title(fingerStrings(finger))    
     end
     
     axis(axisLims)
     xticks([0 0.5 1.0 1.5])
     xticklabels({'0','0.5','1.0','1.5'})
     yticks(axisLims(3:4))
-    yticklabels({'flexed','extended'})
+    yticklabels({'flex','extend'})
 end
 
 %% function to get the maximum data value for this subject, across fingers
