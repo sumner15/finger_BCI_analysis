@@ -28,10 +28,13 @@ end
 tau1 = -1.55*f1a - 2.82*f1b + 7.87;
 tau2 = -1.55*f2a - 2.82*f2b + 7.87;
 
-% we will assume the target was always the one we wanted  during phase 1 
-% in order to include all of the movement trials
-if session<= 3
+% we will assume the target was always the one we wanted  during phase 1,  
+% or if not specified, in order to include all of the movement trials
+if session<= 3 || ~exist('target','var')
+    target = 1;
     EEGTarget = target*ones(size(EEGTarget));
+    result = ones(size(result));
+%     warning('including all trials (not filtering by EEG target)')
 end
 
 %% get movement traces
@@ -62,12 +65,14 @@ for trial = 1:nTrials
     successful = max(result(sample0:sampleF));    
     % don't look at last movement if the trial ended early (fringe case)
     successful = successful * (sample0+samplesInTrace-1 < length(result));   
+    successful = true * (sample0+samplesInTrace-1 < length(result));   
     % don't look at falsely triggered movements
     if max(posDiff1(1:100))>50 || max(posDiff2(1:100))>50
         successful = 0;
     end
     
-    if successful ~= 0 && targetWanted && fingerWanted                
+%     if successful ~= 0 && targetWanted && fingerWanted       
+    if successful ~= 0 && fingerWanted       
         switch finger
             case 1
                 traces(trial,:) = tauDiff1';   

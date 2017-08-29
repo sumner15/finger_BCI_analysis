@@ -1,23 +1,26 @@
-function plotYvsB()
+function plotYvsB(dataFileString)
     %% load data
     disp('plotting all phase 3 movement data')    
     fprintf('progress ||||||||||||||||||||||||\n')
     
+    startDir = dataDirectory();
     if nargin==0
-        startDir = dataDirectory();
-        data = load('traces.mat');
-        cd(startDir);      
+        data = load('traces.mat');   
+    else
+        data = load(dataFileString);
     end
+    cd(startDir);      
+        
     
     %% call plotting functions
     % plot movement traces & torque traces for both fingers
-%     subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1,...
-%                    data.tracesYellow2, data.tracesBlue2);
-%     plotAway(data, data.tausYellow1, data.tausBlue1, ...
-%                    data.tausYellow2, data.tausBlue2);
+    subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1,...
+                   data.tracesYellow2, data.tracesBlue2);
+    plotAway(data, data.tausYellow1, data.tausBlue1, ...
+                   data.tausYellow2, data.tausBlue2);
     % plot movement traces & torque traces for the target finger only
-    subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1);
-    plotAway(data, data.tausYellow1, data.tausBlue1);
+%     subTrials = plotAway(data, data.tracesYellow1, data.tracesBlue1);
+%     plotAway(data, data.tausYellow1, data.tausBlue1);
     
     % plot individuation traces 
 %     plotAway(data, data.posIndYellow, data.posIndBlue);

@@ -68,6 +68,33 @@ end
 hitRateRobotTable = table(hitRateRobot,'VariableNames',{'hitRateRobot'});
 hitRateEEGTable = table(hitRateEEG,'VariableNames',{'hitRateEEG'});
 
+%% load unforced hit rate values
+dataDirectory()
+load tracesForStats.mat
+% get subject index
+logicalCells = strfind(subjects, subID);
+subIndex = find(not(cellfun('isempty', logicalCells)));
+% organize data
+[indexMoveRate, middleMoveRate, bothMoveRate] = deal(NaN(12,1));
+indexMoveData = allTraces{subIndex,1};
+middleMoveData = allTraces{subIndex,2};
+bothMoveData = allTraces{subIndex,3};
+for session = 1:12
+    if ~isempty(indexMoveData{session})
+        indexMoveRate(session) = sum(~isnan(indexMoveData{session}(:,1)))...
+                                 /size(indexMoveData{session},1)*100;
+        middleMoveRate(session) = sum(~isnan(middleMoveData{session}(:,1)))...
+                                /size(indexMoveData{session},1)*100;
+        bothMoveRate(session) = sum(~isnan(bothMoveData{session}(:,1)))...
+                                /size(indexMoveData{session},1)*100;
+    else
+        [indexMoveRate(session), middleMoveRate(session), ...
+            bothMoveRate(session)] = deal(NaN);
+    end
+end
+iMRTable = table(indexMoveRate,'VariableNames',{'indexMoveRate'});
+mMRTable = table(middleMoveRate,'VariableNames',{'middleMoveRate'});
+bMRTable = table(bothMoveRate,'VariableNames',{'bothMoveRate'});
 
 %% load ERD values
 dataDirectory(true);
@@ -81,7 +108,8 @@ ERDR2Table = table(ERDR2,'VariableNames',{'ERDR2'});
 %% update table w new scores and finalize
 tableOut = [phaseTable tableOut ERDpTable ERDR2Table ...
     BBTTable FMTable NIHSSTable MOCATable ...
-    hitRateRobotTable hitRateEEGTable];
+    hitRateRobotTable hitRateEEGTable ...
+    iMRTable mMRTable bMRTable];
 
 tableOut.Properties.RowNames = sessionNum;
 
