@@ -14,12 +14,6 @@ if session >= 4 && session <=9
     return
 end
 
-% default to yellow target
-if ~exist('target','var')
-    target = 1;
-    warning('assuming you wanted yellow square results')
-end
-
 % default to index finger
 if ~exist('finger','var')
     finger = 1;
@@ -31,10 +25,13 @@ end
  moveTarget, EEGTarget, ~, ~, result, nTrials, goInds] = ...
     getContinuousData(dataIn);
 
-% we will assume the target was always the one we wanted  during phase 1 
-% in order to include all of the movement trials
-if session<= 3
+% we will assume the target was always the one we wanted  during phase 1,  
+% or if not specified, in order to include all of the movement trials
+if session<= 3 || ~exist('target','var') || isempty(target)
+    target = 1;
     EEGTarget = target*ones(size(EEGTarget));
+    result = ones(size(result));
+%     warning('including all trials (not filtering by EEG target)')
 end
 
 %% get movement traces
@@ -58,7 +55,7 @@ for trial = 1:nTrials
     % did the person succeed in moving? 
     successful = max(result(sample0:sampleF));    
     % don't look at last movement if the trial ended early (fringe case)
-    successful = successful * (sample0+samplesInTrace-1 < length(result));   
+    successful = successful * (sample0+samplesInTrace-1 < length(result));       
     % don't look at falsely triggered movements
     if max(posDiff1(1:100))>50 || max(posDiff2(1:100))>50
         successful = 0;
@@ -68,7 +65,7 @@ for trial = 1:nTrials
         successful = 0;
     end
     
-    if successful ~= 0 && targetWanted && fingerWanted                
+    if successful ~= 0 && targetWanted && fingerWanted                       
         switch finger
             case 1
                 traces(trial,:) = posDiff1'; 

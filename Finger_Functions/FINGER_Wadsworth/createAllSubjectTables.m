@@ -2,7 +2,7 @@
 % structures for each participant and stores the results in a .mat file.
 
 clear; clc; close all
-subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+subjects = {'CHEA','HATA','MAUA','MCCL','PHIC','RAZT','TRUL','VANT'};
 nSubs = length(subjects);
 startDir = pwd;
 

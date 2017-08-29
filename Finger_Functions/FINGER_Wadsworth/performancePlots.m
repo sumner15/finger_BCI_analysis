@@ -16,7 +16,9 @@ function loadAndPlot(subjects)
     dataDirectory();
     nSubs = length(subjects);
 
-    [ERDp, ERDR2, hitRateEEG, hitRateRobot] = deal(cell(nSubs,1));
+    [ERDp, ERDR2, hitRateEEG, hitRateRobot, ...
+        indexMoveRate, middleMoveRate, bothMoveRate] = ...
+        deal(cell(nSubs,1));
     
     for sub = 1:nSubs
        load(subjects{sub}) 
@@ -25,6 +27,9 @@ function loadAndPlot(subjects)
        ERDR2{sub} = subData.ERDR2;
        hitRateEEG{sub} = subData.hitRateEEG;
        hitRateRobot{sub} = subData.hitRateRobot;      
+       indexMoveRate{sub} = subData.indexMoveRate;
+       middleMoveRate{sub} = subData.middleMoveRate;
+       bothMoveRate{sub} = subData.bothMoveRate;
     end
 
     %% plot results over session
@@ -35,7 +40,13 @@ function loadAndPlot(subjects)
     figure(3)
     plotOverSession(hitRateEEG, 'SMR hit rate (%)', subjects)    
     figure(4)
-    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)        
+    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)      
+    figure(5)
+    plotOverSession(indexMoveRate, 'index move rate, unforced (%)', subjects)    
+    figure(6)
+    plotOverSession(middleMoveRate, 'middle move rate, unforced (%)', subjects)    
+    figure(7)
+    plotOverSession(bothMoveRate, 'both move rate, unforced (%)', subjects)    
     
     
 end
