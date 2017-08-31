@@ -58,11 +58,15 @@ cd(startDir);
 subsToPlot = [1 6 7 8];
 % subsToPlot = 1:8;
 nSubsPlot = length(subsToPlot);
-set(figure,'Position',[100 20 800 1100]);  
+set(figure,'Position',[100 20 950 1250]);  
 set(0,'defaultAxesFontSize',20)
 for sub = 1:nSubsPlot
     % plot latency
-    subplot(nSubsPlot,3,3*(sub-1)+1)
+    latMin = min(min(latency{subsToPlot(sub)}))-...
+        max(max(latencySTD{subsToPlot(sub)}));
+    latMax = max(max(latency{subsToPlot(sub)}))+...
+        2*max(max(latencySTD{subsToPlot(sub)}));
+    subplot(nSubsPlot,2,2*(sub-1)+1)
     for finger = index:both
         bar(finger-0.2,latency{subsToPlot(sub)}(finger,yellow)+...
             latencySTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
@@ -72,15 +76,19 @@ for sub = 1:nSubsPlot
             latencySTD{subsToPlot(sub)}(finger,blue),0.05,'FaceColor', [0 0 0]);
         bar(finger+0.2,latency{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
         if latencyP{subsToPlot(sub)}(finger) < 0.05
-            text(finger,1350,'*','FontSize',40)
+            text(finger-0.2,0.8*(latMax-latMin)+latMin,'*','FontSize',30)
         end
     end
     setType()
     ylabel('latency (ms)')
-    yticks([0 500 1000 1500])
-    ylim([0 1700])
+    yticks([0 500 750 1000 1250 1500])    
+    ylim([latMin, latMax])
     % plot max T
-    subplot(nSubsPlot,3,3*(sub-1)+2)
+    maxTMin = max(min(min(maxT{subsToPlot(sub)}))-...
+        max(max(maxTSTD{subsToPlot(sub)})),0);
+    maxTMax = max(max(maxT{subsToPlot(sub)}))+...
+        2*max(max(maxTSTD{subsToPlot(sub)}));
+    subplot(nSubsPlot,2,2*(sub-1)+2)
     for finger = index:both
         bar(finger-0.2,maxT{subsToPlot(sub)}(finger,yellow)+...
             maxTSTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
@@ -90,30 +98,13 @@ for sub = 1:nSubsPlot
             maxTSTD{subsToPlot(sub)}(finger,blue),0.05,'FaceColor', [0 0 0]);
         bar(finger+0.2,maxT{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
         if maxTP{subsToPlot(sub)}(finger) < 0.05
-            text(finger,320,'*','FontSize',40)
+            text(finger,0.8*(maxTMax-maxTMin)+maxTMin,'*','FontSize',30)
         end
     end
     setType()    
     ylabel('MCP torque')
-    ylim([0 400])
-    % plot latency to Max T
-    subplot(nSubsPlot,3,3*(sub-1)+3)
-    for finger = index:both
-        bar(finger-0.2,latMaxT{subsToPlot(sub)}(finger,yellow)+...
-            latMaxTSTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
-        hold on
-        bar(finger-0.2,latMaxT{subsToPlot(sub)}(finger,yellow),0.25,'FaceColor', [1 0.85 0]);
-        bar(finger+0.2,latMaxT{subsToPlot(sub)}(finger,blue)+...
-            latMaxTSTD{subsToPlot(sub)}(finger,blue),0.05,'FaceColor', [0 0 0]);
-        bar(finger+0.2,latMaxT{subsToPlot(sub)}(finger,blue),0.25,'FaceColor',[0 0.4 0.65]);
-        if latMaxTP{subsToPlot(sub)}(finger) < 0.05
-            text(finger,1350,'*','FontSize',40)
-        end
-    end
-    setType()    
-    ylabel('\deltat max\tau (ms)')
-    yticks([0 500 1000 1500])
-    ylim([0 1700])
+    yticks(0:100:1000)    
+    ylim([maxTMin, maxTMax])
 end
 
 function setType()
