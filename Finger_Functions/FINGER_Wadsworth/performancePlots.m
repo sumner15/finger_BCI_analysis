@@ -1,4 +1,4 @@
-clear; clc; close all
+clear; close all
 
 %% plot results for all subjects
 % subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
@@ -17,7 +17,7 @@ function loadAndPlot(subjects)
     nSubs = length(subjects);
 
     [ERDp, ERDR2, hitRateEEG, hitRateRobot, ...
-        indexMoveRate, middleMoveRate, bothMoveRate] = ...
+        indexLatency, middleLatency, bothLatency] = ...
         deal(cell(nSubs,1));
     
     for sub = 1:nSubs
@@ -27,9 +27,9 @@ function loadAndPlot(subjects)
        ERDR2{sub} = subData.ERDR2;
        hitRateEEG{sub} = subData.hitRateEEG;
        hitRateRobot{sub} = subData.hitRateRobot;      
-       indexMoveRate{sub} = subData.indexMoveRate;
-       middleMoveRate{sub} = subData.middleMoveRate;
-       bothMoveRate{sub} = subData.bothMoveRate;
+       indexLatency{sub} = subData.iLatUnforced;
+       middleLatency{sub} = subData.mLatUnforced;
+       bothLatency{sub} = subData.bLatUnforced;
     end
 
     %% plot results over session
@@ -42,11 +42,11 @@ function loadAndPlot(subjects)
     figure(4)
     plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)      
     figure(5)
-    plotOverSession(indexMoveRate, 'index move rate, unforced (%)', subjects)    
+    plotOverSession(indexLatency, 'index latency, unforced (s)', subjects)    
     figure(6)
-    plotOverSession(middleMoveRate, 'middle move rate, unforced (%)', subjects)    
+    plotOverSession(middleLatency, 'middle latency, unforced (s)', subjects)    
     figure(7)
-    plotOverSession(bothMoveRate, 'both move rate, unforced (%)', subjects)    
+    plotOverSession(bothLatency, 'both latency, unforced (s)', subjects)    
     
     
 end
