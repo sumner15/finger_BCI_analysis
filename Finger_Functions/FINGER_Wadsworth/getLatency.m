@@ -76,7 +76,7 @@ for trial = 1:nTrials
         successful = 0;
     end
     % did we get an errant value?     
-    if max(posDiff1)>1000 || max(posDiff1)>1000
+    if max(posDiff1)>1000 || max(posDiff2)>1000
         successful = 0;
     end 
     

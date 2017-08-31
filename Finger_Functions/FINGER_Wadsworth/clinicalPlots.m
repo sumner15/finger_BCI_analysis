@@ -38,7 +38,7 @@ plotOverSession(BBT,'Box & Blocks',subjects,true)
 %% temporary conversion code to get change in clinical scores 
 % note: Only use this to create the new change values for the subject
 % tables. This code should not have to be ran more than once
-% 
+
 % [dFM, dBBT] = deal(zeros(nSubs,1));
 % for sub = 1:nSubs
 % %    dFM(sub) = mean(FM{sub}(4:5))-mean(FM{sub}(1:3));
@@ -62,4 +62,41 @@ plotOverSession(BBT,'Box & Blocks',subjects,true)
 % BBTT = table(BBTscreenI,BBT1I,BBT2I,BBT3I,BBT4I,'VariableNames',...
 %     {'BBTscreenI', 'BBT1I', 'BBT2I', 'BBT3I', 'BBT4I'});
 
+%% temporary conversion code to save movement data to table
+% note: this code should only have to be run once
 
+% [iLatUnforced1, iLatUnforced2, iLatUnforced3, iLatUnforced4,...
+%  mLatUnforced1, mLatUnforced2, mLatUnforced3, mLatUnforced4,...
+%  bLatUnforced1, bLatUnforced2, bLatUnforced3, bLatUnforced4]...
+%     = deal(NaN(8,1));
+%     
+% subjects = {'MCCL','VANT','MAUA','HATA','PHIC','CHEA','RAZT','TRUL'};
+% for sub = 1:length(subjects)    
+%     subID = subjects{sub};
+%     dataDirectory()    
+%     load([subID '.mat']);
+%     
+%     iLatUnforced1(sub) = subData.iLatUnforced(1);
+%     iLatUnforced2(sub) = subData.iLatUnforced(3);
+%     iLatUnforced3(sub) = subData.iLatUnforced(10);
+%     iLatUnforced4(sub) = subData.iLatUnforced(12);
+%     
+%     mLatUnforced1(sub) = subData.mLatUnforced(1);
+%     mLatUnforced2(sub) = subData.mLatUnforced(3);
+%     mLatUnforced3(sub) = subData.mLatUnforced(10);
+%     mLatUnforced4(sub) = subData.mLatUnforced(12);
+%     
+%     bLatUnforced1(sub) = subData.bLatUnforced(1);
+%     bLatUnforced2(sub) = subData.bLatUnforced(3);
+%     bLatUnforced3(sub) = subData.bLatUnforced(10);
+%     bLatUnforced4(sub) = subData.bLatUnforced(12);    
+% end
+% unforced = table(iLatUnforced1, iLatUnforced2, iLatUnforced3, iLatUnforced4,...
+%                  mLatUnforced1, mLatUnforced2, mLatUnforced3, mLatUnforced4,...
+%                  bLatUnforced1, bLatUnforced2, bLatUnforced3, bLatUnforced4,...
+%                  'VariableNames',...
+%                  {'iLatUF1','iLatUF2', 'iLatUF3', 'iLatUF4',...
+%                  'mLatUF1', 'mLatUF2', 'mLatUF3', 'mLatUF4',...
+%                  'bLatUF1', 'bLatUF2', 'bLatUF3', 'bLatUF4'});
+% unforced.Properties.VariableDescriptions = ...
+%     unforced.Properties.VariableNames;
