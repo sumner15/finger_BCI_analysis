@@ -4,10 +4,11 @@ function addFingerFunctions
 dir = pwd;
 
 % BCI2000 = input('Are you using BCI2000? (type y or n -- press ''enter'')\n','s');
-BCI2000 =  exist('C:\BCI2000\tools','dir') || exist('../../Documents/BCI2000/tools','dir');
+BCI2000 =  exist('C:\BCI2000\tools','dir') || ...
+           exist('../../Documents/BCI2000/tools','dir');
 
 % cbmspc(Nenadic) code
-cbsmpc = exist('C:\Users\Sumner\Desktop\MATLAB\cbmspccode','dir');
+CBMSPC = exist('C:\Users\Sumner\Desktop\MATLAB\cbmspccode','dir');
 
 %loading happens here for PC systems
 if ispc
@@ -29,13 +30,13 @@ if ispc
         disp('BCI2000 directories not found. Skipping.');
     end    
     
-    % loading CBSMPC dirs
-    if cbsmpc
+    % loading CBMSPC dirs
+    if CBMSPC
         cd('C:\Users\Sumner\Desktop\MATLAB\cbmspccode');
         addpath(genpath(pwd));       
-        disp('CBSMPC directories added.');
+        disp('CBMSPC directories added.');
     else
-        disp('CBSMPC directory not found. Skipping.');
+        disp('CBMSPC directory not found. Skipping.');
     end
     
 %otherwise, on a unix system...
