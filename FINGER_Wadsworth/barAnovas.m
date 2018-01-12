@@ -37,7 +37,7 @@ end
 allData = [];
 [allTarget, allFinger] = deal({});
 
-for sub = [1 6 7 8]
+for sub = 1:8
     allData = [allData ; data{sub}];
     allTarget = [allTarget ; gTarget{sub}];
     allFinger = [allFinger ; gFinger{sub}];
