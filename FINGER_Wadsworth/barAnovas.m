@@ -1,6 +1,5 @@
 % testing for interaction effects on bar plots       
 % YOU MUST RUN PHASE3_STATS TO POPULATE THE WORKSPACE!!! 
-load 
 
 fingerTitles = {'index','middle','both'};
 targetTitles = {'yellow','blue'};
@@ -23,16 +22,31 @@ for sub = 1:8
     end
 end
 
-% something like...
+%% within subjects anova analysis
 for sub = [1 6 7 8]
     subData = data{sub};
-    subTarget = gTarget{sub};
-    subFinger = gFinger{sub};   
+    subTarget = gTarget{sub}; %target labels
+    subFinger = gFinger{sub}; %finger labels
     
     % interactions
-    p = anovan(subData, {subTarget,subFinger},'model','interaction','varnames',{'target','finger'})    
+    p = anovan(subData, {subTarget,subFinger},...
+        'model','interaction','varnames',{'target','finger'});   
 end
 
-            
+%% across subject analysis
+allData = [];
+[allTarget, allFinger] = deal({});
+
+for sub = [1 6 7 8]
+    allData = [allData ; data{sub}];
+    allTarget = [allTarget ; gTarget{sub}];
+    allFinger = [allFinger ; gFinger{sub}];
+end
+    
+p = anovan(allData, {allTarget,allFinger},...
+    'model','interaction','varnames',{'target','finger'});
+    
+
+
                 
                 
