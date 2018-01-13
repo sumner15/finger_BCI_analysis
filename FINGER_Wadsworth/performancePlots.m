@@ -25,11 +25,9 @@ function loadAndPlot(subjects)
 
        ERDp{sub} = subData.ERDp;
        ERDR2{sub} = subData.ERDR2;
+       
        hitRateEEG{sub} = subData.hitRateEEG;
-       hitRateRobot{sub} = subData.hitRateRobot;      
-       indexLatency{sub} = subData.iLatUnforced;
-       middleLatency{sub} = subData.mLatUnforced;
-       bothLatency{sub} = subData.bLatUnforced;
+       hitRateRobot{sub} = subData.hitRateRobot;          
     end
 
     %% plot results over session
@@ -37,16 +35,12 @@ function loadAndPlot(subjects)
     plotOverSession(ERDp, 'ERD p-val', subjects)
     figure(2)
     plotOverSession(ERDR2, 'ERD (R^2)', subjects)
+    % excluding participant "c" (which is actually "h" in the paper)
+    hitRateEEG{3} = zeros(size(hitRateEEG{3}));   
     figure(3)
     plotOverSession(hitRateEEG, 'SMR hit rate (%)', subjects)    
     figure(4)
-    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)      
-    figure(5)
-    plotOverSession(indexLatency, 'index latency, unforced (s)', subjects)    
-    figure(6)
-    plotOverSession(middleLatency, 'middle latency, unforced (s)', subjects)    
-    figure(7)
-    plotOverSession(bothLatency, 'both latency, unforced (s)', subjects)    
+    plotOverSession(hitRateRobot, 'hit rate robot (%)', subjects)         
     
     
 end

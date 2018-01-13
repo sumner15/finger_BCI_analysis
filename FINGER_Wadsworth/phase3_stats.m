@@ -25,9 +25,9 @@ for sub = 1:nSubs
             relevantInds = intersect(fingerInds{finger},targetInds{target});
             
             % create values for barAnovas (does not save)
-            latencyVerbose{sub,finger,target} = phase3Table.maxT(relevantInds); 
+            latencyVerbose{sub,finger,target} = phase3Table.latency(relevantInds); 
             maxTVerbose{sub,finger,target} = phase3Table.maxT(relevantInds); 
-            maxTLatVerbose{sub,finger,target} = phase3Table.maxT(relevantInds);
+            maxTLatVerbose{sub,finger,target} = phase3Table.latMaxT(relevantInds);
             
             % get mean movement measure values            
             latency{sub}(finger,target) = ...
