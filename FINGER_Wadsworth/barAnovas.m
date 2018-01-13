@@ -12,8 +12,17 @@ for sub = 1:8
     
     for finger = 1:3
         for target = 1:2
-            data{sub} = [data{sub} ; maxTVerbose{sub,finger,target}];
-            newDL = length(maxTVerbose{sub,finger,target});
+            %comment one of the following blocks out!!
+            
+            % analyzing maximum torque
+%             data{sub} = [data{sub} ; maxTVerbose{sub,finger,target}];
+%             newDL = length(maxTVerbose{sub,finger,target});
+
+            % analyzing latency
+            data{sub} = [data{sub} ; latencyVerbose{sub,finger,target}];
+            newDL = length(latencyVerbose{sub,finger,target});
+            
+            % leave this block alone
             newdata = repmat(fingerTitles(finger), [newDL 1]);
             gFinger{sub} = [gFinger{sub} ; newdata];
             newdata = repmat(targetTitles(target), [newDL 1]);
