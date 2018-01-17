@@ -13,6 +13,7 @@ function plotOverSession(data,label,subjects,plotChange)
 %
 % plotChange is a bool to plot the change from baseline
 subjectsDeIdentify = {'a','b','c','d','e','f','g','h'};
+subsOfInterest = [1 2 4 5 6 7 8]; 
 nSubs = length(subjects);
 if nSubs ~= length(subjectsDeIdentify)
     error('subject mismatch')
@@ -31,7 +32,7 @@ end
     co = [  0 0 0 ; ...
             0 0 1 ; ...
             1 0 0 ; ... 
-            1 0 0 ; ...
+%             1 0 0 ; ...
             0 0 1 ; ...
             0 0 0 ; ...
             0 0 0 ; ... 
@@ -42,7 +43,7 @@ end
 
     %% set up 
     if length(data{1})==5 %if this is clinical data
-        sessions = [0 1 3 10 12];
+        sessions = [0 1 3 10 12];        
     elseif length(data{1})==12 %if this is another measure
         sessions = 1:12;
     end           
@@ -51,11 +52,11 @@ end
     if nargin <= 3
         hold on
         set(0,'defaultlinelinewidth',1.5)
-        for sub = 1:nSubs
+        for sub = subsOfInterest
             plot(sessions,data{sub},code{sub})
         end    
         ylabel(label)
-        setType(subjectsDeIdentify)
+        setType(subjectsDeIdentify(subsOfInterest))
     end
 
     %% plot change in measure
@@ -69,11 +70,11 @@ end
             ylabel(['\delta ' label])    
             setType(subjectsDeIdentify)
         else
-            for sub = 1:nSubs
+            for sub = subsOfInterest
                 plot(sessions,data{sub},code{sub})        
             end    
             ylabel(label)
-            setType(subjectsDeIdentify)
+            setType(subjectsDeIdentify(subsOfInterest))
         end
     end
 
@@ -82,10 +83,11 @@ end
         set(findall(gcf,'-property','FontSize'),'FontSize',20)
         set(gca,'fontname','arial') 
 %         sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
-%             'Phase 3','','end'};            
+%             'Phase 3','','end'};                 
+        sessionTitles = {'','1','','3','','','','','','','10','','12'};
         xlim([-1 13])
         xticks(0:12)
-%         xticklabels(sessionTitles)                   
+        xticklabels(sessionTitles)                   
         xlabel('session')    
 %         xtickangle(45)        
         leg1 = legend(subjects,'location','best');
