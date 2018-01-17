@@ -13,7 +13,8 @@ CBMSPC = exist('C:\Users\Sumner\Desktop\MATLAB\cbmspccode','dir');
 %loading happens here for PC systems
 if ispc
     % adding finger functions
-    addpath(genpath(strcat(dir,'\Finger_Functions')));    
+%     addpath(genpath(strcat(dir,'\Finger_Functions')));   
+    addpath(genpath(dir));
     disp('FINGER function library added successfully.');
     
     % adding BCI2000 dirs

@@ -42,7 +42,7 @@ function plotGoodResults(T)
     hold on   
     % sort to plot in order
     T = sortrows(T,'RowNames');
-    code = {'-ok','-ob','-or','-xr','-xb','-xk','-*k','-+k'};
+    code = {'-ok','-ob','-ow','-xr','-xb','-xk','-*k','-+k'};
     % plot each subject
     for sub = 1:size(T,1)
         plot(T.BBTscreenI(sub),T.changeBBT(sub),code{sub})
@@ -60,10 +60,11 @@ function plotGoodResults(T)
     set(l1,'FontSize',15)
     
     
-%%% % plot BBT at baseline vs. change in BBT
-plotData = {T.changeLatIndexUF, T.changeLatMiddleUF, T.changeLatBothUF};
+%%% % plot BBT at baseline vs. finger movement latency
+meanChangeLat = mean([T.changeLatIndexUF T.changeLatMiddleUF T.changeLatBothUF],2);
+plotData = {T.changeLatIndexUF, T.changeLatMiddleUF, T.changeLatBothUF, meanChangeLat};
 goodSubs = [1 6 7 8];
-labels = {'\delta latency index','\delta latency middle','\delta latency both'};
+labels = {'\delta latency index','\delta latency middle','\delta latency both','\delta latency'};
 for i = 1:length(plotData)    
     set(figure,'Position',[100 20 600 500])            
     % create and plot fit line
