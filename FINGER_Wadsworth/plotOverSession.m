@@ -82,14 +82,13 @@ end
     function setType(subjects)
         set(findall(gcf,'-property','FontSize'),'FontSize',20)
         set(gca,'fontname','arial') 
-%         sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
-%             'Phase 3','','end'};                 
-        sessionTitles = {'','1','','3','','','','','','','10','','12'};
+        sessionTitles = {'BL','Phase 1','','','Phase 2','','','','','',...
+            'Phase 3','','end'};                         
         xlim([-1 13])
         xticks(0:12)
         xticklabels(sessionTitles)                   
         xlabel('session')    
-%         xtickangle(45)        
+        xtickangle(45)        
         leg1 = legend(subjects,'location','best');
         set(leg1,'FontSize',14)    
     end
