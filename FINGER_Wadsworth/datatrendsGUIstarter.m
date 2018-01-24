@@ -64,6 +64,7 @@ function plotGoodResults(T)
 meanChangeLat = mean([T.changeLatIndexUF T.changeLatMiddleUF T.changeLatBothUF],2);
 plotData = {T.changeLatIndexUF, T.changeLatMiddleUF, T.changeLatBothUF, meanChangeLat};
 goodSubs = [1 6 7 8];
+goodSubs = [1 2 4 5 6 7 8];
 labels = {'\delta latency index','\delta latency middle','\delta latency both','\delta latency'};
 for i = 1:length(plotData)    
     set(figure,'Position',[100 20 600 500])            

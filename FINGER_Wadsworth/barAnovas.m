@@ -1,5 +1,7 @@
 % testing for interaction effects on bar plots       
 % YOU MUST RUN PHASE3_STATS TO POPULATE THE WORKSPACE!!! 
+warning('did you run phase3_stats first?')
+warning('did you comment one of the blocks out?')
 
 fingerTitles = {'index','middle','both'};
 targetTitles = {'yellow','blue'};
@@ -12,15 +14,15 @@ for sub = 1:8
     
     for finger = 1:3
         for target = 1:2
-            %comment one of the following blocks out!!
+            %comment one of the following blocks out!!            
             
             % analyzing maximum torque
-%             data{sub} = [data{sub} ; maxTVerbose{sub,finger,target}];
-%             newDL = length(maxTVerbose{sub,finger,target});
+            data{sub} = [data{sub} ; maxTVerbose{sub,finger,target}];
+            newDL = length(maxTVerbose{sub,finger,target});
 
             % analyzing latency
-            data{sub} = [data{sub} ; latencyVerbose{sub,finger,target}];
-            newDL = length(latencyVerbose{sub,finger,target});
+%             data{sub} = [data{sub} ; latencyVerbose{sub,finger,target}];
+%             newDL = length(latencyVerbose{sub,finger,target});
             
             % leave this block alone
             newdata = repmat(fingerTitles(finger), [newDL 1]);
@@ -46,7 +48,9 @@ end
 allData = [];
 [allTarget, allFinger] = deal({});
 
-for sub = 1:8
+allSubs = [1 2 4 5 6 7 8];
+
+for sub = allSubs
     allData = [allData ; data{sub}];
     allTarget = [allTarget ; gTarget{sub}];
     allFinger = [allFinger ; gFinger{sub}];
