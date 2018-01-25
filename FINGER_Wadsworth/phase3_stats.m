@@ -59,20 +59,53 @@ for sub = 1:nSubs
 end
 cd(startDir);
 
+%% load phase 3 power results
+T = load('clinicalDataSimple.mat'); T = T.clinicalDataSimple;
+T = sortrows(T,'RowNames');
+% T.phase3PowerMeanY = abs(T.phase3PowerMeanY);
+% T.phase3PowerMeanB = abs(T.phase3PowerMeanB);
+T.phase3PowerSTDY = T.phase3PowerSTDY.*sign(T.phase3PowerMeanY);
+T.phase3PowerSTDB = T.phase3PowerSTDB.*sign(T.phase3PowerMeanB);
 
 %% plot results
 subsToPlot = [1 6 7 8];
 % subsToPlot = 1:8;
 nSubsPlot = length(subsToPlot);
-set(figure,'Position',[100 20 950 1250]);  
+set(figure,'Position',[100 -520 950*3/2 1250]);  
 set(0,'defaultAxesFontSize',20)
+set(0,'DefaultAxesFontName','Arial')
 for sub = 1:nSubsPlot
+    % plot power
+    subplot(nSubsPlot,3,3*(sub-1)+2)
+    powY = T.phase3PowerMeanY(subsToPlot(sub));
+    powB = T.phase3PowerMeanB(subsToPlot(sub));
+    stdY = T.phase3PowerSTDY(subsToPlot(sub));
+    stdB = T.phase3PowerSTDB(subsToPlot(sub));
+    
+    subplot(nSubsPlot,3,3*(sub-1)+1)
+    bar(1, powY+stdY,0.05,'FaceColor', [0 0 0]);
+    hold on    
+    bar(1, powY,0.25,'FaceColor', [1 0.85 0]);
+    bar(2, powB+stdB,0.05,'FaceColor', [0 0 0]);
+    bar(2, powB,0.25,'FaceColor', [0 0.4 0.65]);
+    if T.phase3ANOVAp(subsToPlot(sub)) < 0.05
+        text(1.4,1.1*(max([powY powB])+max([stdY stdB])),'*','FontSize',30)
+    end
+    xticks([1 2])
+    xticklabels({'up','down'})    
+    ylabel('SMR power')
+    if sign(powY)==1
+        ylim([0 1.3*max([powY+stdY powB+stdB])])
+    elseif sign(powY)==-1
+        ylim([1.3*min([powY+stdY powB+stdB]) 0])
+    end
+    
     % plot latency
     latMin = min(min(latency{subsToPlot(sub)}))-...
         max(max(latencySTD{subsToPlot(sub)}));
     latMax = max(max(latency{subsToPlot(sub)}))+...
         2*max(max(latencySTD{subsToPlot(sub)}));
-    subplot(nSubsPlot,2,2*(sub-1)+1)
+    subplot(nSubsPlot,3,3*(sub-1)+2)
     for finger = index:both
         bar(finger-0.2,latency{subsToPlot(sub)}(finger,yellow)+...
             latencySTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
@@ -89,12 +122,13 @@ for sub = 1:nSubsPlot
     ylabel('latency (ms)')
     yticks([0 500 750 1000 1250 1500])    
     ylim([latMin, latMax])
+    
     % plot max T
     maxTMin = max(min(min(maxT{subsToPlot(sub)}))-...
         max(max(maxTSTD{subsToPlot(sub)})),0);
     maxTMax = max(max(maxT{subsToPlot(sub)}))+...
         2*max(max(maxTSTD{subsToPlot(sub)}));
-    subplot(nSubsPlot,2,2*(sub-1)+2)
+    subplot(nSubsPlot,3,3*(sub-1)+3)
     for finger = index:both
         bar(finger-0.2,maxT{subsToPlot(sub)}(finger,yellow)+...
             maxTSTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
