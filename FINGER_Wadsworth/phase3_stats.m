@@ -55,7 +55,13 @@ for sub = 1:nSubs
         latMaxTP{sub}(finger) = ...
             anova1(phase3Table.latMaxT(relevantInds),...
             phase3Table.target(relevantInds),'off');
-    end            
+    end   
+    
+    % normalize torque values
+    if sum(isnan(maxT{sub}(:)))==0
+        maxT{sub} = maxT{sub}/max(phase3Table.maxT);
+        maxTSTD{sub} = maxTSTD{sub}/max(phase3Table.maxT);
+    end
 end
 cd(startDir);
 
@@ -93,7 +99,7 @@ for sub = 1:nSubsPlot
     end
     xticks([1 2])
     xticklabels({'up','down'})    
-    ylabel('SMR power')
+%     ylabel('SMR power')
     if sign(powY)==1
         ylim([0 1.3*max([powY+stdY powB+stdB])])
     elseif sign(powY)==-1
@@ -119,7 +125,7 @@ for sub = 1:nSubsPlot
         end
     end
     setType()
-    ylabel('latency (ms)')
+%     ylabel('latency (ms)')
     yticks([0 500 750 1000 1250 1500])    
     ylim([latMin, latMax])
     
@@ -142,9 +148,9 @@ for sub = 1:nSubsPlot
         end
     end
     setType()    
-    ylabel('MCP torque')
-    yticks(0:100:1000)    
-    ylim([maxTMin, maxTMax])
+%     ylabel('MCP torque')
+    yticks([0 1])   
+    ylim([0 1])
 end
 
 function setType()
