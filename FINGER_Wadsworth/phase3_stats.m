@@ -68,8 +68,8 @@ cd(startDir);
 %% load phase 3 power results
 T = load('clinicalDataSimple.mat'); T = T.clinicalDataSimple;
 T = sortrows(T,'RowNames');
-% T.phase3PowerMeanY = abs(T.phase3PowerMeanY);
-% T.phase3PowerMeanB = abs(T.phase3PowerMeanB);
+T.phase3PowerMeanY = abs(T.phase3PowerMeanY);
+T.phase3PowerMeanB = abs(T.phase3PowerMeanB);
 T.phase3PowerSTDY = T.phase3PowerSTDY.*sign(T.phase3PowerMeanY);
 T.phase3PowerSTDB = T.phase3PowerSTDB.*sign(T.phase3PowerMeanB);
 

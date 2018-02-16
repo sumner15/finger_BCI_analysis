@@ -32,7 +32,7 @@ function loadAndPlot(subjects)
 
     %% plot results over session
     % excluding participant "c" (which is actually "h" in the paper)
-    hitRateEEG{3} = zeros(size(hitRateEEG{3}));   
+%     hitRateEEG{3} = zeros(size(hitRateEEG{3}));   
     
     figure(1)
     plotOverSession(ERDp, 'ERD p-val', subjects)
@@ -40,7 +40,9 @@ function loadAndPlot(subjects)
     plotOverSession(ERDR2, 'ERD (R^2)', subjects)            
     figure(3)
     
+    % fixing a missing value 
     hitRateEEG{4}(8) = mean([hitRateEEG{4}(7) hitRateEEG{4}(9)]);
+    
     plotOverSession(hitRateEEG, 'SMR hit rate (%)', subjects)    
     sessionTitles = {'','','','','1','2','3','4','5','6','','',''};
     xticklabels(sessionTitles)  
