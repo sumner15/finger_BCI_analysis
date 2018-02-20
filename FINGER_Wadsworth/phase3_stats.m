@@ -31,14 +31,14 @@ for sub = 1:nSubs
             
             % get mean movement measure values            
             latency{sub}(finger,target) = ...
-                mean(phase3Table.latency(relevantInds));
+                mean(phase3Table.latency(relevantInds))/1000;
             maxT{sub}(finger,target) = ...
                 mean(phase3Table.maxT(relevantInds));            
             latMaxT{sub}(finger,target) = ...
                 mean(phase3Table.latMaxT(relevantInds));
             % get std of movement measure values
             latencySTD{sub}(finger,target) = ...
-                std(phase3Table.latency(relevantInds));
+                std(phase3Table.latency(relevantInds))/1000;
             maxTSTD{sub}(finger,target) = ...
                 std(phase3Table.maxT(relevantInds));
             latMaxTSTD{sub}(finger,target) = ...
@@ -77,18 +77,17 @@ T.phase3PowerSTDB = T.phase3PowerSTDB.*sign(T.phase3PowerMeanB);
 subsToPlot = [1 6 7 8];
 % subsToPlot = 1:8;
 nSubsPlot = length(subsToPlot);
-set(figure,'Position',[100 -520 950*3/2 1250]);  
-set(0,'defaultAxesFontSize',20)
+set(figure,'Position',[50 0 1200 900]);  
+set(0,'defaultAxesFontSize',15)
 set(0,'DefaultAxesFontName','Arial')
 for sub = 1:nSubsPlot
-    % plot power
-    subplot(nSubsPlot,3,3*(sub-1)+2)
+    %% plot power        
     powY = T.phase3PowerMeanY(subsToPlot(sub));
     powB = T.phase3PowerMeanB(subsToPlot(sub));
     stdY = T.phase3PowerSTDY(subsToPlot(sub));
     stdB = T.phase3PowerSTDB(subsToPlot(sub));
     
-    subplot(nSubsPlot,3,3*(sub-1)+1)
+    subplot(nSubsPlot,5,5*(sub-1)+1)
     bar(1, powY+stdY,0.05,'FaceColor', [0 0 0]);
     hold on    
     bar(1, powY,0.25,'FaceColor', [1 0.85 0]);
@@ -98,20 +97,23 @@ for sub = 1:nSubsPlot
         text(1.4,1.1*(max([powY powB])+max([stdY stdB])),'*','FontSize',30)
     end
     xticks([1 2])
-    xticklabels({'up','down'})    
+    xticklabels({'up','down'})        
 %     ylabel('SMR power')
     if sign(powY)==1
         ylim([0 1.3*max([powY+stdY powB+stdB])])
     elseif sign(powY)==-1
         ylim([1.3*min([powY+stdY powB+stdB]) 0])
     end
+    if sub==1
+        title('EEG Feature')
+    end
     
-    % plot latency
+    %% plot latency
     latMin = min(min(latency{subsToPlot(sub)}))-...
         max(max(latencySTD{subsToPlot(sub)}));
     latMax = max(max(latency{subsToPlot(sub)}))+...
         2*max(max(latencySTD{subsToPlot(sub)}));
-    subplot(nSubsPlot,3,3*(sub-1)+2)
+    subplot(nSubsPlot,5,[5*(sub-1)+2 5*(sub-1)+3])
     for finger = index:both
         bar(finger-0.2,latency{subsToPlot(sub)}(finger,yellow)+...
             latencySTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
@@ -126,15 +128,19 @@ for sub = 1:nSubsPlot
     end
     setType()
 %     ylabel('latency (ms)')
-    yticks([0 500 750 1000 1250 1500])    
+    yticks([0 0.5 0.75 1 1.25 1.5])
+    ytickangle(30)
     ylim([latMin, latMax])
+    if sub==1
+        title('Latency (s)')
+    end
     
-    % plot max T
+    %% plot max T
     maxTMin = max(min(min(maxT{subsToPlot(sub)}))-...
         max(max(maxTSTD{subsToPlot(sub)})),0);
     maxTMax = max(max(maxT{subsToPlot(sub)}))+...
         2*max(max(maxTSTD{subsToPlot(sub)}));
-    subplot(nSubsPlot,3,3*(sub-1)+3)
+    subplot(nSubsPlot,5,[5*(sub-1)+4 5*(sub-1)+5])
     for finger = index:both
         bar(finger-0.2,maxT{subsToPlot(sub)}(finger,yellow)+...
             maxTSTD{subsToPlot(sub)}(finger,yellow),0.05,'FaceColor', [0 0 0]);
@@ -151,10 +157,13 @@ for sub = 1:nSubsPlot
 %     ylabel('MCP torque')
     yticks([0 1])   
     ylim([0 1])
+    if sub==1
+        title('MCP Torque')
+    end
 end
 
 function setType()
     xticks([1 2 3])
     xticklabels({'index','middle','both'})    
-    xtickangle(45)      
+    xtickangle(30)      
 end

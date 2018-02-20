@@ -9,7 +9,7 @@ end
 close all
 %%  % plot BBT at baseline vs. change in BBT
 
-
+% T.changeBBT = mean([T.BBT4I T.BBT3I],2)-mean([T.BBT1I T.BBTscreenI],2);
 
 set(figure,'Position',[100 20 600 500])
 set(0,'defaultlinelinewidth',2)
@@ -54,7 +54,7 @@ for sub = 1:size(T,1)
     plot(T.BBTscreenI(sub),meanChangeLat(sub),code{sub})
 end
 
-setType('\delta latency (sec)', lm)
+setType('latency change (s)', lm)
 
 %% function to set type
 function setType(yAxisLabel, lm)
