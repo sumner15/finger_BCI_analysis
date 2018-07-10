@@ -7,9 +7,6 @@ dir = pwd;
 BCI2000 =  exist('C:\BCI2000\tools','dir') || ...
            exist('../../Documents/BCI2000/tools','dir');
 
-% cbmspc(Nenadic) code
-CBMSPC = exist('C:\Users\Sumner\Desktop\MATLAB\cbmspccode','dir');
-
 %loading happens here for PC systems
 if ispc
     % adding finger functions
@@ -29,16 +26,7 @@ if ispc
         disp('BCI2000 tools loaded.');        
     else
         disp('BCI2000 directories not found. Skipping.');
-    end    
-    
-    % loading CBMSPC dirs
-    if CBMSPC
-        cd('C:\Users\Sumner\Desktop\MATLAB\cbmspccode');
-        addpath(genpath(pwd));       
-        disp('CBMSPC directories added.');
-    else
-        disp('CBMSPC directory not found. Skipping.');
-    end
+    end      
     
 %otherwise, on a unix system...
 else
