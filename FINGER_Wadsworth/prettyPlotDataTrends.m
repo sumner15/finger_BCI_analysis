@@ -33,7 +33,7 @@ hold on
 T = sortrows(T,'RowNames');
 code = {'-ok','-ob','-or','-xr','-xb','-xk','-*k','-+k'};
 % plot each subject
-for sub = 1:size(T,1)
+for sub = [1 6 7 8 5 2 4 3] %1:size(T,1)
     plot(T.BBTscreenI(sub),T.changeBBT(sub),code{sub},'MarkerSize',15)
 end
 
@@ -60,20 +60,21 @@ fprintf('Spearman Correlation (BBT screen | latency change for all subjects):\t\
 fprintf('Spearman Correlation (BBT screen | latency change for BCI-control subjects):\trho = %1.3f\tp = %1.3f \n',RHO, PVAL)
 
 ax = subplot(1,1,1);
-h1 = plot([min(T.BBTscreenI) max(T.BBTscreenI)],...
-    [lm.Coefficients{2,1}*(min(T.BBTscreenI))+lm.Coefficients{1,1} ...
-     lm.Coefficients{2,1}*(max(T.BBTscreenI))+lm.Coefficients{1,1}],...     
-     'color',[0 0.447 0.741],'Linewidth',2);
+% h1 = plot([min(T.BBTscreenI) max(T.BBTscreenI)],...
+%     [lm.Coefficients{2,1}*(min(T.BBTscreenI))+lm.Coefficients{1,1} ...
+%      lm.Coefficients{2,1}*(max(T.BBTscreenI))+lm.Coefficients{1,1}],...     
+%      'color',[0 0.447 0.741],'Linewidth',2);
 hold on   
 % plot     
-for sub = 1:size(T,1)
+for sub = [1 6 7 8 5 2 4 3] %1:size(T,1)
     plot(T.BBTscreenI(sub),meanChangeLat(sub),code{sub},'MarkerSize',15)
 end
 
 setType('latency change (s)', lm)
 ax.XMinorGrid = 'on'; %turns on the minor grid.
 ax.YGrid = 'on';
-set(h1,'visible','off')
+% set(h1,'visible','off')
+legend({'a','b','c','d','e','f','g','h'})
 
 %% function to set type
 function setType(yAxisLabel, lm)
