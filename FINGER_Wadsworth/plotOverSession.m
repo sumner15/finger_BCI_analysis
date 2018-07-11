@@ -53,7 +53,7 @@ end
         hold on
         set(0,'defaultlinelinewidth',1.5)
         for sub = subsOfInterest
-            plot(sessions,data{sub},code{sub})
+            plot(sessions,data{sub},code{sub},'MarkerSize',12)
         end    
         ylabel(label)
         setType(subjectsDeIdentify(subsOfInterest))
@@ -65,13 +65,13 @@ end
         set(0,'defaultlinelinewidth',1.5)
         if plotChange                           
             for sub = 1:nSubs
-                plot(sessions,data{sub}-data{sub}(2),code{sub})
+                plot(sessions,data{sub}-data{sub}(2),code{sub},'MarkerSize',12)
             end    
             ylabel(['\delta ' label])    
             setType(subjectsDeIdentify)
         else
             for sub = subsOfInterest
-                plot(sessions,data{sub},code{sub})        
+                plot(sessions,data{sub},code{sub},'MarkerSize',12)     
             end    
             ylabel(label)
             setType(subjectsDeIdentify(subsOfInterest))
@@ -89,6 +89,7 @@ end
         xlabel('session')    
 %         xtickangle(45)        
         leg1 = legend(subjects,'location','best');
-        set(leg1,'FontSize',14)    
+        set(leg1,'FontSize',14)   
+        warning('This legend is inaccurate! Proceed with caution')
     end
 end
